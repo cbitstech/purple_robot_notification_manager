@@ -1,0 +1,61 @@
+<html>
+	<head>
+		<!-- external libs -->
+		<script src="/umb/manage/js/jquery-1.9.1.min.js"></script>
+		<script src="/umb/manage/js/underscore-min.js"></script>
+		<script src="/umb/manage/js/date.js"></script>
+		<!-- cbits libs -->
+		<script src="/h2h/pr_triggers/PurpleRobotNotificationManager.js"></script>
+		
+		<!-- test code -->
+		<script type="text/javascript">
+			$(document).ready(function() {
+				// // TEST 0: can we even create PRNM in the browser?
+			 //  var prnm = new PurpleRobotNotificationManager.ctor(
+			 //  		{
+			 //  			"env": {
+			 //  				"selected": 2,
+			 //  				"userCfgKey": "foo"
+			 //  			}
+			 //  		}
+		  // 		);
+			 //  alert(PurpleRobotNotificationManager.test());
+			 //  prnm.main();
+
+
+				// TEST 1: Test isUserAvailable
+				var testable = new PurpleRobotNotificationManager.ctor(
+					{
+					"env": {
+					  "selected": 2,
+					  "userCfgKey": "cfgs/TestyMcTesterson.prCfg.json.txt",
+					  "libRefs": {
+					  		"underscore": _,
+					  		"datejs": Date.prototype
+					 		}
+						}
+					});
+				console.log("***** TESTABLE *****: ", JSON.stringify(testable));
+
+				var unavailable = testable.isUserAvailable(
+					{
+						"promptBehavior": {
+							"wakeSleepTimes": {
+								"daily": {
+									"wakeTime": "09:00:00",
+									"sleepTime": "17:00:00"
+								}
+							}
+						}
+					},
+					new Date(2013, 5, 8, 12, 0, 0)
+				);
+
+				console.log("isUserAvailable: ",unavailable);
+			  
+			});
+		</script>
+	</head>
+	<body>
+	</body>
+</html>

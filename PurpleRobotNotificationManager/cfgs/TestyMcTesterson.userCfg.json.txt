@@ -1,0 +1,73 @@
+{
+  "people": [
+    {
+      "id": "TestyMcTesterson",
+      "type": "patient",
+      "name": "TODO",
+      "email": "1",
+      "phoneNumber": "2",
+      "phonePassword": "3"
+    },
+    {
+      "id": "TODO",
+      "type": "emergencyContact",
+      "name": "18",
+      "relationship": "19",
+      "phoneNumber": "21",
+      "phonePassword": "TODO",
+      "email": "20",
+      "address": [
+        {
+          "type": "home",
+          "street": "22",
+          "city": "23",
+          "state": "24",
+          "zip": "25"
+        }
+      ]
+    },
+    {
+      "id": "TODO",
+      "type": "clinician",
+      "name": "16"
+    },
+    {
+      "id": "TODO",
+      "type": "pharm",
+      "name": "17"
+    }
+  ],
+  "promptBehavior": {
+    "wakeSleepTimes": {
+      "daily": {
+        "wakeTime": "14:50:00",
+        "sleepTime": "21:13:00"
+      },
+      "weekly": {
+        "sleepTime": {
+          "Mon": ""
+        }
+      }
+    }
+  },
+  "doses": [
+    {
+      "time": "16:05:00",
+      "medication": "6",
+      "strength": "7",
+      "dispensationUnit": "mg"
+    },
+    {
+      "time": "08:09:00",
+      "medication": "10",
+      "strength": "11",
+      "dispensationUnit": "dose"
+    },
+    {
+      "time": "23:13:00",
+      "medication": "14",
+      "strength": "15",
+      "dispensationUnit": "mg"
+    }
+  ]
+}
