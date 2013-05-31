@@ -1,12 +1,16 @@
-var _ = require('underscore');
 var assert = require('assert');
 var cases = require('cases');
 var fs = require('fs');
 
+var _ = require('underscore');
 require('../date.js');
-var PurpleRobotNotificationManager = require('../PurpleRobotNotificationManager.js');
 
-var testable = new PurpleRobotNotificationManager.ctor(
+var PurpleRobotNotificationManager = require('../PurpleRobotNotificationManager.js');
+var Actions = require('../proj/h2h/actions/actions.js');
+
+
+// instantiate PRNM
+var prnm = new PurpleRobotNotificationManager.ctor(
   {
     "env": {
       // "selected": 1,
@@ -16,8 +20,13 @@ var testable = new PurpleRobotNotificationManager.ctor(
       }
     }
   });
+// instantiate actions to be run by PRNM and tell PRNM about them
+var actions = new Actions.ctor({"prnm": prnm});
+prnm.actions = actions;
+
+
 // console.log("PurpleRobotNotificationManager.test()",PurpleRobotNotificationManager.test());
-// console.log("testable.test()",testable.test());
+// console.log("prnm.test()",prnm.test());
 
 
 /**
@@ -80,7 +89,7 @@ suite('PurpleRobotNotificationManager', function() {
       assert.equal(actual, expected);
     });
     test('test (post-ctor)', function() {
-      var actual = testable.test();
+      var actual = prnm.test();
       var expected = 'hello world from PurpleRobotNotificationManager.test';
       assert.equal(actual, expected);
     });
@@ -97,6 +106,19 @@ suite('PurpleRobotNotificationManager', function() {
         }
       )
     );
+    
+
+    test('genDateFromTime: must convert each time string to today\'s date, with the specified time component', cases([
+       ["12:34:56", Date.today().set({hour: 12, minute: 34, second: 56})]
+      ,["07:08:09", Date.today().set({hour: 7, minute: 8, second: 9})]
+      ,["00:00:00", Date.today().set({hour: 0, minute: 0, second: 0})]
+      ,["23:59:59", Date.today().set({hour: 23, minute: 59, second: 59})]
+      ], function(timeStr, expected) {
+          var actual = prnm.genDateFromTime(timeStr);
+          assert.equal(actual.toString(),expected.toString());
+        }
+      )
+    );
 
 
     test('iCalToDate: must convert each valid ICal-formatted date must be converted to a JS Date instance', cases([
@@ -104,7 +126,7 @@ suite('PurpleRobotNotificationManager', function() {
         ["20130303T040506",[2013,2,3,4,5,6]]
       ],
         function(iCalStr, expectedDateParts) {
-          var actual = testable.iCalToDate(iCalStr);
+          var actual = prnm.iCalToDate(iCalStr);
           var expected = new Date(
              expectedDateParts[0]
             ,expectedDateParts[1]
@@ -122,8 +144,7 @@ suite('PurpleRobotNotificationManager', function() {
     /**
      * Run a set of test-cases against a set of bounds-checks.
      */
-    test(
-      'isUserAvailable: should return true/false given the last parameter in each case-array',
+    test('isUserAvailable: should return true/false given the last parameter in each case-array',
       cases([
         [0,0,0,false],
         [8,59,0,false],
@@ -136,7 +157,7 @@ suite('PurpleRobotNotificationManager', function() {
         [23,59,59,false]
         ],
         function(h,m,s,expected) {
-          var actual = testable.isUserAvailable(
+          var actual = prnm.isUserAvailable(
             testData, Date.today().set({hour:h,minute:m,second:s})
           );
           assert.equal(actual, expected);
@@ -146,18 +167,18 @@ suite('PurpleRobotNotificationManager', function() {
 
 
     test('getUserCfg: should return user-config contents', function() {
-      var actual = testable.getUserCfg();
+      var actual = prnm.getUserCfg();
       assert.notEqual(actual,null);
     });
 
 
     test('getAllDoseTimes: must get a set of 3 dose times', function() {
-      var actual = testable.getAllDoseTimes();
+      var actual = prnm.getAllDoseTimes();
       assert.equal(actual.length,3);
       console.log('actual',actual);
     });
     test('getAllDoseTimes: dose time formatting must match nn:nn:nn', function() {
-      var actual = testable.getAllDoseTimes();
+      var actual = prnm.getAllDoseTimes();
       _.map(actual, function(t) { 
         assert.equal((t.search('^\\d\\d:\\d\\d:\\d\\d$')) == 0, true);
       });
@@ -179,7 +200,7 @@ suite('PurpleRobotNotificationManager', function() {
         function(allDoseTimes, timePart, expected) {
           console.log('allDoseTimes,timePart,expected',allDoseTimes,timePart,expected);
           var currTime = Date.today().set({hour:timePart[0],minute:timePart[1],second:timePart[2]});
-          var actual = testable.isTimeForDose(allDoseTimes, currTime, {seconds:59});
+          var actual = prnm.isTimeForDose(allDoseTimes, currTime, {seconds:59});
           assert.equal(actual, expected);
         }
       )
@@ -191,7 +212,7 @@ suite('PurpleRobotNotificationManager', function() {
       ], function(startTimeParts, endTimeParts, expected) {
         var startDate = Date.today().set({hour:startTimeParts[0],minute:startTimeParts[1],second:startTimeParts[2]});
         var endDate = Date.today().set({hour:endTimeParts[0],minute:endTimeParts[1],second:endTimeParts[2]});
-        var actual = testable.getRandomDateTimeWithinRange(startDate, endDate);        
+        var actual = prnm.getRandomDateTimeWithinRange(startDate, endDate);        
         // must always be true
         assert.equal(actual.between(startDate, endDate), true);
       })
@@ -201,8 +222,8 @@ suite('PurpleRobotNotificationManager', function() {
       ], function(startTimeParts, endTimeParts, expected) {
         var startDate = Date.today().set({hour:startTimeParts[0],minute:startTimeParts[1],second:startTimeParts[2]});
         var endDate = Date.today().set({hour:endTimeParts[0],minute:endTimeParts[1],second:endTimeParts[2]});
-        var actual1 = testable.getRandomDateTimeWithinRange(startDate, endDate);        
-        var actual2 = testable.getRandomDateTimeWithinRange(startDate, endDate);        
+        var actual1 = prnm.getRandomDateTimeWithinRange(startDate, endDate);        
+        var actual2 = prnm.getRandomDateTimeWithinRange(startDate, endDate);        
         // must be true to whatever degree of certainty the JS interpreter's PRNG provides...
         assert.notEqual(actual1, actual2);
       })
@@ -213,7 +234,7 @@ suite('PurpleRobotNotificationManager', function() {
       ,[['b', 'c', 'd'], "\'b\',\'c\',\'d\'"]
       ,[['datetime','MedPrompt','Yes','No','PurpleRobot.loadUrl("http://mohrlab.northwestern.edu/h2h/");',null], "\'datetime\',\'MedPrompt\',\'Yes\',\'No\',\'PurpleRobot.loadUrl(\"http://mohrlab.northwestern.edu/h2h/\");\',\'null\'"]
       ], function(paramsArray, expected) {
-        var actual = testable.getQuotedAndDelimitedStr(paramsArray,',');
+        var actual = prnm.getQuotedAndDelimitedStr(paramsArray,',');
         assert.equal(actual, expected);
         // console.log('actual = ' + actual);
       })
@@ -226,7 +247,7 @@ suite('PurpleRobotNotificationManager', function() {
         var sd = Date.today().set({hour:arr[0][0],minute:arr[0][1],second:arr[0][2]});
         var ed = Date.today().set({hour:arr[1][0],minute:arr[1][1],second:arr[1][2]});
         var ud = Date.today().set({hour:arr[2][0],minute:arr[2][1],second:arr[2][2]});
-        var actual = testable.setEMATrigger('setEMATrigger test', sd, ed, ud);
+        var actual = prnm.setEMATrigger('setEMATrigger test', sd, ed, ud);
       })
     );
 
@@ -237,13 +258,42 @@ suite('PurpleRobotNotificationManager', function() {
         var sd = Date.today().set({hour:arr[0][0],minute:arr[0][1],second:arr[0][2]});
         var ed = Date.today().set({hour:arr[1][0],minute:arr[1][1],second:arr[1][2]});
         var ud = Date.today().set({hour:arr[2][0],minute:arr[2][1],second:arr[2][2]});
-        var actual = testable.setAllMedPrompts();
+        var actual = prnm.setAllMedPrompts();
+      })
+    );
+
+// works in embedded eval(): function() {console.log(11111); }
+    test('convertFnToString', cases([
+        [function() { console.log('HELLO'); return 1; }, '(function () { console.log(\'HELLO\'); return 1; })();', 1, null],
+        [function() { var a = 2; return a; }, '(function () { var a = 2; return a; })();', 2, null],
+        [function(q, a) { console.log(q + ': ' + a); return 3; }, '(function (q, a) { console.log(q + \': \' + a); return 3; })(\'how many Evans?\',\'2\');', 3, ['how many Evans?', 2]],
+        [actions.onMedPromptYes, 'too hard...', undefined, ['var debug = ' + prnm.debug.toString() + ';']] 
+      ],
+      function(fn, expectedFnTxt, expectedRet, fnParamArray) {
+        console.log('-------------------------------------------');
+        // console.log('fnParamArray = ' + fnParamArray);
+        // console.log('1: ' + fn.toString());
+        // console.log('2: ' + prnm.convertFnToString(fn.toString()));
+
+        // get converted function text
+        var actualFnTxt = prnm.convertFnToString(fn, fnParamArray);
+        console.log("actualFnTxt = " + actualFnTxt);
+        // console.log(expectedFnTxt);
+        // get the return of the converted function
+        var actualRet = eval(actualFnTxt);
+        // console.log(actualRet);
+
+        // test both the function's return and the function's text
+        if(expectedRet != undefined) {
+          assert.equal(actualRet, expectedRet);
+          assert.equal(actualFnTxt, expectedFnTxt);          
+        }
       })
     );
 
 
     test('main', function() {
-      var actual = testable.main();
+      var actual = prnm.main();
     });
 
 });

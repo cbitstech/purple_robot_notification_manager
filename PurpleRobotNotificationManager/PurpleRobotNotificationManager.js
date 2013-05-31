@@ -88,7 +88,7 @@ Date.prototype.toICal = function() { var fn = 'Date.prototype.toICal';
 
 
 // Following Caolan's pattern for Node.js/Browser cross-compatibility: http://caolanmcmahon.com/posts/writing_for_node_and_the_browser/
-var myexports = (function(exports) {
+var PRNM = (function(exports) {
 
 	  exports.test = function(){
       return 'hello world from exports';
@@ -97,9 +97,9 @@ var myexports = (function(exports) {
 
 	  // ctor
 	  // var ctor = function(d) {
-	  var ctor = function(d) { var fn = 'ctor';
+	  var ctor = function(d) { var fn = 'prnm:ctor';
 
-	    data = d;
+	    ctor.prototype.data = d;
 	    self = this;
 
 	    ctor.prototype.setFunctionsAndLibraryRefsForEnv(d.env);
@@ -112,6 +112,15 @@ var myexports = (function(exports) {
 
 	  // *Actually* define the object whose members will be referenced...
 	  ctor.prototype = {
+
+			// ==================================
+			// ========= CONSTS =================
+			// ==================================
+			triggerIdPrefixes: {
+				"self": "Purple Robot Notification Manager",
+				"medPrompt": "MedPrompt: ",
+				"ema": "EMA: "
+			},
 
 
 			// ===============================================
@@ -141,9 +150,13 @@ var myexports = (function(exports) {
 			showNativeDialog: null,
 			updateWidget: null,
 			updateTrigger: null,
+			fetchTriggerIds: null,
+			fetchTrigger: null,
+			deleteTrigger: null,
 
 			// FNGROUP: biz-logic
 			getUserCfg: null,
+			actions: null,
 
 			// env-specific consts passed-in from the client app
 			envConsts: null,
@@ -186,6 +199,9 @@ var myexports = (function(exports) {
 						self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { return PurpleRobot.showNativeDialog(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript); };
 						self.updateWidget = function(params) { return PurpleRobot.updateWidget(params); };
 						self.updateTrigger = function(triggerId, triggerObj) { return PurpleRobot.updateTrigger(triggerId, triggerObj) };
+						self.fetchTriggerIds = function() { return PurpleRobot.fetchTriggerIds(); };
+						self.fetchTrigger = function(triggerId) { return PurpleRobot.fetchTrigger(triggerId); };
+						self.deleteTrigger = function(triggerId) { return PurpleRobot.deleteTrigger(triggerId); };
 
 						// support fns
 						/**
@@ -235,15 +251,18 @@ var myexports = (function(exports) {
 						self.log = function(s, fn) { console.log('[INF]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
 						self.warn = function(s, fn) { console.warn('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
 						self.error = function(s, fn) { console.error('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.playDefaultTone = function() { self.log('NOEXEC: playDefaultTone'); };
-						self.persistEncryptedString = function(namespace, key, value) { self.log('NOEXEC: persistEncryptedString: key = \'' + key + '\'; value = \'' + value + '\''); };
-						self.fetchEncryptedString = function(namespace, key) { self.log('NOEXEC: fetchEncryptedString: key = \'' + key + '\''); };
-						self.persistString = function(namespace, key, value) { self.log('NOEXEC: persistString: key = \'' + key + '\'; value = \'' + value + '\''); };
-						self.fetchString = function(namespace, key) { self.log('NOEXEC: fetchString: key = \'' + key + '\''); };
-						self.scheduleScript = function(id, date, action) { self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr(id, date, action)); };
-						self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { self.log('NOEXEC: showNativeDialog: ', title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript); };
-						self.updateWidget = function(params) { self.log('NOEXEC: updateWidget: ', JSON.stringify(params)); };
-						self.updateTrigger = function(triggerId, triggerObj) { self.log('NOEXEC: updateTrigger: ', triggerId, JSON.stringify(triggerObj)); }
+						self.playDefaultTone = function() { var fn = 'playDefaultTone'; self.log('NOEXEC: playDefaultTone', fn); };
+						self.persistEncryptedString = function(namespace, key, value) { var fn = 'persistEncryptedString'; self.log('NOEXEC: persistEncryptedString: key = \'' + key + '\'; value = \'' + value + '\'', fn); };
+						self.fetchEncryptedString = function(namespace, key) { var fn = 'fetchEncryptedString'; self.log('NOEXEC: fetchEncryptedString: key = \'' + key + '\'', fn); };
+						self.persistString = function(namespace, key, value) { var fn = 'persistString'; self.log('NOEXEC: persistString: key = \'' + key + '\'; value = \'' + value + '\'', fn); };
+						self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: key = \'' + key + '\'', fn); };
+						self.scheduleScript = function(id, date, action) { var fn = 'scheduleScript'; self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr([id, date, action],','), fn); };
+						self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript], ','), fn); };
+						self.updateWidget = function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); };
+						self.updateTrigger = function(triggerId, triggerObj) { var fn = 'updateTrigger'; self.log('NOEXEC: updateTrigger: ' + self.getQuotedAndDelimitedStr([triggerId, JSON.stringify(triggerObj)],','), fn); };
+						self.fetchTriggerIds = function() { var fn = 'fetchTriggerIds'; self.log('NOEXEC: fetchTriggerIds', fn); return []; };
+						self.fetchTrigger = function(triggerId) { var fn = 'fetchTrigger'; self.log('NOEXEC: fetchTrigger: ' + triggerId, fn); };
+						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
 
 						// support fns
 						/**
@@ -278,15 +297,18 @@ var myexports = (function(exports) {
 						self.log = function(s, fn) { console.log('[INF]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
 						self.warn = function(s, fn) { console.warn('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
 						self.error = function(s, fn) { console.error('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.playDefaultTone = function() { self.log('NOEXEC: playDefaultTone'); };
-						self.persistEncryptedString = function(namespace, key, value) { self.log('NOEXEC: persistEncryptedString: key = \'' + key + '\'; value = \'' + value + '\''); };
-						self.fetchEncryptedString = function(namespace, key) { self.log('NOEXEC: fetchEncryptedString: key = \'' + key + '\''); };
-						self.persistString = function(namespace, key, value) { self.log('NOEXEC: persistString: key = \'' + key + '\'; value = \'' + value + '\''); };
-						self.fetchString = function(namespace, key) { self.log('NOEXEC: fetchString: key = \'' + key + '\''); };
-						self.scheduleScript = function(id, date, action) { self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr(id, date, action)); };
-						self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { self.log('NOEXEC: showNativeDialog: ', title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript); };
-						self.updateWidget = function(params) { self.log('NOEXEC: updateWidget: ', JSON.stringify(params)); };
-						self.updateTrigger = function(triggerId, triggerObj) { self.log('NOEXEC: updateTrigger: ', triggerId, JSON.stringify(triggerObj)); }
+						self.playDefaultTone = function() { var fn = 'playDefaultTone'; self.log('NOEXEC: playDefaultTone', fn); };
+						self.persistEncryptedString = function(namespace, key, value) { var fn = 'persistEncryptedString'; self.log('NOEXEC: persistEncryptedString: key = \'' + key + '\'; value = \'' + value + '\'', fn); };
+						self.fetchEncryptedString = function(namespace, key) { var fn = 'fetchEncryptedString'; self.log('NOEXEC: fetchEncryptedString: key = \'' + key + '\'', fn); };
+						self.persistString = function(namespace, key, value) { var fn = 'persistString'; self.log('NOEXEC: persistString: key = \'' + key + '\'; value = \'' + value + '\'', fn); };
+						self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: key = \'' + key + '\'', fn); };
+						self.scheduleScript = function(id, date, action) { var fn = 'scheduleScript'; self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr([id, date, action],','), fn); };
+						self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript],','), fn); };
+						self.updateWidget = function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); };
+						self.updateTrigger = function(triggerId, triggerObj) { var fn = 'updateTrigger'; self.log('NOEXEC: updateTrigger: ' + triggerId, JSON.stringify(triggerObj), fn); };
+						self.fetchTriggerIds = function() { var fn = 'fetchTriggerIds'; self.log('NOEXEC: fetchTriggerIds', fn); return []; };
+						self.fetchTrigger = function(triggerId) { var fn = 'fetchTrigger'; self.log('NOEXEC: fetchTrigger: ' + triggerId, fn); };
+						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
 
 						// support fns
 						/**
@@ -321,12 +343,13 @@ var myexports = (function(exports) {
 			 * @param  {[type]} timeStr [description]
 			 * @return {[type]}         [description]
 			 */
-			genDateFromTime: function(timeStr) {
+			genDateFromTime: function(timeStr) { var fn = 'genDateFromTime', self = ctor.prototype;
 				var tarr = timeStr.split(':');
 				var th = parseInt(tarr[0], 10),
 						tm = parseInt(tarr[1], 10),
 						ts = parseInt(tarr[2], 10);
 				var date = Date.today().set({ hour: th, minute: tm, second: ts});
+				self.debug(self.getQuotedAndDelimitedStr([timeStr,th,tm,ts,date],','),fn);
 				return date;
 			},
 
@@ -336,7 +359,7 @@ var myexports = (function(exports) {
 			 * @param  {[type]} iCalStr [description]
 			 * @return {[type]}         [description]
 			 */
-			iCalToDate: function(iCalStr) { var fn = 'iCalToDate';
+			iCalToDate: function(iCalStr) { var fn = 'iCalToDate', self = ctor.prototype;
 				var  yy = iCalStr.substr(0,4)
 						,MM = (parseInt(iCalStr.substr(4,2), 10)) - 1
 						,dd = iCalStr.substr(6,2)
@@ -355,9 +378,10 @@ var myexports = (function(exports) {
 			 * @param  {[type]} paramArray [description]
 			 * @return {[type]}            [description]
 			 */
-			getQuotedAndDelimitedStr: function(paramArray, delim) { var fn = 'getQuotedAndDelimitedStr', self = ctor.prototype;
+			getQuotedAndDelimitedStr: function(paramArray, delim, quoteChar) { var fn = 'getQuotedAndDelimitedStr', self = ctor.prototype;
 				// self.log('entered and exiting, with paramArray = ' + paramArray,fn);
-				return _.reduce(_.map(paramArray, function(param) { return '\'' + param + '\''; }), function(memo, val) {
+				var qc = self.isNullOrUndefined(quoteChar) ? '\'' : quoteChar;
+				return _.reduce(_.map(paramArray, function(param) { return qc + param + qc; }), function(memo, val) {
 					return paramArray.length == 1 ? val : memo + delim + val;
 					});
 			},
@@ -479,7 +503,7 @@ var myexports = (function(exports) {
 			},
 
 
-			setDateTimeTrigger: function(type, name, actionScriptText, startDateTime, endDateTime, untilDateTime) { var fn = 'setDateTimeTrigger', self = ctor.prototype;
+			setDateTimeTrigger: function(type, name, actionScriptText, startDateTime, endDateTime, repeatStr) { var fn = 'setDateTimeTrigger', self = ctor.prototype;
 				self.debug('entered',fn);
 				self.debug('actionScriptText = ' + actionScriptText, fn);
 
@@ -496,16 +520,40 @@ var myexports = (function(exports) {
 						
 						// self.scheduleScript(name, dical, actionScriptText);
 						
+						// deletes the trigger if it already exists
+						if(_.contains(self.fetchTriggerIds(), name)) { self.log('Deleting trigger: ' + name, fn); self.deleteTrigger(name); }
+
 						// sets a trigger
-						self.debug(self.getQuotedAndDelimitedStr([name,actionScriptText,dsical,deical], ','));
+						// self.debug('Trigger params: ' + self.getQuotedAndDelimitedStr([name,actionScriptText,startDateTime,dsical,endDateTime,deical], ','));
+						
+						var action = 
+								'PurpleRobot.log(\'***** TRIGGER START! *****\'); '
+							+ actionScriptText
+							+ '; PurpleRobot.log(\'***** TRIGGER END! *****\');'
+							;
+						
+						var actionKey = name + '-actionScriptText';
+
+						// self.debug('self.envConsts = ' + JSON.stringify(self.envConsts), fn);
+						// self.debug('self.envConsts.prCfg.namespace = ' + self.envConsts.prCfg.namespace, fn);
+						self.persistString(self.envConsts.prCfg.namespace, actionKey, action);
+						self.debug('Stored action string at [' + self.envConsts.prCfg.namespace + ',' + actionKey + '] of: ' + self.fetchString(self.envConsts.prCfg.namespace, actionKey) ,fn);
+
 						try {
 							var triggerObj = {
 								'identifier': name,
 								'type': 'datetime',
 								'name': name,
-								'action': actionScriptText,
+								'action': ''
+									+ 'var actionScriptText = PurpleRobot.fetchString(\'' + self.envConsts.prCfg.namespace + '\',\'' + actionKey + '\'); '
+									// + 'var quotedActionScriptText = "\'" + actionScriptText + "\'"';
+									+ 'PurpleRobot.log("[IN TRIGGER ACTION] eval()ing: " + actionScriptText);'
+									+ 'eval(\'\' + actionScriptText);'
+									+ 'PurpleRobot.log("[IN TRIGGER ACTION] did it eval?");'
+								,
 								'datetime_start': dsical,
-								'datetime_end': deical
+								'datetime_end': deical,
+								'datetime_repeat': repeatStr
 							};
 							self.debug('triggerObj = ' + JSON.stringify(triggerObj));
 							self.updateTrigger(name, triggerObj);
@@ -715,24 +763,75 @@ var myexports = (function(exports) {
 					self.debug('d = ' + JSON.stringify(d), fn);
 					
 					var sdt = self.genDateFromTime(d.time);
+					self.debug('sdt = ' + sdt, fn);
 					var  type = 'datetime'
-							,name = 'MedPrompt: ' + d.medication + ' at ' + d.time
-							// ,name = 'MedPrompt: ' + i
+							,name = self.triggerIdPrefixes.medPrompt + d.medication + ' at ' + d.time
 							,actionScriptText = null
 							,startDateTime = sdt
-							,endDateTime = sdt.addMinutes(1)
-							,untilDateTime = sdt.add(1).day().set({hour:0,minute:0,second:0})
+							,endDateTime = sdt.clone().addMinutes(1)
+							,untilDateTime = sdt.clone().addWeeks(1).set({hour:0,minute:0,second:0})
 							;
 
-					var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No','PurpleRobot.launchUrl("http://mohrlab.northwestern.edu/h2h/");',null], ',');
+					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
+					var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No'
+						// Broken
+						// ,'(function() { PurpleRobot.log("YES"); })();'
+						// ,'(function() { PurpleRobot.log("NO"); })();'
+						// WORKS 1 - on PR, not in unit-test
+						,'PurpleRobot.log(\'YES\');'
+						,'PurpleRobot.log(\'NO\');'
+						// WORKS 2
+						// PurpleRobot.showNativeDialog('datetime','MedPrompt: 14 at 23:13:00','Yes','No','(function () { var fn = \\'onMedPromptYes\\'; prnm.debug(\\'entered\\', fn); })();','(function () {  })();');
+
+						// NEED TO GET THESE WORKING...
+						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var debug = ' + self.debug.toString() + ';'])
+						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var debug = ' + self.debug.toString() + ';'])
+						], ',', '"');
+
+					// * real thing *
 					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
+					// * toy EX 1 * -- WORKS
+					// actionScriptText = '1 == 1;';
+					// * toy EX 2 * -- WORKS
+					// actionScriptText = 'PurpleRobot.log("WLOLOLOL");';
+					
+					// self.debug(self.getQuotedAndDelimitedStr([d.time,sdt,startDateTime,endDateTime,untilDateTime,repeatStr],','),fn);
 					self.debug('actionScriptText = ' + actionScriptText,fn);
-					self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, untilDateTime);
+					self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
 				});
 
 				self.debug('exiting',fn);
+			},
+
+
+			convertFnToString: function(fnPtr, fnParamArray) { var fn = 'convertFnToString', self = ctor.prototype;
+				self.debug('fnPtr = ' + fnPtr, fn);
+				self.debug('111 fnParamArray = ' + fnParamArray, fn);
+				// fnParamArray = fnParamArray == null 
+				// 	? fnParamArray 
+				// 	: _.map(fnParamArray, function(p) { 
+				// 			return !_.isString(p) ? p : (p.replace(/'/gm, 'AAAA')).replace(/"/gm, 'BBBB');
+				// 		} );
+				// self.debug('222 fnParamArray = ' + fnParamArray, fn);
+				var p = self.isNullOrUndefined(fnParamArray) ? '' : self.getQuotedAndDelimitedStr(fnParamArray,',','\'');
+				return '(' +  (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')(' + p.replace(/(\r\n|\n|\r)/gm,'') + ');';
+			},
+
+
+
+			/**
+			 * Deletes all triggers except the PRNM trigger.
+			 * @return {[type]} [description]
+			 */
+			clearAllNonPRNMTriggers: function() { var fn = "clearAllNonPRNMTriggers", self = ctor.prototype;
+				var triggersToDelete = _.filter(self.fetchTriggerIds(), function(triggerId) { return (triggerId != self.triggerIdPrefixes.self);});
+				self.warn('Deleting all triggers except: ' + self.triggerIdPrefixes.self + '. Triggers = ' + triggersToDelete, fn);
+				_.each(triggersToDelete, function(triggerId) {
+					self.debug('Deleting trigger: ' + triggerId, fn);
+					self.deleteTrigger(triggerId);
+				});
 			},
 
 
@@ -746,6 +845,9 @@ var myexports = (function(exports) {
 			main: function(args) { var fn = 'main', self = ctor.prototype;
 				self.log('entered: args: ' + args, fn);
 				self.log('execution context: ' + self.execCtx, fn);
+
+// for debugging
+self.clearAllNonPRNMTriggers();
 
 				self.setAllMedPrompts();
 
@@ -776,17 +878,20 @@ var myexports = (function(exports) {
 
 
 // WORKS, BUT BLOWS-UP UNDERSCORE.
-// var exports = new myexports(typeof exports === 'undefined' ? this['PurpleRobotNotificationManager'] = {} : exports);
+// var exports = new PRNM(typeof exports === 'undefined' ? this['PurpleRobotNotificationManager'] = {} : exports);
 // PurpleRobot.log('this = ' + JSON.stringify(this));
 // PurpleRobot.log('exports_1 = ' + JSON.stringify(exports));
 // PurpleRobot.log('ONE');
-var passedTomyexports = typeof exports === 'undefined' ? this['PurpleRobotNotificationManager'] = {} : exports;
-// if (currentExecutionContext == 0) { PurpleRobot.log('passedTomyexports = ' + (typeof passedTomyexports === 'object' ? JSON.stringify(passedTomyexports) : passedTomyexports)); }
-// else  { console.log('passedTomyexports = ' + (typeof passedTomyexports === 'object' ? JSON.stringify(passedTomyexports) : passedTomyexports)); }
+var passedToPRNM = typeof exports === 'undefined' ? this['PurpleRobotNotificationManager'] = {} : exports;
+// if (currentExecutionContext == 0) { PurpleRobot.log('passedToPRNM = ' + (typeof passedToPRNM === 'object' ? JSON.stringify(passedToPRNM) : passedToPRNM)); }
+// else  { console.log('passedToPRNM = ' + (typeof passedToPRNM === 'object' ? JSON.stringify(passedToPRNM) : passedToPRNM)); }
 // PurpleRobot.log('TWO');
-// PurpleRobot.log('passedTomyexports = ' + (typeof passedTomyexports === 'object' ? JSON.stringify(passedTomyexports) : passedTomyexports));
+// PurpleRobot.log('passedToPRNM = ' + (typeof passedToPRNM === 'object' ? JSON.stringify(passedToPRNM) : passedToPRNM));
 // PurpleRobot.log('THREE');
-exports = new myexports(passedTomyexports);
+
+// exports = new PRNM(passedToPRNM);
+var PurpleRobotNotificationManager = new PRNM(passedToPRNM);
+exports = PurpleRobotNotificationManager;
 exports.ctor.prototype.execCtx = currentExecutionContext;
 if (currentExecutionContext == 0) { PurpleRobot.log('exports.ctor.prototype.execCtx = ' + exports.ctor.prototype.execCtx); }
 else  { console.log('exports.ctor.prototype.execCtx = ' + exports.ctor.prototype.execCtx); }
