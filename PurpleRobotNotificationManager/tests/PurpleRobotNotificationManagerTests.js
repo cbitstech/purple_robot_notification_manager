@@ -1,6 +1,7 @@
 var assert = require('assert');
 var cases = require('cases');
 var fs = require('fs');
+var jsonfn = require('jsonfn').JSONfn;
 
 var _ = require('underscore');
 require('../date.js');
@@ -20,7 +21,7 @@ var prnm = new PurpleRobotNotificationManager.ctor(
       }
     }
   });
-// instantiate actions to be run by PRNM and tell PRNM about them
+// instantiate biz-logic (i.e., trigger actions) to be run by PRNM and tell PRNM about them
 var actions = new Actions.ctor({"prnm": prnm});
 prnm.actions = actions;
 
@@ -29,49 +30,67 @@ prnm.actions = actions;
 // console.log("prnm.test()",prnm.test());
 
 
+
+
+/**
+ * A mock object for Purple Robot, so we can pretend in the unit-test that we're calling functions in the PurpleRobot namespace.
+ * NOTE: This is currently quite incomplete, but sufficient for the tests that currently exist.
+ * @type {Object}
+ */
+var PurpleRobotMock = {
+  "log": jsonfn.stringify((function(s) { console.warn("[***** PurpleRobotNotificationTests.js *****] WOULD LOG: " + s); })),
+  "launchUrl": jsonfn.stringify((function(url) { console.warn('[***** PurpleRobotNotificationTests.js *****] WOULD LAUNCH: ' + isNullOrUndefined) })),
+  "showNativeDialog": jsonfn.stringify(function(p1,p2,p3,p4,p5) { console.warn('[***** PurpleRobotNotificationTests.js *****] WOULD SHOW DIALOG WITH PARAMS: ' + [p1,p2,p3,p4,p5]); } )
+}; 
+
+
+
+
+
 /**
  * PurpleRobotNotificationManager tests.
  * @return {[type]} [description]
  */
 suite('PurpleRobotNotificationManager', function() {
+
   // Test user-availability. User times defined in testData below has availablilty logic as follows:
   //    < 9:00AM    ==> unavail
   //    9:00AM      ==> avail
   //    16:59:59PM  ==> avail
   //    17:00       ==> unavail
   // suite('isUserAvailable', function() {
-    var testData =
-    {
-      "promptBehavior": {
-        "wakeSleepTimes": {
-          "daily": {
-            "wakeTime": "09:00:00",
-            "sleepTime": "17:00:00"
-          }
+  var testData =
+  {
+    "promptBehavior": {
+      "wakeSleepTimes": {
+        "daily": {
+          "wakeTime": "09:00:00",
+          "sleepTime": "17:00:00"
         }
       }
-      ,
-      "doses": [
-        {
-          "time": "16:05:00",
-          "medication": "6",
-          "strength": "7",
-          "dispensationUnit": "mg"
-        },
-        {
-          "time": "08:09:00",
-          "medication": "10",
-          "strength": "11",
-          "dispensationUnit": "dose"
-        },
-        {
-          "time": "23:13:00",
-          "medication": "14",
-          "strength": "15",
-          "dispensationUnit": "mg"
-        }
-      ]
-    };
+    }
+    ,
+    "doses": [
+      {
+        "time": "16:05:00",
+        "medication": "6",
+        "strength": "7",
+        "dispensationUnit": "mg"
+      },
+      {
+        "time": "08:09:00",
+        "medication": "10",
+        "strength": "11",
+        "dispensationUnit": "dose"
+      },
+      {
+        "time": "23:13:00",
+        "medication": "14",
+        "strength": "15",
+        "dispensationUnit": "mg"
+      }
+    ]
+  };
 
 
   /**
@@ -79,9 +98,6 @@ suite('PurpleRobotNotificationManager', function() {
    * @return {[type]} [description]
    */
   setup(function() {});
-
-
-
 
     test('test (pre-ctor)', function() {
       var actual = PurpleRobotNotificationManager.test();
@@ -262,12 +278,20 @@ suite('PurpleRobotNotificationManager', function() {
       })
     );
 
-// works in embedded eval(): function() {console.log(11111); }
+
+
+
+    /* 
+        Tests the function that enables us to pass PRNM functions from PRNM to the biz-logic of trigger actions, as strings.
+
+        20130603, estory: Note: Some things had to be done in this test to make the test pass, even though the same code against-which this test runs already runs properly in Purple Robot.
+        Not compliant with "pure" TDD, but still, this will help defend against bad future changes.
+    */
     test('convertFnToString', cases([
-        [function() { console.log('HELLO'); return 1; }, '(function () { console.log(\'HELLO\'); return 1; })();', 1, null],
+        [function() { console.log('HELLO'); return 1; }, '(function () { console.log("HELLO"); return 1; })();', 1, null],
         [function() { var a = 2; return a; }, '(function () { var a = 2; return a; })();', 2, null],
-        [function(q, a) { console.log(q + ': ' + a); return 3; }, '(function (q, a) { console.log(q + \': \' + a); return 3; })(\'how many Evans?\',\'2\');', 3, ['how many Evans?', 2]],
-        [actions.onMedPromptYes, 'too hard...', undefined, ['var debug = ' + prnm.debug.toString() + ';']] 
+        [function(q, a) { console.log(q + ': ' + a); return 3; }, '(function (q, a) { console.log(q + ": " + a); return 3; })("how many Evans?","2");', 3, ['how many Evans?', 2]],
+        [actions.onMedPromptYes, 'too hard...', undefined, ['var self = this; self.isNullOrUndefined = ' + prnm.isNullOrUndefined.toString() + '; var debug = ' + prnm.debug.toString() + ';', 'hello world!']] 
       ],
       function(fn, expectedFnTxt, expectedRet, fnParamArray) {
         console.log('-------------------------------------------');
@@ -277,10 +301,22 @@ suite('PurpleRobotNotificationManager', function() {
 
         // get converted function text
         var actualFnTxt = prnm.convertFnToString(fn, fnParamArray);
+
+        // a workaround for this unit-test for something that *actually* works in PR, etc.
+        actualFnTxt = (actualFnTxt.replace(/\\'/g, '"'));
         console.log("actualFnTxt = " + actualFnTxt);
-        // console.log(expectedFnTxt);
-        // get the return of the converted function
-        var actualRet = eval('' + actualFnTxt);
+        
+        var actualRet = eval(''
+          + 'var pr = ' + JSON.stringify(PurpleRobotMock) + ';'
+          // + 'console.log(pr);'
+          // + 'console.log(_.isObject(pr));'
+          + 'this.PurpleRobot = pr;'
+          + 'this.PurpleRobot.log = jsonfn.parse(this.PurpleRobot.log);'
+          // + 'console.log(_.isFunction(this.PurpleRobot.log));'
+          + 'this.PurpleRobot.launchUrl = jsonfn.parse(this.PurpleRobot.launchUrl);'
+          // + 'console.log(_.isFunction(this.PurpleRobot.launchUrl));'
+          + actualFnTxt
+          );
         // console.log(actualRet);
 
         // test both the function's return and the function's text

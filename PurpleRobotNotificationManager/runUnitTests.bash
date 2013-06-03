@@ -26,10 +26,10 @@ cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/"
 echo
 if [ "$#" -eq 1 ]; then
 	echo "***** Running tests matching '$1' in: $TESTS"
-	mocha -u tdd "$TESTS" -g "$1"
+	mocha --globals "PurpleRobot,isNullOrUndefined" -u tdd "$TESTS" -g "$1"
 else
 	echo "***** Running all tests in: $TESTS"
-	mocha -u tdd "$TESTS"
+	mocha --globals "PurpleRobot,isNullOrUndefined" -u tdd "$TESTS"
 fi
 echo
 echo "***** Copying (without '//' comment lines): $TESTABLE --> $DST"
