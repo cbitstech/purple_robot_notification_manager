@@ -779,15 +779,25 @@ var PRNM = (function(exports) {
 						// ,'(function() { PurpleRobot.log("YES"); })();'
 						// ,'(function() { PurpleRobot.log("NO"); })();'
 						// WORKS 1 - on PR, not in unit-test
-						,'PurpleRobot.log(\'YES\');'
-						,'PurpleRobot.log(\'NO\');'
+						// ,'PurpleRobot.log(\'YES\');'
+						// ,'PurpleRobot.log(\'NO\');'
 						// WORKS 2
 						// PurpleRobot.showNativeDialog('datetime','MedPrompt: 14 at 23:13:00','Yes','No','(function () { var fn = \\'onMedPromptYes\\'; prnm.debug(\\'entered\\', fn); })();','(function () {  })();');
 
 						// NEED TO GET THESE WORKING...
 						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var debug = ' + self.debug.toString() + ';'])
 						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var debug = ' + self.debug.toString() + ';'])
-						], ',', '"');
+
+						// v1 - WORKS!! The null values become a value of undefined in the specified function.
+						// ,self.convertFnToString(self.actions.onMedPromptYes, null)
+						// ,self.convertFnToString(self.actions.onMedPromptNo, null)
+						
+						// v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+						,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
+						,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
+						], ',', "'");
+
+// self.debug('self.actions.onMedPromptYes = ' + self.actions.onMedPromptYes, fn);
 
 					// * real thing *
 					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
@@ -815,7 +825,7 @@ var PRNM = (function(exports) {
 				// 			return !_.isString(p) ? p : (p.replace(/'/gm, 'AAAA')).replace(/"/gm, 'BBBB');
 				// 		} );
 				// self.debug('222 fnParamArray = ' + fnParamArray, fn);
-				var p = self.isNullOrUndefined(fnParamArray) ? '' : self.getQuotedAndDelimitedStr(fnParamArray,',','\'');
+				var p = self.isNullOrUndefined(fnParamArray) ? '' : self.getQuotedAndDelimitedStr(fnParamArray,',','\\\'');
 				return '(' +  (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')(' + p.replace(/(\r\n|\n|\r)/gm,'') + ');';
 			},
 

@@ -280,7 +280,7 @@ suite('PurpleRobotNotificationManager', function() {
         console.log("actualFnTxt = " + actualFnTxt);
         // console.log(expectedFnTxt);
         // get the return of the converted function
-        var actualRet = eval(actualFnTxt);
+        var actualRet = eval('' + actualFnTxt);
         // console.log(actualRet);
 
         // test both the function's return and the function's text

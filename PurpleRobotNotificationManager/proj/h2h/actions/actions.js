@@ -34,26 +34,30 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				return a;
 			},
 
-			onMedPromptYes: function() { var fn = 'onMedPromptYes';
-				debug('HELLO!', fn);
+			onMedPromptYes: function(codeFromPrnm, p2) { var fn = 'onMedPromptYes';
+				PurpleRobot.log('codeFromPrnm = ' + codeFromPrnm);
+				eval('' + codeFromPrnm);
+				debug('DEBUG FUNCTION FROM PRNM WORKS!!', fn);
+				debug('p2 = ' + p2, fn);
+				PurpleRobot.launchUrl('http://www.google.com');
 			},
 
-			onMedPromptNo: function() { var fn = 'onMedPromptNo', self = ctor.prototype;
+			onMedPromptNo: function() { var fn = 'onMedPromptNo';
 				self.prnm.debug('entered', fn);
 
 			},
 
-			onEMAYes: function() { var fn = 'onEMAYes', self = ctor.prototype;
+			onEMAYes: function() { var fn = 'onEMAYes';
 				self.prnm.debug('entered', fn);
 
 			},
 
-			onEMANo: function() { var fn = 'onEMANo', self = ctor.prototype;
+			onEMANo: function() { var fn = 'onEMANo';
 				self.prnm.debug('entered', fn);
 
 			},
 
-			onWidgetPress: function() { var fn = 'onWidgetPress', self = ctor.prototype;
+			onWidgetPress: function() { var fn = 'onWidgetPress';
 				self.prnm.debug('entered', fn);
 
 			}
