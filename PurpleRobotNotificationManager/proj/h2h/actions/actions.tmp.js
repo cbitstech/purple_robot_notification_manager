@@ -1,7 +1,7 @@
 /*** H2H Actions definition ***/
 
 var ActionsFn = (function(exports) { var fn = 'actions';
-
+	// PurpleRobot.log('ENTERED actions self-called fn...')
 
 	  var ctor = function(d) { var fn = 'actions:ctor', self = ctor.prototype;
 	    self.prnm = d.prnm;
@@ -13,10 +13,10 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 	  };
 
 
-
+	  // *Actually* define the object whose members will be referenced...
 	  ctor.prototype = {
 
-
+	  	// FNGROUP: internal references
 	  	self: null,
 	  	data: null,
 
@@ -29,8 +29,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 			onMedPromptYes: function(codeFromPrnm, p2) { var fn = 'onMedPromptYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
 				eval('' + codeFromPrnm);
-
-
+				// debug('DEBUG FUNCTION FROM PRNM WORKS!!', fn);
+				// debug('p2 = ' + p2, fn);
 				PurpleRobot.launchUrl('http://www.google.com');
 			},
 
@@ -53,16 +53,16 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 		};
 
 	
-
+	// the exports object gets the constructor function, which the calling function will call to instantiate this object.
 	exports.ctor = ctor;
 
 	return ctor;
 
+// })();
 
-
-
-
-
+// // test that actions functions work
+// // PurpleRobot.log(actions.test());  // test 1
+// // actions.onMedPromptYes();				 // test 2
 
 });
 
@@ -71,5 +71,5 @@ var passedToActions = typeof exports === 'undefined' ? this['Actions'] = {} : ex
 
 var Actions = new ActionsFn(passedToActions);
 exports = Actions.ctor;
-
-
+// Actions = (function() { return (new ActionsFn(passedToActions);) }) ();
+// exports = Actions;

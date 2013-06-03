@@ -508,11 +508,9 @@ var PRNM = (function(exports) {
 				self.debug('actionScriptText = ' + actionScriptText, fn);
 
 				// throw 'Not implemented. See: https://github.com/nupmmarkbegale/Purple-Robot-Manager/wiki/JSON-Configuration-Document-Reference and https://github.com/nupmmarkbegale/Purple-Robot-Manager/wiki/JavaScript-Reference';
-				// switch(self.envConsts.selected) {
 				switch(self.execCtx) {
 					case 0:
 						// self.log('PR path',fn);
-						// eval(actionScriptText);	// for testing, for now...
 
 						var dsical = startDateTime.toICal();
 						var deical = endDateTime.toICal();
@@ -534,8 +532,6 @@ var PRNM = (function(exports) {
 						
 						var actionKey = name + '-actionScriptText';
 
-						// self.debug('self.envConsts = ' + JSON.stringify(self.envConsts), fn);
-						// self.debug('self.envConsts.prCfg.namespace = ' + self.envConsts.prCfg.namespace, fn);
 						self.persistString(self.envConsts.prCfg.namespace, actionKey, action);
 						self.debug('Stored action string at [' + self.envConsts.prCfg.namespace + ',' + actionKey + '] of: ' + self.fetchString(self.envConsts.prCfg.namespace, actionKey) ,fn);
 
@@ -546,7 +542,6 @@ var PRNM = (function(exports) {
 								'name': name,
 								'action': ''
 									+ 'var actionScriptText = PurpleRobot.fetchString(\'' + self.envConsts.prCfg.namespace + '\',\'' + actionKey + '\'); '
-									// + 'var quotedActionScriptText = "\'" + actionScriptText + "\'"';
 									+ 'PurpleRobot.log("[IN TRIGGER ACTION] eval()ing: " + actionScriptText);'
 									+ 'eval(\'\' + actionScriptText);'
 									+ 'PurpleRobot.log("[IN TRIGGER ACTION] did it eval?");'
@@ -594,6 +589,35 @@ var PRNM = (function(exports) {
 			 * @type {Object}
 			 */
 			appConfig: {
+				sampleTrigger: function() {
+						// 'onLoad': {
+						// 	'actionItems': [
+						// 		{
+						// 			'name': 'example action item for use & reference in PhoneGap app',
+						// 			'url': 'your-router-path-here',
+						// 			'triggerId': 'MedPrompt: medA at 09:00:00'
+						// 		}
+						// 	]
+						// },
+					return {
+						'createdOn': '20130523T150900',
+						'completionState': 0,
+						'completedOn': null,
+						'dstUrl': 'your-router-path-here',
+						'triggerDef': {
+							'identifier': 'test_id',
+							'type': 'test_type',
+							'name': 'test_name',
+							'action': 'test_actionScriptText',
+							'datetime_start': 'test_datetime_start',
+							'datetime_end': 'test_datetime_end'
+						}
+					};
+				},
+
+
+				// *** CRUD fns ***
+
 				/**
 				 * Creates an app-config structure in PR. Should only be used on initial, first load of PRNM.
 				 *
@@ -635,49 +659,47 @@ var PRNM = (function(exports) {
 				 */
 				create: function(namespace, keyInPR) {
 					self.persistEncryptedString(namespace, keyInPR, JSON.stringify({
-						// 'onLoad': {
-						// 	'actionItems': [
-						// 		{
-						// 			'name': 'example action item for use & reference in PhoneGap app',
-						// 			'url': 'your-router-path-here',
-						// 			'triggerId': 'MedPrompt: medA at 09:00:00'
-						// 		}
-						// 	]
-						// },
-						'purpleSendMessageQueue': [
-						],
-						'triggerState': [
-							{
-								'createdOn': '20130523T150900',
-								'completionState': 0,
-								'completedOn': null,
-								'dstUrl': 'your-router-path-here',
-								'triggerDef': {
-									'identifier': 'test_id',
-									'type': 'test_type',
-									'name': 'test_name',
-									'action': 'test_actionScriptText',
-									'datetime_start': 'test_datetime_start',
-									'datetime_end': 'test_datetime_end'
-								}
-							}
-						]
+						'purpleSendMessageQueue': [],
+						'triggerState': []
 					}));
 				},
-				get: function(namespace, keyInPR) {
+				/**
+				 * Gets a namespaced key's value.
+				 * @param  {[type]} namespace [description]
+				 * @param  {[type]} keyInPR   [description]
+				 * @return {[type]}           [description]
+				 */
+				read: function(namespace, keyInPR) {
 					self.fetchEncryptedString(namespace, keyInPR);
 				},
-				set: function(namespace, keyInPR, appConfigObj) {
-					self.persistEncryptedString(namespace, keyInPR, appConfigObj);
+				/**
+				 * Inserts or updates a namespaced key.
+				 * @param  {[type]} namespace    [description]
+				 * @param  {[type]} keyInPR      [description]
+				 * @param  {[type]} appConfigObj [description]
+				 * @return {[type]}              [description]
+				 */
+				upsert: function(namespace, keyInPR, appConfigObj) {
+					self.persistEncryptedString(namespace, keyInPR, JSON.stringify(appConfigObj));
 				},
-				setUrl: function(namespace, keyInPR, newUrl) {
-					var appCfg = self.appConfig.get(namespace, keyInPR);
-					appConfig.onLoad.actionItems
-					self.persistEncryptedString(namespace, keyInPR, null);
-				},
+				/**
+				 * 'Deletes' (actually, marks empty) a namespaced key.
+				 * @param  {[type]} namespace [description]
+				 * @param  {[type]} keyInPR   [description]
+				 * @return {[type]}           [description]
+				 */
 				delete: function(namespace, keyInPR) {
 					self.persistEncryptedString(namespace, keyInPR, null);
-				}
+				},
+
+				// *** Convenience fns ***
+
+				setUrl: function(namespace, keyInPR, triggerId, newUrl) {
+					var appCfg = self.appConfig.get(namespace, keyInPR);
+					var trigger = _.findWhere(appCfg.triggerState, {triggerDef: triggerId});
+					trigger.dstUrl = newUrl;
+					self.appConfig.set(namespace, keyInPR, trigger);
+				},
 			},
 
 
@@ -775,38 +797,15 @@ var PRNM = (function(exports) {
 					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
 					var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No'
-						// Broken
-						// ,'(function() { PurpleRobot.log("YES"); })();'
-						// ,'(function() { PurpleRobot.log("NO"); })();'
-						// WORKS 1 - on PR, not in unit-test
-						// ,'PurpleRobot.log(\'YES\');'
-						// ,'PurpleRobot.log(\'NO\');'
-						// WORKS 2
-						// PurpleRobot.showNativeDialog('datetime','MedPrompt: 14 at 23:13:00','Yes','No','(function () { var fn = \\'onMedPromptYes\\'; prnm.debug(\\'entered\\', fn); })();','(function () {  })();');
-
-						// NEED TO GET THESE WORKING...
-						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var debug = ' + self.debug.toString() + ';'])
-						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var debug = ' + self.debug.toString() + ';'])
-
-						// v1 - WORKS!! The null values become a value of undefined in the specified function.
-						// ,self.convertFnToString(self.actions.onMedPromptYes, null)
-						// ,self.convertFnToString(self.actions.onMedPromptNo, null)
-						
 						// v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
 						,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
 						,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
 						], ',', "'");
 
-// self.debug('self.actions.onMedPromptYes = ' + self.actions.onMedPromptYes, fn);
 
-					// * real thing *
+					// the generated action to execute in a trigger
 					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
-					// * toy EX 1 * -- WORKS
-					// actionScriptText = '1 == 1;';
-					// * toy EX 2 * -- WORKS
-					// actionScriptText = 'PurpleRobot.log("WLOLOLOL");';
 					
-					// self.debug(self.getQuotedAndDelimitedStr([d.time,sdt,startDateTime,endDateTime,untilDateTime,repeatStr],','),fn);
 					self.debug('actionScriptText = ' + actionScriptText,fn);
 					self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
@@ -817,14 +816,6 @@ var PRNM = (function(exports) {
 
 
 			convertFnToString: function(fnPtr, fnParamArray) { var fn = 'convertFnToString', self = ctor.prototype;
-				self.debug('fnPtr = ' + fnPtr, fn);
-				self.debug('111 fnParamArray = ' + fnParamArray, fn);
-				// fnParamArray = fnParamArray == null 
-				// 	? fnParamArray 
-				// 	: _.map(fnParamArray, function(p) { 
-				// 			return !_.isString(p) ? p : (p.replace(/'/gm, 'AAAA')).replace(/"/gm, 'BBBB');
-				// 		} );
-				// self.debug('222 fnParamArray = ' + fnParamArray, fn);
 				var p = self.isNullOrUndefined(fnParamArray) ? '' : self.getQuotedAndDelimitedStr(fnParamArray,',','\\\'');
 				return '(' +  (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')(' + p.replace(/(\r\n|\n|\r)/gm,'') + ');';
 			},
