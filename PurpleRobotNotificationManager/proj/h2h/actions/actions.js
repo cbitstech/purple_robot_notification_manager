@@ -32,6 +32,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 				PurpleRobot.launchUrl('http://www.google.com');
+
 			},
 
 			onMedPromptNo: function(codeFromPrnm) { var fn = 'onMedPromptNo'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
