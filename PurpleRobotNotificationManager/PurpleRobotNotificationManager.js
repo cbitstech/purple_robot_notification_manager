@@ -153,6 +153,7 @@ var PRNM = (function(exports) {
 			fetchTriggerIds: null,
 			fetchTrigger: null,
 			deleteTrigger: null,
+			launchUrl: null,
 
 			// FNGROUP: biz-logic
 			getUserCfg: null,
@@ -202,6 +203,7 @@ var PRNM = (function(exports) {
 						self.fetchTriggerIds = function() { return PurpleRobot.fetchTriggerIds(); };
 						self.fetchTrigger = function(triggerId) { return PurpleRobot.fetchTrigger(triggerId); };
 						self.deleteTrigger = function(triggerId) { return PurpleRobot.deleteTrigger(triggerId); };
+						self.launchUrl = function(url) { return PurpleRobot.launchUrl(launchUrl); };
 
 						// support fns
 						/**
@@ -263,6 +265,7 @@ var PRNM = (function(exports) {
 						self.fetchTriggerIds = function() { var fn = 'fetchTriggerIds'; self.log('NOEXEC: fetchTriggerIds', fn); return []; };
 						self.fetchTrigger = function(triggerId) { var fn = 'fetchTrigger'; self.log('NOEXEC: fetchTrigger: ' + triggerId, fn); };
 						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
+						self.launchUrl = function(url) { var fn = 'launchUrl'; self.log('NOEXEC: launchUrl: ' + url, fn); };
 
 						// support fns
 						/**
@@ -309,6 +312,7 @@ var PRNM = (function(exports) {
 						self.fetchTriggerIds = function() { var fn = 'fetchTriggerIds'; self.log('NOEXEC: fetchTriggerIds', fn); return []; };
 						self.fetchTrigger = function(triggerId) { var fn = 'fetchTrigger'; self.log('NOEXEC: fetchTrigger: ' + triggerId, fn); };
 						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
+						self.launchUrl = function(url) { var fn = 'launchUrl'; self.log('NOEXEC: launchUrl: ' + url, fn); };
 
 						// support fns
 						/**
@@ -659,7 +663,6 @@ var PRNM = (function(exports) {
 				 */
 				create: function(namespace, keyInPR) {
 					self.persistEncryptedString(namespace, keyInPR, JSON.stringify({
-						'purpleSendMessageQueue': [],
 						'triggerState': []
 					}));
 				},
@@ -760,21 +763,21 @@ var PRNM = (function(exports) {
 			},
 
 
-			setMedPromptTrigger: function(name, startDate, endDate, untilDate) { var fn = 'setMedPromptTrigger', self = ctor.prototype;
-				self.debug('entered',fn);
-				var  type = 'datetime'
-						,name = !self.isNullOrUndefined(name) ? name : 'Next MedPrompt'
-						,actionScriptText = null
-						,startDateTime = null
-						,endDateTime = null
-						,untilDateTime = null
-						,ret = null;
+			// setMedPromptTrigger: function(name, startDate, endDate, untilDate) { var fn = 'setMedPromptTrigger', self = ctor.prototype;
+			// 	self.debug('entered',fn);
+			// 	var  type = 'datetime'
+			// 			,name = !self.isNullOrUndefined(name) ? name : 'Next MedPrompt'
+			// 			,actionScriptText = null
+			// 			,startDateTime = null
+			// 			,endDateTime = null
+			// 			,untilDateTime = null
+			// 			,ret = null;
 
-				actionScriptText = 'PurpleRobot.showNativeDialog(' + self.getQuotedAndDelimitedStr([type,name,actionScriptText,startDateTime,endDateTime,untilDateTime], ',') + ');';
-				self.debug('actionScriptText = ' + actionScriptText,fn);
-				self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, untilDateTime);
-				self.debug('exiting',fn);
-			},
+			// 	actionScriptText = 'PurpleRobot.showNativeDialog(' + self.getQuotedAndDelimitedStr([type,name,actionScriptText,startDateTime,endDateTime,untilDateTime], ',') + ');';
+			// 	self.debug('actionScriptText = ' + actionScriptText,fn);
+			// 	self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, untilDateTime);
+			// 	self.debug('exiting',fn);
+			// },
 
 
 			setAllMedPrompts: function() { var fn = 'setAllMedPrompts', self = ctor.prototype;
@@ -797,16 +800,20 @@ var PRNM = (function(exports) {
 					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
 					var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No'
-						// v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
-						,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
-						,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
+						// // v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
+						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
+						
+						// v3 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+						,self.convertFnToString(self.actions.onMedPromptYes, [self.getCommonFnSetForActions(), 'hello world!'])
+						,self.convertFnToString(self.actions.onMedPromptNo, [self.getCommonFnSetForActions(), 'goodbye cruel world'])
 						], ',', "'");
 
 
 					// the generated action to execute in a trigger
 					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
 					
-					self.debug('actionScriptText = ' + actionScriptText,fn);
+					self.debug('actionSrciptText = ' + actionScriptText,fn);
 					self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
 				});
@@ -815,9 +822,36 @@ var PRNM = (function(exports) {
 			},
 
 
+			/**
+			 * Converts a function to a string, with parameters to the function listed in an array.
+			 * @param  {[type]} fnPtr        [description]
+			 * @param  {[type]} fnParamArray [description]
+			 * @return {[type]}              [description]
+			 */
 			convertFnToString: function(fnPtr, fnParamArray) { var fn = 'convertFnToString', self = ctor.prototype;
 				var p = self.isNullOrUndefined(fnParamArray) ? '' : self.getQuotedAndDelimitedStr(fnParamArray,',','\\\'');
 				return '(' +  (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')(' + p.replace(/(\r\n|\n|\r)/gm,'') + ');';
+			},
+
+
+			/**
+			 * Bundles a set of functions that are often found in trigger actions,
+			 * in a way that maintains the convention used in the bundled functions' own definition,
+			 * which prevents re-coding for different contexts.
+			 * @return {[type]} [description]
+			 */
+			getCommonFnSetForActions: function() { var fn = 'getCommonFnSetForActions', self = ctor.prototype;
+				var s = ''
+					+ 'var self = this;'
+					+ 'self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + ';'
+					+ 'self.log = ' + self.log.toString() + ';'
+					+ 'self.debug = ' + self.debug.toString() + ';'
+					+ 'self.launchUrl = ' + self.launchUrl.toString() + ';'
+					+ 'self.fetchEncryptedString = ' + self.fetchEncryptedString.toString() + ';'
+					+ 'self.persistEncryptedString = ' + self.persistEncryptedString.toString() + ';'
+					;
+				self.debug('s = ' + s, fn);
+				return s;
 			},
 
 

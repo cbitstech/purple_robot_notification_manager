@@ -28,15 +28,27 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 			onMedPromptYes: function(codeFromPrnm, p2) { var fn = 'onMedPromptYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
+
 				eval('' + codeFromPrnm);
 
 
-				PurpleRobot.launchUrl('http://www.google.com');
+				
+				var appCfgStr = self.fetchEncryptedString('H2H', 'appCfg');
+				var appCfg = JSON.parse(appCfgStr);
+				self.debug('appCfgStr = ' + appCfgStr, fn);
+				self.debug('appCfg.transition.staticOrDefault.onMedPromptYes = ' + appCfg.transition.staticOrDefault.onMedPromptYes, fn);
+				self.debug('appCfg.transition.dynamicOrModified.onMedPromptYes = ' + appCfg.transition.dynamicOrModified.onMedPromptYes, fn);
+				
 
+				self.launchUrl(self.isNullOrUndefined(appCfg.transition.dynamic.onMedPromptYes) 
+					? appCfg.transition.staticOrDefault.onMedPromptYes 
+					: appCfg.transition.dynamicOrModified.onMedPromptYes
+				);
 			},
 
 			onMedPromptNo: function(codeFromPrnm) { var fn = 'onMedPromptNo'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
 
+				
 			},
 
 			onEMAYes: function(codeFromPrnm) { var fn = 'onEMAYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
