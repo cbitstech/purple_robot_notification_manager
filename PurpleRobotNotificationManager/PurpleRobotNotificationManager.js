@@ -154,14 +154,17 @@ var PRNM = (function(exports) {
 			fetchTrigger: null,
 			deleteTrigger: null,
 			launchUrl: null,
+			loadLibrary: null,
 
 			// FNGROUP: biz-logic
 			getUserCfg: null,
+			getAppCfg: null,
 			actions: null,
 
 			// env-specific consts passed-in from the client app
 			envConsts: null,
 			userCfg: null,
+			appCfg: null,
 			execCtx: null,
 
 
@@ -173,17 +176,11 @@ var PRNM = (function(exports) {
 			setFunctionsAndLibraryRefsForEnv: function(env) { var fn = 'setFunctionsAndLibraryRefsForEnv', self = ctor.prototype;
 				self.envConsts = env;
 
-				// switch(self.envConsts.selected) {
+				// jump to the appropriate block for the execution context of this script
 				switch(self.execCtx) {
-					case 0:
-						// set consts
-						// self.envConsts.userCfgKey = 'H2H-userCfg';
-						// self.envConsts.userCfgKey = env.userCfgKey;
 
-						// // set lib refs
-						// PurpleRobot.loadLibrary('underscore.js');
-						// PurpleRobot.loadLibrary('date.js');
-						// // PurpleRobot.loadLibrary('time.js');
+					// Purple Robot
+					case 0:
 						
 						// * set function ptrs *
 						// PR fns
@@ -203,7 +200,8 @@ var PRNM = (function(exports) {
 						self.fetchTriggerIds = function() { return PurpleRobot.fetchTriggerIds(); };
 						self.fetchTrigger = function(triggerId) { return PurpleRobot.fetchTrigger(triggerId); };
 						self.deleteTrigger = function(triggerId) { return PurpleRobot.deleteTrigger(triggerId); };
-						self.launchUrl = function(url) { return PurpleRobot.launchUrl(launchUrl); };
+						self.launchUrl = function(url) { return PurpleRobot.launchUrl(url); };
+						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var fn='loadLibrary'; PurpleRobot.loadLibrary(nameOrPath); self.debug('nameOrPath = ' + nameOrPath + '; keyOfLibInstanceToReturn = ' + keyOfLibInstanceToReturn,fn); self.debug('this[keyOfLibInstanceToReturn] = ' + this[keyOfLibInstanceToReturn], fn); return this[keyOfLibInstanceToReturn]; };
 
 						// support fns
 						/**
@@ -222,30 +220,26 @@ var PRNM = (function(exports) {
 							self.debug('exiting',fn);
 							return self.userCfg;
 						};
+						/**
+						 * PR-case: assign the namespace and key values to the userCfgFetchParamsObj.namespace and userCfgFetchParamsObj.key values, respectively, and pass the userCfgFetchParamsObj to this function.
+						 * @param  {[type]} userCfgFetchParamsObj)    {            return self.fetchEncryptedString(userCfgFetchParamsObj.namespace [description]
+						 * @param  {[type]} userCfgFetchParamsObj.key [description]
+						 * @return {[type]}                           [description]
+						 */
+						self.getAppCfg = function() { var fn = 'getAppCfg', self = ctor.prototype; 
+							self.debug('entered',fn);
+							if(self.appCfg==null) { 
+								self.debug('fetching appCfg on first call...', fn);
+								self.appCfg = JSON.parse(self.fetchEncryptedString(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key)); 
+								self.debug('appCfg = ' + JSON.stringify(self.appCfg), fn);
+							}
+							self.debug('exiting',fn);
+							return self.appCfg;
+						};
 						break;
+
+					// Node.js
 					case 1:
-						// set consts
-						// self.envConsts.userCfgKey = 'TestyMcTesterson.prCfg.json.txt';
-						// self.envConsts.userCfgKey = env.userCfgKey;
-
-						// // set lib refs
-						// _ = require('underscore');
-						// // console.log('HELLO1');
-						// require('./date.js');
-						// // require('./time.js');
-
-  // var start = new Date();
-  //       var end = Date.today().add(15).days();
-  //       var ts = new TimePeriod(start, end);
-
-  //       console.log(ts.getDays()); // 14
-
-						
-						// // WTF is up with date.js...
-						// var today = Date.today();
-						// console.log('_.isDate(today) = ' + _.isDate(today) + '; today = ' + today + '; _.keys(today) = ' + _.keys(today));
-						// console.log('today.isAfter(Date.tomorrow()) = ' + Date.today().isAfter(new Date().add(1).day()));
-						// console.log('HELLO2');
 
 						// * set function ptrs *
 						// PR fns
@@ -266,6 +260,7 @@ var PRNM = (function(exports) {
 						self.fetchTrigger = function(triggerId) { var fn = 'fetchTrigger'; self.log('NOEXEC: fetchTrigger: ' + triggerId, fn); };
 						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
 						self.launchUrl = function(url) { var fn = 'launchUrl'; self.log('NOEXEC: launchUrl: ' + url, fn); };
+						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var lib = require(nameOrPath); return lib; };
 
 						// support fns
 						/**
@@ -283,16 +278,27 @@ var PRNM = (function(exports) {
 							self.log('exiting',fn);
 							return self.userCfg;
 						};
+						/**
+						 * Node-case: implement when use-case arises.
+						 * @param  {[type]} userCfgFetchParamsObj)    {            return self.fetchEncryptedString(userCfgFetchParamsObj.namespace [description]
+						 * @param  {[type]} userCfgFetchParamsObj.key [description]
+						 * @return {[type]}                           [description]
+						 */
+						self.getAppCfg = function() { var fn = 'getAppCfg', self = ctor.prototype; 
+							self.debug('entered',fn);
+							self.warn('NOT IMPLEMENTED FOR THIS EXECUTION CONTEXT.', fn);
+							self.debug('exiting',fn);
+							return self.appCfg;
+						};
 						break;
+
+					// Browser
 					case 2:
-						// set consts
-						// self.envConsts.userCfgKey = env.userCfgKey;		// define this in another JS file, the contents of which will be 'var userCfg = { ...your cfg here... };', which is referenced by the page via a <script ...> tag.
 
 						// *** set lib refs ***
 						// NOTE FOR THIS ENVIRONMENT: You must include Underscore via a <script> reference and pass-in the object reference on the appropriate env.libRefs.* variable.
 						_ = env.libRefs.underscore;
 						Date.prototype = env.libRefs.datejs;
-						// self.TimePeriod = env.libRefs.timejs;
 						
 						// * set function ptrs *
 						// PR fns
@@ -313,6 +319,7 @@ var PRNM = (function(exports) {
 						self.fetchTrigger = function(triggerId) { var fn = 'fetchTrigger'; self.log('NOEXEC: fetchTrigger: ' + triggerId, fn); };
 						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
 						self.launchUrl = function(url) { var fn = 'launchUrl'; self.log('NOEXEC: launchUrl: ' + url, fn); };
+						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var lib = require(nameOrPath); return lib; };
 
 						// support fns
 						/**
@@ -321,7 +328,21 @@ var PRNM = (function(exports) {
 						 * @return {[type]}                       [description]
 						 */
 						self.getUserCfg = function() { var fn = 'getUserCfg', self = ctor.prototype; self.log('entered & exiting',fn); if(userCfg==null) { userCfg = self.envConsts.userCfg.key; } return userCfg; };
+						/**
+						 * Node-case: implement when use-case arises.
+						 * @param  {[type]} userCfgFetchParamsObj)    {            return self.fetchEncryptedString(userCfgFetchParamsObj.namespace [description]
+						 * @param  {[type]} userCfgFetchParamsObj.key [description]
+						 * @return {[type]}                           [description]
+						 */
+						self.getAppCfg = function() { var fn = 'getAppCfg', self = ctor.prototype; 
+							self.debug('entered',fn);
+							self.warn('NOT IMPLEMENTED FOR THIS EXECUTION CONTEXT.', fn);
+							self.debug('exiting',fn);
+							return self.appCfg;
+						};
 						break;
+
+					// Unknown environment
 					default:
 						// console.error('ERROR: invalid selected environment value: ', envConsts.selected);
 						throw ('ERROR: invalid selected environment value: ' + self.execCtx);
@@ -338,7 +359,7 @@ var PRNM = (function(exports) {
 			// Utility functions
 			// =================
 			isNullOrUndefined: function(v) {
-				return (v == null || v == undefined);
+				return (v == null || v == undefined || v == 'null');
 			},
 
 
@@ -806,7 +827,7 @@ var PRNM = (function(exports) {
 						
 						// v3 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
 						,self.convertFnToString(self.actions.onMedPromptYes, [self.getCommonFnSetForActions(), 'hello world!'])
-						,self.convertFnToString(self.actions.onMedPromptNo, [self.getCommonFnSetForActions(), 'goodbye cruel world'])
+						,self.convertFnToString(self.actions.onMedPromptNo, [self.getCommonFnSetForActions(), 'goodbye world'])
 						], ',', "'");
 
 
@@ -843,12 +864,18 @@ var PRNM = (function(exports) {
 			getCommonFnSetForActions: function() { var fn = 'getCommonFnSetForActions', self = ctor.prototype;
 				var s = ''
 					+ 'var self = this;'
+					+ 'self.loadLibrary = ' + self.loadLibrary.toString() + ';'
 					+ 'self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + ';'
 					+ 'self.log = ' + self.log.toString() + ';'
 					+ 'self.debug = ' + self.debug.toString() + ';'
 					+ 'self.launchUrl = ' + self.launchUrl.toString() + ';'
 					+ 'self.fetchEncryptedString = ' + self.fetchEncryptedString.toString() + ';'
 					+ 'self.persistEncryptedString = ' + self.persistEncryptedString.toString() + ';'
+					+ 'var _ = self.loadLibrary("underscore.js", "_");'
+					+	'var userCfgStr = self.fetchEncryptedString("' + self.envConsts.userCfg.namespace + '", "userCfg");'
+					+	'var userCfg = JSON.parse(userCfgStr);'
+					+	'var appCfgStr = self.fetchEncryptedString("' + self.envConsts.userCfg.namespace + '", "appCfg");'
+					+	'var appCfg = JSON.parse(appCfgStr);'
 					;
 				self.debug('s = ' + s, fn);
 				return s;

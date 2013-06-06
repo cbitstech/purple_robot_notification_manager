@@ -32,23 +32,38 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				eval('' + codeFromPrnm);
 
 
-				
-				var appCfgStr = self.fetchEncryptedString('H2H', 'appCfg');
-				var appCfg = JSON.parse(appCfgStr);
-				self.debug('appCfgStr = ' + appCfgStr, fn);
-				self.debug('appCfg.transition.staticOrDefault.onMedPromptYes = ' + appCfg.transition.staticOrDefault.onMedPromptYes, fn);
-				self.debug('appCfg.transition.dynamicOrModified.onMedPromptYes = ' + appCfg.transition.dynamicOrModified.onMedPromptYes, fn);
+
+
+
+
 				
 
-				self.launchUrl(self.isNullOrUndefined(appCfg.transition.dynamic.onMedPromptYes) 
-					? appCfg.transition.staticOrDefault.onMedPromptYes 
-					: appCfg.transition.dynamicOrModified.onMedPromptYes
-				);
+				var dynamicIsNull = self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onMedPromptYes);
+				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onMedPromptYes : appCfg.dynamicOrModified.transition.onMedPromptYes;
+				var url = baseUrl;
+
+
+
+
+
+
+
+
+
+				self.debug('launching url = ' + url, fn);
+				self.launchUrl(url);
 			},
 
 			onMedPromptNo: function(codeFromPrnm) { var fn = 'onMedPromptNo'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
 
-				
+				eval('' + codeFromPrnm);
+
+
+
+				var dynamicIsNull = self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onMedPromptNo);
+				var url = dynamicIsNull ? appCfg.staticOrDefault.transition.onMedPromptNo : appCfg.dynamicOrModified.transition.onMedPromptNo;
+				self.debug('launching url = ' + url, fn);
+				self.launchUrl(url);
 			},
 
 			onEMAYes: function(codeFromPrnm) { var fn = 'onEMAYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
