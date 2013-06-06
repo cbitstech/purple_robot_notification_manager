@@ -173,7 +173,7 @@ var PRNM = (function(exports) {
 			 * Enables execution of same-named functions in different environments, which may in-turn carry the semantic of having a different purpose.
 			 * @param {[type]} env [description]
 			 */
-			setFunctionsAndLibraryRefsForEnv: function(env) { var fn = 'setFunctionsAndLibraryRefsForEnv', self = ctor.prototype;
+			setFunctionsAndLibraryRefsForEnv: function(env) { var fn = 'setFunctionsAndLibraryRefsForEnv'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.envConsts = env;
 
 				// jump to the appropriate block for the execution context of this script
@@ -210,7 +210,7 @@ var PRNM = (function(exports) {
 						 * @param  {[type]} userCfgFetchParamsObj.key [description]
 						 * @return {[type]}                           [description]
 						 */
-						self.getUserCfg = function() { var fn = 'getUserCfg', self = ctor.prototype; 
+						self.getUserCfg = function() { var fn = 'getUserCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
 							self.debug('entered',fn);
 							if(self.userCfg==null) { 
 								self.debug('fetching userCfg on first call...', fn);
@@ -226,7 +226,7 @@ var PRNM = (function(exports) {
 						 * @param  {[type]} userCfgFetchParamsObj.key [description]
 						 * @return {[type]}                           [description]
 						 */
-						self.getAppCfg = function() { var fn = 'getAppCfg', self = ctor.prototype; 
+						self.getAppCfg = function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
 							self.debug('entered',fn);
 							if(self.appCfg==null) { 
 								self.debug('fetching appCfg on first call...', fn);
@@ -248,10 +248,10 @@ var PRNM = (function(exports) {
 						self.warn = function(s, fn) { console.warn('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
 						self.error = function(s, fn) { console.error('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
 						self.playDefaultTone = function() { var fn = 'playDefaultTone'; self.log('NOEXEC: playDefaultTone', fn); };
-						self.persistEncryptedString = function(namespace, key, value) { var fn = 'persistEncryptedString'; self.log('NOEXEC: persistEncryptedString: key = \'' + key + '\'; value = \'' + value + '\'', fn); };
-						self.fetchEncryptedString = function(namespace, key) { var fn = 'fetchEncryptedString'; self.log('NOEXEC: fetchEncryptedString: key = \'' + key + '\'', fn); };
-						self.persistString = function(namespace, key, value) { var fn = 'persistString'; self.log('NOEXEC: persistString: key = \'' + key + '\'; value = \'' + value + '\'', fn); };
-						self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: key = \'' + key + '\'', fn); };
+						self.persistEncryptedString = function(namespace, key, value) { var fn = 'persistEncryptedString'; self.log('NOEXEC: persistEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'; value = \'' + value + '\'', fn); };
+						self.fetchEncryptedString = function(namespace, key) { var fn = 'fetchEncryptedString'; self.log('NOEXEC: fetchEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
+						self.persistString = function(namespace, key, value) { var fn = 'persistString'; self.log('NOEXEC: persistString: namespace = \'' + namespace + '\'; key = \'' + key + '\'; value = \'' + value + '\'', fn); };
+						self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
 						self.scheduleScript = function(id, date, action) { var fn = 'scheduleScript'; self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr([id, date, action],','), fn); };
 						self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript], ','), fn); };
 						self.updateWidget = function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); };
@@ -268,7 +268,7 @@ var PRNM = (function(exports) {
 						 * @param  {[type]} userCfgFetchParamsObj) {            var fileName = userCfgFetchParamsObj.key; var fs = require('fs'); var userCfg = fs.readFileSync(fileName); self.log('userCfg = ' + userCfg [description]
 						 * @return {[type]}                        [description]
 						 */
-						self.getUserCfg = function() { var fn = 'getUserCfg', self = ctor.prototype; 
+						self.getUserCfg = function() { var fn = 'getUserCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
 							self.log('entered',fn);
 							if(self.userCfg==null) { 
 								self.debug('fetching userCfg on first call...', fn); 
@@ -284,7 +284,7 @@ var PRNM = (function(exports) {
 						 * @param  {[type]} userCfgFetchParamsObj.key [description]
 						 * @return {[type]}                           [description]
 						 */
-						self.getAppCfg = function() { var fn = 'getAppCfg', self = ctor.prototype; 
+						self.getAppCfg = function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
 							self.debug('entered',fn);
 							self.warn('NOT IMPLEMENTED FOR THIS EXECUTION CONTEXT.', fn);
 							self.debug('exiting',fn);
@@ -307,10 +307,10 @@ var PRNM = (function(exports) {
 						self.warn = function(s, fn) { console.warn('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
 						self.error = function(s, fn) { console.error('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
 						self.playDefaultTone = function() { var fn = 'playDefaultTone'; self.log('NOEXEC: playDefaultTone', fn); };
-						self.persistEncryptedString = function(namespace, key, value) { var fn = 'persistEncryptedString'; self.log('NOEXEC: persistEncryptedString: key = \'' + key + '\'; value = \'' + value + '\'', fn); };
-						self.fetchEncryptedString = function(namespace, key) { var fn = 'fetchEncryptedString'; self.log('NOEXEC: fetchEncryptedString: key = \'' + key + '\'', fn); };
-						self.persistString = function(namespace, key, value) { var fn = 'persistString'; self.log('NOEXEC: persistString: key = \'' + key + '\'; value = \'' + value + '\'', fn); };
-						self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: key = \'' + key + '\'', fn); };
+						self.persistEncryptedString = function(namespace, key, value) { var fn = 'persistEncryptedString'; self.log('NOEXEC: persistEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'; value = \'' + value + '\'', fn); };
+						self.fetchEncryptedString = function(namespace, key) { var fn = 'fetchEncryptedString'; self.log('NOEXEC: fetchEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
+						self.persistString = function(namespace, key, value) { var fn = 'persistString'; self.log('NOEXEC: persistString: namespace = \'' + namespace + '\'; key = \'' + key + '\'; value = \'' + value + '\'', fn); };
+						self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
 						self.scheduleScript = function(id, date, action) { var fn = 'scheduleScript'; self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr([id, date, action],','), fn); };
 						self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript],','), fn); };
 						self.updateWidget = function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); };
@@ -327,14 +327,14 @@ var PRNM = (function(exports) {
 						 * @param  {[type]} userCfgFetchParamsObj [description]
 						 * @return {[type]}                       [description]
 						 */
-						self.getUserCfg = function() { var fn = 'getUserCfg', self = ctor.prototype; self.log('entered & exiting',fn); if(userCfg==null) { userCfg = self.envConsts.userCfg.key; } return userCfg; };
+						self.getUserCfg = function() { var fn = 'getUserCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } self.log('entered & exiting',fn); if(userCfg==null) { userCfg = self.envConsts.userCfg.key; } return userCfg; };
 						/**
 						 * Node-case: implement when use-case arises.
 						 * @param  {[type]} userCfgFetchParamsObj)    {            return self.fetchEncryptedString(userCfgFetchParamsObj.namespace [description]
 						 * @param  {[type]} userCfgFetchParamsObj.key [description]
 						 * @return {[type]}                           [description]
 						 */
-						self.getAppCfg = function() { var fn = 'getAppCfg', self = ctor.prototype; 
+						self.getAppCfg = function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
 							self.debug('entered',fn);
 							self.warn('NOT IMPLEMENTED FOR THIS EXECUTION CONTEXT.', fn);
 							self.debug('exiting',fn);
@@ -368,7 +368,7 @@ var PRNM = (function(exports) {
 			 * @param  {[type]} timeStr [description]
 			 * @return {[type]}         [description]
 			 */
-			genDateFromTime: function(timeStr) { var fn = 'genDateFromTime', self = ctor.prototype;
+			genDateFromTime: function(timeStr) { var fn = 'genDateFromTime'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				var tarr = timeStr.split(':');
 				var th = parseInt(tarr[0], 10),
 						tm = parseInt(tarr[1], 10),
@@ -384,7 +384,7 @@ var PRNM = (function(exports) {
 			 * @param  {[type]} iCalStr [description]
 			 * @return {[type]}         [description]
 			 */
-			iCalToDate: function(iCalStr) { var fn = 'iCalToDate', self = ctor.prototype;
+			iCalToDate: function(iCalStr) { var fn = 'iCalToDate'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				var  yy = iCalStr.substr(0,4)
 						,MM = (parseInt(iCalStr.substr(4,2), 10)) - 1
 						,dd = iCalStr.substr(6,2)
@@ -403,7 +403,7 @@ var PRNM = (function(exports) {
 			 * @param  {[type]} paramArray [description]
 			 * @return {[type]}            [description]
 			 */
-			getQuotedAndDelimitedStr: function(paramArray, delim, quoteChar) { var fn = 'getQuotedAndDelimitedStr', self = ctor.prototype;
+			getQuotedAndDelimitedStr: function(paramArray, delim, quoteChar) { var fn = 'getQuotedAndDelimitedStr'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				// self.log('entered and exiting, with paramArray = ' + paramArray,fn);
 				var qc = self.isNullOrUndefined(quoteChar) ? '\'' : quoteChar;
 				return _.reduce(_.map(paramArray, function(param) { return qc + param + qc; }), function(memo, val) {
@@ -457,7 +457,7 @@ var PRNM = (function(exports) {
 			 * Returns all the dose times in a user config.
 			 * @return {[type]} [description]
 			 */
-			getAllDoseTimes: function() { var fn = 'getAllDoseTimes', self = ctor.prototype;
+			getAllDoseTimes: function() { var fn = 'getAllDoseTimes'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
 				self.getUserCfg();
 				// self.debug('self.userCfg = ' + JSON.stringify(self.userCfg),fn);
@@ -511,7 +511,7 @@ var PRNM = (function(exports) {
 			 * Gets a Date object representing a randomly-selected time within a range. Useful for randomizing when a prompt must load.
 			 * @return {[type]} [description]
 			 */
-			getRandomDateTimeWithinRange: function(startDateTime, endDateTime) { var fn = 'getRandomDateTimeWithinRange', self = ctor.prototype;
+			getRandomDateTimeWithinRange: function(startDateTime, endDateTime) { var fn = 'getRandomDateTimeWithinRange'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				// var timespan = ctor.prototype.TimePeriod(startDateTime, endDateTime);
 				// ctor.prototype.debug('timespan.getSeconds() = ' + timespan.getSeconds(), fn);
 				
@@ -528,7 +528,7 @@ var PRNM = (function(exports) {
 			},
 
 
-			setDateTimeTrigger: function(type, name, actionScriptText, startDateTime, endDateTime, repeatStr) { var fn = 'setDateTimeTrigger', self = ctor.prototype;
+			setDateTimeTrigger: function(type, name, actionScriptText, startDateTime, endDateTime, repeatStr) { var fn = 'setDateTimeTrigger'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
 				self.debug('actionScriptText = ' + actionScriptText, fn);
 
@@ -613,8 +613,8 @@ var PRNM = (function(exports) {
 			 * Provides the CRUD functions for an appConfig in PR's database.
 			 * @type {Object}
 			 */
-			appConfig: {
-				sampleTrigger: function() {
+			// appConfig: {
+				appConfigSampleTrigger: function() {
 						// 'onLoad': {
 						// 	'actionItems': [
 						// 		{
@@ -661,7 +661,7 @@ var PRNM = (function(exports) {
 				 * 
 				 * Intended usage:
 				 * 		On PRNM first-load,
-				 *   		If appConfig does not exist, then run appConfig.create.
+				 *   		If appConfig does not exist, then run appConfigCreate.
 				 * 		On trigger-create,
 				 * 			Create a trigger-state object in the triggerState array. This will include the trigger definition (so that after the trigger runs, even if deleted, we have a copy available to us).
 				 * 			Set the trigger-state object's completionState value to NotStarted.
@@ -682,10 +682,53 @@ var PRNM = (function(exports) {
 				 * @param  {[type]} keyInPR   [description]
 				 * @return {[type]}           [description]
 				 */
-				create: function(namespace, keyInPR) {
-					self.persistEncryptedString(namespace, keyInPR, JSON.stringify({
-						'triggerState': []
-					}));
+				appConfigCompletionStates: function() { var fn = 'appConfigCompletionStates'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+					return {
+						'NotStarted': 'NotStarted',
+						'PromptedNoResponse': 'PromptedNoResponse',
+						'PromptedPressedButton': 'PromptedPressedButton',
+						'PromptedEnteredApp': 'PromptedEnteredApp',
+						'PromptedInProgress': 'PromptedInProgress',
+						'PromptedCompleted': 'PromptedCompleted',
+						'CanceledByTrigger': 'CanceledByTrigger',
+						'CanceledByApp': 'CanceledByApp'
+					};
+				},
+
+				appConfigCreate: function(namespace, keyInPR) { var fn = 'appConfigCreate'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+					var appCfg = self.getAppCfg();
+					if(appCfg == null) {
+						self.warn('Creating appCfg in PR database.', fn);
+						self.persistEncryptedString(namespace, keyInPR, JSON.stringify({
+								'staticOrDefault': {
+									'transition': {}
+								},
+								'dynamicOrModified': {
+									'transition': {}
+								},
+								'triggerState': []
+							})
+						);
+					}
+					else {
+						self.warn('appCfg already exists in PR database; not creating.', fn);
+
+						// ensure triggerState exists
+						if(self.isNullOrUndefined(appCfg.triggerState)) {
+				      self.log('Updating and persisting appCfg for: ("' + namespace + '", "' + keyInPR + '"); reason: no triggerState array.');
+							// clone the appCfg, update, then persist: http://heyjavascript.com/4-creative-ways-to-clone-objects/
+							appCfg.triggerState = [];
+							self.appConfigUpsert(namespace, keyInPR, appCfg);
+				      // self.persistEncryptedString(namespace, keyInPR, JSON.stringify(appCfg));
+				      self.appCfg = appCfg;
+				      // self.debug('self.appCfg = ' + JSON.stringify(self.appCfg), fn);
+				      var storedAppCfg = self.fetchEncryptedString(namespace, keyInPR);
+				      self.debug('storedAppCfg = ' + storedAppCfg, fn);
+						}
+					}
+
+					self.debug('CREATE(' + [namespace,keyInPR] + ')');
+					return appCfg;
 				},
 				/**
 				 * Gets a namespaced key's value.
@@ -693,8 +736,10 @@ var PRNM = (function(exports) {
 				 * @param  {[type]} keyInPR   [description]
 				 * @return {[type]}           [description]
 				 */
-				read: function(namespace, keyInPR) {
-					self.fetchEncryptedString(namespace, keyInPR);
+				appConfigRead: function(namespace, keyInPR) { var fn = 'appConfigRead'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+					var appCfg = self.fetchEncryptedString(namespace, keyInPR);
+					self.debug('READ(' + [namespace,keyInPR] + ')');
+					return appCfg;
 				},
 				/**
 				 * Inserts or updates a namespaced key.
@@ -703,8 +748,9 @@ var PRNM = (function(exports) {
 				 * @param  {[type]} appConfigObj [description]
 				 * @return {[type]}              [description]
 				 */
-				upsert: function(namespace, keyInPR, appConfigObj) {
+				appConfigUpsert: function(namespace, keyInPR, appConfigObj) { var fn = 'appConfigUpsert'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 					self.persistEncryptedString(namespace, keyInPR, JSON.stringify(appConfigObj));
+					self.debug('UPSERT(' + [namespace,keyInPR,appConfigObj] + ')');
 				},
 				/**
 				 * 'Deletes' (actually, marks empty) a namespaced key.
@@ -712,19 +758,20 @@ var PRNM = (function(exports) {
 				 * @param  {[type]} keyInPR   [description]
 				 * @return {[type]}           [description]
 				 */
-				delete: function(namespace, keyInPR) {
+				appConfigDelete: function(namespace, keyInPR) { var fn = 'appConfigDelete'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 					self.persistEncryptedString(namespace, keyInPR, null);
+					self.debug('DELETE(' + [namespace,keyInPR] + ')');
 				},
 
 				// *** Convenience fns ***
 
-				setUrl: function(namespace, keyInPR, triggerId, newUrl) {
+				appConfigSetUrl: function(namespace, keyInPR, triggerId, newUrl) { var fn = 'appConfigSetUrl'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 					var appCfg = self.appConfig.get(namespace, keyInPR);
 					var trigger = _.findWhere(appCfg.triggerState, {triggerDef: triggerId});
 					trigger.dstUrl = newUrl;
 					self.appConfig.set(namespace, keyInPR, trigger);
 				},
-			},
+			// },
 
 
 
@@ -767,7 +814,7 @@ var PRNM = (function(exports) {
 
 			*/
 
-			setEMATrigger: function(name, startDate, endDate, untilDate) { var fn = 'setEMATrigger', self = ctor.prototype;
+			setEMATrigger: function(name, startDate, endDate, untilDate) { var fn = 'setEMATrigger'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
 				var  type = 'datetime'
 						,name = !self.isNullOrUndefined(name) ? name : 'Next EMA'
@@ -784,34 +831,28 @@ var PRNM = (function(exports) {
 			},
 
 
-			// setMedPromptTrigger: function(name, startDate, endDate, untilDate) { var fn = 'setMedPromptTrigger', self = ctor.prototype;
-			// 	self.debug('entered',fn);
-			// 	var  type = 'datetime'
-			// 			,name = !self.isNullOrUndefined(name) ? name : 'Next MedPrompt'
-			// 			,actionScriptText = null
-			// 			,startDateTime = null
-			// 			,endDateTime = null
-			// 			,untilDateTime = null
-			// 			,ret = null;
-
-			// 	actionScriptText = 'PurpleRobot.showNativeDialog(' + self.getQuotedAndDelimitedStr([type,name,actionScriptText,startDateTime,endDateTime,untilDateTime], ',') + ');';
-			// 	self.debug('actionScriptText = ' + actionScriptText,fn);
-			// 	self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, untilDateTime);
-			// 	self.debug('exiting',fn);
-			// },
+			genMedPromptTriggerId: function(dose) { var fn = 'genMedPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+			//; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('entered',fn);
+				var id = self.triggerIdPrefixes.medPrompt + dose.medication + ' at ' + dose.time;
+				self.debug('exiting; id = ' + id,fn);
+				return id;
+			},
 
 
-			setAllMedPrompts: function() { var fn = 'setAllMedPrompts', self = ctor.prototype;
+			setAllMedPrompts: function() { var fn = 'setAllMedPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
 				self.getUserCfg();
 
 				_.each(self.userCfg.doses, function(d, i) {
-					self.debug('d = ' + JSON.stringify(d), fn);
+					var doseStr = JSON.stringify(d);
+					self.debug('d = ' + doseStr, fn);
 					
 					var sdt = self.genDateFromTime(d.time);
 					self.debug('sdt = ' + sdt, fn);
 					var  type = 'datetime'
-							,name = self.triggerIdPrefixes.medPrompt + d.medication + ' at ' + d.time
+							// ,name = self.triggerIdPrefixes.medPrompt + d.medication + ' at ' + d.time
+							,name = self.genMedPromptTriggerId(d)
 							,actionScriptText = null
 							,startDateTime = sdt
 							,endDateTime = sdt.clone().addMinutes(1)
@@ -825,16 +866,36 @@ var PRNM = (function(exports) {
 						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
 						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
 						
-						// v3 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
-						,self.convertFnToString(self.actions.onMedPromptYes, [self.getCommonFnSetForActions(), 'hello world!'])
-						,self.convertFnToString(self.actions.onMedPromptNo, [self.getCommonFnSetForActions(), 'goodbye world'])
+						// v3 - WORKS!!!!!
+						// In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
+						// 
+						// The idea here is to mock the 'self' object using the specified function's current context.
+						// Then, specify all the function dependencies in-order in the array string here.
+						// Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+						// Then, append the current dose as a string.
+						// All of this gets eval'd in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
+						,self.convertFnToString(self.actions.onMedPromptYes, [
+								self.actionFns.getCommonFnSetForActions()
+							+ self.actionFns.getAppCfg()
+							+ self.actionFns.getTriggerFns() 
+							+ self.actionFns.getMedPromptFns()
+							+ self.actionFns.getAppCfgFns()
+							+ 'var dose = ' + doseStr + ';'
+							])
+						,self.convertFnToString(self.actions.onMedPromptNo, [
+								self.actionFns.getCommonFnSetForActions() 
+							+ self.actionFns.getAppCfg()
+							+ self.actionFns.getTriggerFns()
+							+ self.actionFns.getMedPromptFns()
+							+ self.actionFns.getAppCfgFns()
+							+ 'var dose = ' + doseStr + ';'
+							])
 						], ',', "'");
-
 
 					// the generated action to execute in a trigger
 					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
 					
-					self.debug('actionSrciptText = ' + actionScriptText,fn);
+					self.debug('actionScriptText = ' + actionScriptText,fn);
 					self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
 				});
@@ -849,36 +910,102 @@ var PRNM = (function(exports) {
 			 * @param  {[type]} fnParamArray [description]
 			 * @return {[type]}              [description]
 			 */
-			convertFnToString: function(fnPtr, fnParamArray) { var fn = 'convertFnToString', self = ctor.prototype;
+			convertFnToString: function(fnPtr, fnParamArray) { var fn = 'convertFnToString'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				var p = self.isNullOrUndefined(fnParamArray) ? '' : self.getQuotedAndDelimitedStr(fnParamArray,',','\\\'');
 				return '(' +  (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')(' + p.replace(/(\r\n|\n|\r)/gm,'') + ');';
 			},
 
 
 			/**
-			 * Bundles a set of functions that are often found in trigger actions,
-			 * in a way that maintains the convention used in the bundled functions' own definition,
-			 * which prevents re-coding for different contexts.
-			 * @return {[type]} [description]
+			 * Enables PRNM function and data usage in actions. Always make getCommonFnSetForActions the first function in your set of concatenations!
+			 * 
+			 * More-specifically, this defines a set of functions, each of which returns a string containing function and variable assignments that would otherwise only be available in PRNM.
+			 * @type {Object}
 			 */
-			getCommonFnSetForActions: function() { var fn = 'getCommonFnSetForActions', self = ctor.prototype;
-				var s = ''
-					+ 'var self = this;'
-					+ 'self.loadLibrary = ' + self.loadLibrary.toString() + ';'
-					+ 'self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + ';'
-					+ 'self.log = ' + self.log.toString() + ';'
-					+ 'self.debug = ' + self.debug.toString() + ';'
-					+ 'self.launchUrl = ' + self.launchUrl.toString() + ';'
-					+ 'self.fetchEncryptedString = ' + self.fetchEncryptedString.toString() + ';'
-					+ 'self.persistEncryptedString = ' + self.persistEncryptedString.toString() + ';'
-					+ 'var _ = self.loadLibrary("underscore.js", "_");'
-					+	'var userCfgStr = self.fetchEncryptedString("' + self.envConsts.userCfg.namespace + '", "userCfg");'
-					+	'var userCfg = JSON.parse(userCfgStr);'
-					+	'var appCfgStr = self.fetchEncryptedString("' + self.envConsts.userCfg.namespace + '", "appCfg");'
-					+	'var appCfg = JSON.parse(appCfgStr);'
+			actionFns: {
+				/**
+				 * BASE SET OF FUNCTIONS. ALWAYS CALL THIS FIRST IF ANY OTHER FUNCTIONS ARE USED!
+				 * 
+				 * Bundles a set of functions that are often found in trigger actions,
+				 * in a way that maintains the convention used in the bundled functions' own definition,
+				 * which prevents re-coding for different contexts.
+				 * @return {[type]} [description]
+				 */
+				getCommonFnSetForActions: function() { var fn = 'getCommonFnSetForActions'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+					var s = ''
+						+ 'this["CURRENTLY_IN_TRIGGER"] = true;'
+						+ 'var self = this;'
+						+ 'self.ctor = self;'
+						// + 'ctor.prototype = self;'
+						+ 'self.envConsts = ' + JSON.stringify(self.envConsts) + ';'
+						+ 'self.triggerIdPrefixes = ' + JSON.stringify(self.triggerIdPrefixes) + ';'
+						+ 'self.loadLibrary = ' + self.loadLibrary.toString() + ';'
+						+ 'self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + ';'
+						+ 'self.log = ' + self.log.toString() + ';'
+						+ 'self.debug = ' + self.debug.toString() + ';'
+						+ 'self.launchUrl = ' + self.launchUrl.toString() + ';'
+						+ 'self.fetchEncryptedString = ' + self.fetchEncryptedString.toString() + ';'
+						+ 'self.persistEncryptedString = ' + self.persistEncryptedString.toString() + ';'
+						+ 'var _ = self.loadLibrary("underscore.js", "_");'
+						;
+					self.debug(fn + ' = ' + s, fn);
+					return s;
+				},
+
+				/**
+				 * Enables easy appCfg access in actions.
+				 * @return {[type]} [description]
+				 */
+				getAppCfg: function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+					var s = 'var appCfgStr = self.fetchEncryptedString("' + self.envConsts.appCfg.namespace + '", "' + self.envConsts.appCfg.key + '");'
+								+	'var appCfg = JSON.parse(appCfgStr);'
 					;
-				self.debug('s = ' + s, fn);
-				return s;
+					self.debug(fn + ' = ' + s, fn);
+					return s;
+				},
+
+				/**
+				 * Enables easy userCfg access in actions.
+				 * @return {[type]} [description]
+				 */
+				getUserCfg: function() { var fn = 'getUserCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+					var s = 'var userCfgStr = self.fetchEncryptedString("' + self.envConsts.userCfg.namespace + '", "' + self.envConsts.userCfg.key + '");'
+								+	'var userCfg = JSON.parse(userCfgStr);'
+					;
+					self.debug(fn + ' = ' + s, fn);
+					return s;
+				},
+
+
+				getTriggerFns: function() { var fn = 'getTriggerFns'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+					var s = 'self.fetchTriggerIds = ' + self.fetchTriggerIds.toString() + ';'
+								+	'self.fetchTrigger = ' + self.fetchTrigger.toString() + ';'
+					;
+					self.debug(fn + ' = ' + s, fn);
+					return s;
+				},
+
+				getMedPromptFns: function() { var fn = 'getTriggerFns'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+					var s = 'self.genMedPromptTriggerId = ' + self.genMedPromptTriggerId.toString() + ';'
+						;	
+					self.debug(fn + ' = ' + s, fn);
+					return s;
+				},
+
+				getAppCfgFns: function() { var fn = 'getAppCfgFns'; var self; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; self.debug('FOO'); }
+					// ATTEMPT 1: trying to be elegant...
+					// var s = 'self.appConfig = {};';
+					// _.each(_.keys(self.appConfig), function(k) {
+					// 	s += 'self.appConfig.' + k + ' = ' + self.appConfig[k].toString() + ';'
+					// });
+					
+					// ATTEMPT 2: can't get fns out of stringified objs without jsonfn, which we don't have, and can't access the 'this' obj at multiple levels deep, sooo....
+					// Just throw everything in the root namespace of the execution context and move-on with life. *sigh*
+					var s = 'self.appConfigUpsert = ' + self.appConfigUpsert.toString() + ';'
+						;
+					self.debug(fn + ' = ' + s, fn);
+					return s;
+				}
 			},
 
 
@@ -887,7 +1014,7 @@ var PRNM = (function(exports) {
 			 * Deletes all triggers except the PRNM trigger.
 			 * @return {[type]} [description]
 			 */
-			clearAllNonPRNMTriggers: function() { var fn = "clearAllNonPRNMTriggers", self = ctor.prototype;
+			clearAllNonPRNMTriggers: function() { var fn = "clearAllNonPRNMTriggers"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				var triggersToDelete = _.filter(self.fetchTriggerIds(), function(triggerId) { return (triggerId != self.triggerIdPrefixes.self);});
 				self.warn('Deleting all triggers except: ' + self.triggerIdPrefixes.self + '. Triggers = ' + triggersToDelete, fn);
 				_.each(triggersToDelete, function(triggerId) {
@@ -904,12 +1031,15 @@ var PRNM = (function(exports) {
 			 * @param  {[type]} args [description]
 			 * @return {[type]}      [description]
 			 */
-			main: function(args) { var fn = 'main', self = ctor.prototype;
+			main: function(args) { var fn = 'main'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.log('entered: args: ' + args, fn);
 				self.log('execution context: ' + self.execCtx, fn);
 
 // for debugging
 self.clearAllNonPRNMTriggers();
+	
+				// create the app config repo in PR, if not already created.
+				self.appConfigCreate(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key);
 
 				self.setAllMedPrompts();
 

@@ -27,52 +27,92 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-			onMedPromptYes: function(codeFromPrnm, p2) { var fn = 'onMedPromptYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
-
-				eval('' + codeFromPrnm);
+			onMedPromptYes: function(codeFromPrnm) { var fn = 'onMedPromptYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
 
 
 
 
-
-
-				
 
 				var dynamicIsNull = self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onMedPromptYes);
 				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onMedPromptYes : appCfg.dynamicOrModified.transition.onMedPromptYes;
-				var url = baseUrl;
-
-
-
-
-
-
-
-
-
+				var url = baseUrl
+				 	+ '?'
+					+ 'med1time1=' + dose.time
+					+ '&medName_1=' + dose.medication
+					+ '&medStrength_1=' + dose.strength
+					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
 				self.debug('launching url = ' + url, fn);
 				self.launchUrl(url);
+
+
+				self.debug('APP CFG IN TRIGGER: PRE  = ' + self.fetchEncryptedString(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key), fn);
+
+				var trg = self.fetchTrigger(self.genMedPromptTriggerId(dose));
+				self.debug('THIS TRIGGER = ' + JSON.stringify(trg));
+				appCfg.triggerState.push(trg);
+				self.debug('self.appConfig = ' + JSON.stringify(self.appConfig), fn);
+				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
+				
+				self.debug('APP CFG IN TRIGGER: POST = ' + self.fetchEncryptedString(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key), fn);
 			},
 
-			onMedPromptNo: function(codeFromPrnm) { var fn = 'onMedPromptNo'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
 
-				eval('' + codeFromPrnm);
+			onMedPromptNo: function(codeFromPrnm) { var fn = 'onMedPromptNo'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
+
+
 
 
 
 				var dynamicIsNull = self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onMedPromptNo);
-				var url = dynamicIsNull ? appCfg.staticOrDefault.transition.onMedPromptNo : appCfg.dynamicOrModified.transition.onMedPromptNo;
+				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onMedPromptNo : appCfg.dynamicOrModified.transition.onMedPromptNo;
+				var url = baseUrl
+				 	+ '?'
+					+ 'med1time1=' + dose.time
+					+ '&medName_1=' + dose.medication
+					+ '&medStrength_1=' + dose.strength
+					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
 				self.debug('launching url = ' + url, fn);
 				self.launchUrl(url);
 			},
 
+
 			onEMAYes: function(codeFromPrnm) { var fn = 'onEMAYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
 
+
+
+
+
+				var dynamicIsNull = self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onMedPromptYes);
+				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onMedPromptYes : appCfg.dynamicOrModified.transition.onMedPromptYes;
+				var url = baseUrl
+				 	+ '?'
+					+ 'med1time1=' + dose.time
+					+ '&medName_1=' + dose.medication
+					+ '&medStrength_1=' + dose.strength
+					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
+				self.debug('launching url = ' + url, fn);
+				self.launchUrl(url);
 			},
+
 
 			onEMANo: function(codeFromPrnm) { var fn = 'onEMANo'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
 
+
+
+
+
+				var dynamicIsNull = self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onMedPromptNo);
+				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onMedPromptNo : appCfg.dynamicOrModified.transition.onMedPromptNo;
+				var url = baseUrl
+				 	+ '?'
+					+ 'med1time1=' + dose.time
+					+ '&medName_1=' + dose.medication
+					+ '&medStrength_1=' + dose.strength
+					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
+				self.debug('launching url = ' + url, fn);
+				self.launchUrl(url);
 			},
+
 
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm);
 
