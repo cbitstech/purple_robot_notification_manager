@@ -1,0 +1,29 @@
+{
+	"logLevel": 4,
+	"staticOrDefault": {
+		"transition": {
+			"onMedPromptYes": "http://mohrlab.northwestern.edu/h2h/medprompt/2.html",
+			"onMedPromptNo": "http://mohrlab.northwestern.edu/h2h/medprompt/6.html",
+			"onEMAYes": {
+				"Craving": "http://mohrlab.northwestern.edu/h2h/cravings/index.html",
+				"SideEffect": "http://mohrlab.northwestern.edu/h2h/sideeffects/index.html",
+				"Mood": "http://mohrlab.northwestern.edu/h2h/phq/1.html"
+			},
+			"onEMANo": null,
+			"onWidgetPress": "http://mohrlab.northwestern.edu/h2h"
+		}
+	},
+	"dynamicOrModified": {
+		"transition": {
+			"onMedPromptYes": null,
+			"onMedPromptNo": null,
+			"onEMAYes": {
+				"Craving": null,
+				"SideEffect": null,
+				"Mood": null
+			},
+			"onEMANo": null,
+			"onWidgetPress": null
+		}
+	}
+}

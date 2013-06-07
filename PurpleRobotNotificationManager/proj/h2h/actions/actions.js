@@ -28,6 +28,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 			onMedPromptYes: function(codeFromPrnm) { var fn = 'onMedPromptYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
+					PurpleRobot.log('FOOFOOFOOFOOFOO');
 
 
 
@@ -45,15 +46,14 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.launchUrl(url);
 
 
-				self.debug('APP CFG IN TRIGGER: PRE  = ' + self.fetchEncryptedString(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key), fn);
+
 
 				var trg = self.fetchTrigger(self.genMedPromptTriggerId(dose));
-				self.debug('THIS TRIGGER = ' + JSON.stringify(trg));
-				appCfg.triggerState.push(trg);
-				self.debug('self.appConfig = ' + JSON.stringify(self.appConfig), fn);
+				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
+				appCfg.triggerState.push(trgWithState);
+				self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
 				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
-				
-				self.debug('APP CFG IN TRIGGER: POST = ' + self.fetchEncryptedString(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key), fn);
+
 			},
 
 

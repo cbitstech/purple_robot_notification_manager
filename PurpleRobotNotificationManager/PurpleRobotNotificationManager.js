@@ -103,6 +103,10 @@ var PRNM = (function(exports) {
 	    self = this;
 
 	    ctor.prototype.setFunctionsAndLibraryRefsForEnv(d.env);
+
+			// set the self.appCfg instance variable
+			self.getAppCfg();
+
 	    ctor.prototype.debug('current date using date.js: ' + Date.today(),fn);
 
 			ctor.prototype.log('exiting...', fn);
@@ -184,10 +188,10 @@ var PRNM = (function(exports) {
 						
 						// * set function ptrs *
 						// PR fns
-						self.debug = function(s, fn) { PurpleRobot.log('[DBG]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.log = function(s, fn) { PurpleRobot.log('[INF]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.warn = function(s, fn) { PurpleRobot.log('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.error = function(s, fn) { PurpleRobot.log('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
+						self.debug = function(s, fn) { if(self.appCfg.logLevel >= 4) { PurpleRobot.log('[DBG]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
+						self.log = function(s, fn) { if(self.appCfg.logLevel >= 3) { PurpleRobot.log('[INF]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
+						self.warn = function(s, fn) { if(self.appCfg.logLevel >= 2) { PurpleRobot.log('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
+						self.error = function(s, fn) { if(self.appCfg.logLevel >= 1) { PurpleRobot.log('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
 						self.playDefaultTone = function() { PurpleRobot.playDefaultTone(); };
 						self.persistEncryptedString = function(namespace, key, value) { return PurpleRobot.persistEncryptedString(namespace,key,value); };
 						self.fetchEncryptedString = function(namespace, key) { return PurpleRobot.fetchEncryptedString(namespace,key); };
@@ -201,7 +205,14 @@ var PRNM = (function(exports) {
 						self.fetchTrigger = function(triggerId) { return PurpleRobot.fetchTrigger(triggerId); };
 						self.deleteTrigger = function(triggerId) { return PurpleRobot.deleteTrigger(triggerId); };
 						self.launchUrl = function(url) { return PurpleRobot.launchUrl(url); };
-						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var fn='loadLibrary'; PurpleRobot.loadLibrary(nameOrPath); self.debug('nameOrPath = ' + nameOrPath + '; keyOfLibInstanceToReturn = ' + keyOfLibInstanceToReturn,fn); self.debug('this[keyOfLibInstanceToReturn] = ' + this[keyOfLibInstanceToReturn], fn); return this[keyOfLibInstanceToReturn]; };
+						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var fn='loadLibrary'; 
+							self.debug('nameOrPath = ' + nameOrPath + '; keyOfLibInstanceToReturn = ' + keyOfLibInstanceToReturn,fn);
+							PurpleRobot.loadLibrary(nameOrPath); 
+							if(keyOfLibInstanceToReturn != null) {
+								self.debug('this[keyOfLibInstanceToReturn] = ' + this[keyOfLibInstanceToReturn], fn);
+								return this[keyOfLibInstanceToReturn];
+							}
+						};
 
 						// support fns
 						/**
@@ -227,11 +238,13 @@ var PRNM = (function(exports) {
 						 * @return {[type]}                           [description]
 						 */
 						self.getAppCfg = function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
-							self.debug('entered',fn);
+							// self.debug('entered',fn);
 							if(self.appCfg==null) { 
-								self.debug('fetching appCfg on first call...', fn);
+								// self.debug('fetching appCfg on first call...', fn);
 								self.appCfg = JSON.parse(self.fetchEncryptedString(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key)); 
 								self.debug('appCfg = ' + JSON.stringify(self.appCfg), fn);
+								PurpleRobot.log('appCfg = ' + JSON.stringify(self.appCfg));
+								PurpleRobot.log('appCfg.logLevel = ' + self.appCfg.logLevel);
 							}
 							self.debug('exiting',fn);
 							return self.appCfg;
@@ -243,10 +256,10 @@ var PRNM = (function(exports) {
 
 						// * set function ptrs *
 						// PR fns
-						self.debug = function(s, fn) { console.log('[DBG]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.log = function(s, fn) { console.log('[INF]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.warn = function(s, fn) { console.warn('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.error = function(s, fn) { console.error('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
+						self.debug = function(s, fn) { if(self.appCfg.logLevel >= 4) { console.log('[DBG]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
+						self.log = function(s, fn) { if(self.appCfg.logLevel >= 3) { console.log('[INF]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
+						self.warn = function(s, fn) { if(self.appCfg.logLevel >= 2) { console.warn('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
+						self.error = function(s, fn) { if(self.appCfg.logLevel >= 1) { console.error('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
 						self.playDefaultTone = function() { var fn = 'playDefaultTone'; self.log('NOEXEC: playDefaultTone', fn); };
 						self.persistEncryptedString = function(namespace, key, value) { var fn = 'persistEncryptedString'; self.log('NOEXEC: persistEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'; value = \'' + value + '\'', fn); };
 						self.fetchEncryptedString = function(namespace, key) { var fn = 'fetchEncryptedString'; self.log('NOEXEC: fetchEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
@@ -285,9 +298,13 @@ var PRNM = (function(exports) {
 						 * @return {[type]}                           [description]
 						 */
 						self.getAppCfg = function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
-							self.debug('entered',fn);
-							self.warn('NOT IMPLEMENTED FOR THIS EXECUTION CONTEXT.', fn);
-							self.debug('exiting',fn);
+							// self.log('entered',fn);
+							if(self.appCfg==null) { 
+								// self.debug('fetching appCfg on first call...', fn); 
+								var fs = require('fs'); 
+								self.appCfg = JSON.parse(fs.readFileSync(self.envConsts.appCfg.key));
+							}
+							self.log('exiting',fn);
 							return self.appCfg;
 						};
 						break;
@@ -302,10 +319,10 @@ var PRNM = (function(exports) {
 						
 						// * set function ptrs *
 						// PR fns
-						self.debug = function(s, fn) { console.log('[DBG]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.log = function(s, fn) { console.log('[INF]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.warn = function(s, fn) { console.warn('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
-						self.error = function(s, fn) { console.error('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); };
+						self.debug = function(s, fn) { if(self.appCfg.logLevel >= 4) { console.log('[DBG]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
+						self.log = function(s, fn) { if(self.appCfg.logLevel >= 3) { console.log('[INF]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
+						self.warn = function(s, fn) { if(self.appCfg.logLevel >= 2) { console.warn('[WRN]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
+						self.error = function(s, fn) { if(self.appCfg.logLevel >= 1) { console.error('[ERR]' + (!self.isNullOrUndefined(fn) ? '[' + fn + '] ' : ' ') + s); } };
 						self.playDefaultTone = function() { var fn = 'playDefaultTone'; self.log('NOEXEC: playDefaultTone', fn); };
 						self.persistEncryptedString = function(namespace, key, value) { var fn = 'persistEncryptedString'; self.log('NOEXEC: persistEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'; value = \'' + value + '\'', fn); };
 						self.fetchEncryptedString = function(namespace, key) { var fn = 'fetchEncryptedString'; self.log('NOEXEC: fetchEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
@@ -577,6 +594,13 @@ var PRNM = (function(exports) {
 							};
 							self.debug('triggerObj = ' + JSON.stringify(triggerObj));
 							self.updateTrigger(name, triggerObj);
+
+							// store trigger history
+							self.getAppCfg();
+							var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).NotStarted, null, triggerObj);
+							self.appCfg.triggerState.push(trgWithState);
+							self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
+							self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, self.appCfg);
 						}
 						catch (e) { self.error("updateTrigger broke; e = " + e, fn); }
 
@@ -626,6 +650,7 @@ var PRNM = (function(exports) {
 						// },
 					return {
 						'createdOn': '20130523T150900',
+						'createdInFn': '',
 						'completionState': 0,
 						'completedOn': null,
 						'dstUrl': 'your-router-path-here',
@@ -638,6 +663,25 @@ var PRNM = (function(exports) {
 							'datetime_end': 'test_datetime_end'
 						}
 					};
+				},
+
+				/**
+				 * A convenience function to get a trigger-state object for storing in the triggerState variable.
+				 * @param  {[type]} createdInFn     [description]
+				 * @param  {[type]} completionState [description]
+				 * @param  {[type]} dstUrl          [description]
+				 * @param  {[type]} triggerDef      [description]
+				 * @return {[type]}                 [description]
+				 */
+				appCfgGetTriggerState: function(createdInFn, completionState, dstUrl, triggerDef) {
+					var trgWithState = self.appConfigSampleTrigger();
+					
+					trgWithState.createdOn = (new Date()).toICal();
+					trgWithState.createdInFn = createdInFn;
+					trgWithState.completionState = completionState;
+					trgWithState.dstUrl = dstUrl;
+					trgWithState.triggerDef = triggerDef;
+					return trgWithState;
 				},
 
 
@@ -876,7 +920,7 @@ var PRNM = (function(exports) {
 						// All of this gets eval'd in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
 						,self.convertFnToString(self.actions.onMedPromptYes, [
 								self.actionFns.getCommonFnSetForActions()
-							+ self.actionFns.getAppCfg()
+							// + self.actionFns.getAppCfg()
 							+ self.actionFns.getTriggerFns() 
 							+ self.actionFns.getMedPromptFns()
 							+ self.actionFns.getAppCfgFns()
@@ -884,7 +928,7 @@ var PRNM = (function(exports) {
 							])
 						,self.convertFnToString(self.actions.onMedPromptNo, [
 								self.actionFns.getCommonFnSetForActions() 
-							+ self.actionFns.getAppCfg()
+							// + self.actionFns.getAppCfg()
 							+ self.actionFns.getTriggerFns()
 							+ self.actionFns.getMedPromptFns()
 							+ self.actionFns.getAppCfgFns()
@@ -936,33 +980,44 @@ var PRNM = (function(exports) {
 						+ 'this["CURRENTLY_IN_TRIGGER"] = true;'
 						+ 'var self = this;'
 						+ 'self.ctor = self;'
-						// + 'ctor.prototype = self;'
 						+ 'self.envConsts = ' + JSON.stringify(self.envConsts) + ';'
 						+ 'self.triggerIdPrefixes = ' + JSON.stringify(self.triggerIdPrefixes) + ';'
-						+ 'self.loadLibrary = ' + self.loadLibrary.toString() + ';'
+
+						+ 'self.fetchEncryptedString = ' + self.fetchEncryptedString.toString() + ';'
+						+ 'self.persistEncryptedString = ' + self.persistEncryptedString.toString() + ';'
+
 						+ 'self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + ';'
 						+ 'self.log = ' + self.log.toString() + ';'
 						+ 'self.debug = ' + self.debug.toString() + ';'
+
+						+ 'var appCfgStr = self.fetchEncryptedString("' + self.envConsts.appCfg.namespace + '", "' + self.envConsts.appCfg.key + '");'
+						+ 'self.appCfg = JSON.parse(appCfgStr);'
+
+						+ 'self.loadLibrary = ' + self.loadLibrary.toString() + ';'
 						+ 'self.launchUrl = ' + self.launchUrl.toString() + ';'
-						+ 'self.fetchEncryptedString = ' + self.fetchEncryptedString.toString() + ';'
-						+ 'self.persistEncryptedString = ' + self.persistEncryptedString.toString() + ';'
+
 						+ 'var _ = self.loadLibrary("underscore.js", "_");'
+
+						// This seems to impose a noticeable performance penalty on prompt-button-press. Refactor?
+						+ 'self.loadLibrary("date.js", null);'
+						+ 'Date.prototype.toICal = ' + Date.prototype.toICal.toString() + ';'
+						+ 'self.iCalToDate = ' + self.iCalToDate.toString() + ';'
 						;
 					self.debug(fn + ' = ' + s, fn);
 					return s;
 				},
 
-				/**
-				 * Enables easy appCfg access in actions.
-				 * @return {[type]} [description]
-				 */
-				getAppCfg: function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-					var s = 'var appCfgStr = self.fetchEncryptedString("' + self.envConsts.appCfg.namespace + '", "' + self.envConsts.appCfg.key + '");'
-								+	'var appCfg = JSON.parse(appCfgStr);'
-					;
-					self.debug(fn + ' = ' + s, fn);
-					return s;
-				},
+				// /**
+				//  * Enables easy appCfg access in actions.
+				//  * @return {[type]} [description]
+				//  */
+				// getAppCfg: function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				// 	var s = 'var appCfgStr = self.fetchEncryptedString("' + self.envConsts.appCfg.namespace + '", "' + self.envConsts.appCfg.key + '");'
+				// 				+	'self.appCfg = JSON.parse(appCfgStr);'
+				// 	;
+				// 	self.debug(fn + ' = ' + s, fn);
+				// 	return s;
+				// },
 
 				/**
 				 * Enables easy userCfg access in actions.
@@ -970,7 +1025,7 @@ var PRNM = (function(exports) {
 				 */
 				getUserCfg: function() { var fn = 'getUserCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 					var s = 'var userCfgStr = self.fetchEncryptedString("' + self.envConsts.userCfg.namespace + '", "' + self.envConsts.userCfg.key + '");'
-								+	'var userCfg = JSON.parse(userCfgStr);'
+								+	'self.userCfg = JSON.parse(userCfgStr);'
 					;
 					self.debug(fn + ' = ' + s, fn);
 					return s;
@@ -1001,7 +1056,11 @@ var PRNM = (function(exports) {
 					
 					// ATTEMPT 2: can't get fns out of stringified objs without jsonfn, which we don't have, and can't access the 'this' obj at multiple levels deep, sooo....
 					// Just throw everything in the root namespace of the execution context and move-on with life. *sigh*
-					var s = 'self.appConfigUpsert = ' + self.appConfigUpsert.toString() + ';'
+					var s = ''
+						+ 'self.appConfigUpsert = ' + self.appConfigUpsert.toString() + ';'
+						+ 'self.appConfigSampleTrigger = ' + self.appConfigSampleTrigger.toString() + ';'
+						+ 'self.appConfigCompletionStates = ' + self.appConfigCompletionStates.toString() + ';'
+						+ 'self.appCfgGetTriggerState = ' + self.appCfgGetTriggerState.toString() + ';'
 						;
 					self.debug(fn + ' = ' + s, fn);
 					return s;

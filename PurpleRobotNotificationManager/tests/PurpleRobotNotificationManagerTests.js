@@ -21,7 +21,7 @@ var prnm = new PurpleRobotNotificationManager.ctor(
       },
       "appCfg": {
         "namespace": "Heart2HAART-TEST",
-        "key": "appCfg"
+        "key": "cfgs/appCfg.json.txt"
       }
     }
   });
@@ -295,7 +295,7 @@ suite('PurpleRobotNotificationManager', function() {
         [function() { console.log('HELLO'); return 1; }, '(function () { console.log("HELLO"); return 1; })();', 1, null],
         [function() { var a = 2; return a; }, '(function () { var a = 2; return a; })();', 2, null],
         [function(q, a) { console.log(q + ': ' + a); return 3; }, '(function (q, a) { console.log(q + ": " + a); return 3; })("how many Evans?","2");', 3, ['how many Evans?', 2]],
-        [actions.onMedPromptYes, 'too hard...', undefined, [prnm.actionFns.getCommonFnSetForActions() + prnm.actionFns.getAppCfg() + 'var dose = ' + JSON.stringify((prnm.getUserCfg()).doses[0]) + ';']] 
+        [actions.onMedPromptYes, 'too hard...', undefined, [prnm.actionFns.getCommonFnSetForActions() + 'var dose = ' + JSON.stringify((prnm.getUserCfg()).doses[0]) + ';']] 
       ],
       function(fn, expectedFnTxt, expectedRet, fnParamArray) {
         console.log('-------------------------------------------');
