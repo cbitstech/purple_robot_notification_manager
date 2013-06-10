@@ -28,7 +28,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 			onMedPromptYes: function(codeFromPrnm) { var fn = 'onMedPromptYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-					PurpleRobot.log('FOOFOOFOOFOOFOO');
 
 
 
@@ -47,9 +46,9 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-
 				var trg = self.fetchTrigger(self.genMedPromptTriggerId(dose));
 				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
+				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
 				appCfg.triggerState.push(trgWithState);
 				self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
 				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
@@ -73,6 +72,16 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
 				self.debug('launching url = ' + url, fn);
 				self.launchUrl(url);
+
+
+
+				var trg = self.fetchTrigger(self.genMedPromptTriggerId(dose));
+				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
+				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
+				appCfg.triggerState.push(trgWithState);
+				self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
+				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
+
 			},
 
 
@@ -92,6 +101,16 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
 				self.debug('launching url = ' + url, fn);
 				self.launchUrl(url);
+
+
+
+				var trg = self.fetchTrigger(self.genMedPromptTriggerId(dose));
+				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
+				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
+				appCfg.triggerState.push(trgWithState);
+				self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
+				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
+
 			},
 
 
@@ -111,6 +130,16 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
 				self.debug('launching url = ' + url, fn);
 				self.launchUrl(url);
+
+
+
+				var trg = self.fetchTrigger(self.genMedPromptTriggerId(dose));
+				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
+				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
+				appCfg.triggerState.push(trgWithState);
+				self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
+				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
+
 			},
 
 

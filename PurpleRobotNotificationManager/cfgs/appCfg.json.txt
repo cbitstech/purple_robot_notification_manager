@@ -11,6 +11,10 @@
 			},
 			"onEMANo": null,
 			"onWidgetPress": "http://mohrlab.northwestern.edu/h2h"
+		},
+		"showNativeDialogTitles": {
+			"medPrompt": "Heart2HAART: ",
+			"EMA": "Heart2HAART: "
 		}
 	},
 	"dynamicOrModified": {

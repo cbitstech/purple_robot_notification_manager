@@ -239,7 +239,9 @@ var PRNM = (function(exports) {
 						 */
 						self.getAppCfg = function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
 							// self.debug('entered',fn);
-							if(self.appCfg==null) { 
+							// if(self.appCfg==null) {
+							var appCfg = self.appCfg != null ? '' + self.appCfg.toString() : null;
+							if(appCfg == null || appCfg.search(/^\{/) != -1 || appCfg.search(/\}$/) != -1) {
 								// self.debug('fetching appCfg on first call...', fn);
 								self.appCfg = JSON.parse(self.fetchEncryptedString(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key)); 
 								self.debug('appCfg = ' + JSON.stringify(self.appCfg), fn);
@@ -269,8 +271,22 @@ var PRNM = (function(exports) {
 						self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript], ','), fn); };
 						self.updateWidget = function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); };
 						self.updateTrigger = function(triggerId, triggerObj) { var fn = 'updateTrigger'; self.log('NOEXEC: updateTrigger: ' + self.getQuotedAndDelimitedStr([triggerId, JSON.stringify(triggerObj)],','), fn); };
-						self.fetchTriggerIds = function() { var fn = 'fetchTriggerIds'; self.log('NOEXEC: fetchTriggerIds', fn); return []; };
-						self.fetchTrigger = function(triggerId) { var fn = 'fetchTrigger'; self.log('NOEXEC: fetchTrigger: ' + triggerId, fn); };
+						self.fetchTriggerIds = function() { var fn = 'fetchTriggerIds';
+							//self.log('NOEXEC: fetchTriggerIds', fn);
+							var fs = require('fs');
+							var triggerArray = JSON.parse(fs.readFileSync(self.envConsts.appCfg.triggerPath));
+							self.debug('triggerArray = ' + triggerArray, fn);
+							var triggerIds = _.pluck(triggerArray, 'identifier');
+							self.debug('triggerIds = ' + triggerIds, fn);
+							return triggerIds;
+						};
+						self.fetchTrigger = function(triggerId) { var fn = 'fetchTrigger'; 
+							// self.log('NOEXEC: fetchTrigger: ' + triggerId, fn);
+							var fs = require('fs');
+							var triggerArray = JSON.parse(fs.readFileSync(self.envConsts.appCfg.triggerPath));
+							var trigger = _.first(triggerArray, function(t) { return t.identifier == triggerId; });
+							return trigger;
+						};
 						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
 						self.launchUrl = function(url) { var fn = 'launchUrl'; self.log('NOEXEC: launchUrl: ' + url, fn); };
 						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var lib = require(nameOrPath); return lib; };
@@ -283,7 +299,7 @@ var PRNM = (function(exports) {
 						 */
 						self.getUserCfg = function() { var fn = 'getUserCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
 							self.log('entered',fn);
-							if(self.userCfg==null) { 
+							if(self.userCfg == null) {
 								self.debug('fetching userCfg on first call...', fn); 
 								var fs = require('fs'); 
 								self.userCfg = JSON.parse(fs.readFileSync(self.envConsts.userCfg.key));
@@ -299,7 +315,8 @@ var PRNM = (function(exports) {
 						 */
 						self.getAppCfg = function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; } 
 							// self.log('entered',fn);
-							if(self.appCfg==null) { 
+							var appCfg = self.appCfg != null ? '' + self.appCfg.toString() : null;
+							if(appCfg == null || appCfg.search(/^\{/) != -1 || appCfg.search(/\}$/) != -1) {
 								// self.debug('fetching appCfg on first call...', fn); 
 								var fs = require('fs'); 
 								self.appCfg = JSON.parse(fs.readFileSync(self.envConsts.appCfg.key));
@@ -858,6 +875,30 @@ var PRNM = (function(exports) {
 
 			*/
 
+			/*** EMA / Assessments ***/
+
+			genEMATriggerId: function(dose) { var fn = 'genEMATriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('entered',fn);
+				// provide some nice tokenizing string-replacement for ID-setting
+				// 		%M = the dose medication
+				// 		%T = the dose time
+				// 		%S = the dose strength
+				// 		%U = the dispensation unit
+				var id = (self.getAppCfg()).staticOrDefault.showNativeDialogTitles.assessment;
+				_.each([
+					 {'%M': dose.medication}
+					,{'%T': dose.time}
+					,{'%S': dose.strength}
+					,{'%U': dose.dispensationUnit}
+					], function(replacementPair) {
+						var key = _.keys(replacementPair)[0];
+						id = id.replace(key, replacementPair[key]);
+				});
+				self.debug('exiting; id = ' + id,fn);
+				return id;
+			},
+
+
 			setEMATrigger: function(name, startDate, endDate, untilDate) { var fn = 'setEMATrigger'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
 				var  type = 'datetime'
@@ -875,19 +916,22 @@ var PRNM = (function(exports) {
 			},
 
 
-			genMedPromptTriggerId: function(dose) { var fn = 'genMedPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-			//; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				self.debug('entered',fn);
-				var id = self.triggerIdPrefixes.medPrompt + dose.medication + ' at ' + dose.time;
-				self.debug('exiting; id = ' + id,fn);
-				return id;
-			},
-
-
-			setAllMedPrompts: function() { var fn = 'setAllMedPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+			/**
+			 * Sets all the EMA prompts (assessment prompts) for the following 24 hours.
+			 * @param  {[type]} ) {            var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
+			 * @return {[type]}   [description]
+			 */
+			setAllEMAPrompts: function(createdMedPromptTriggerIds) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
 				self.getUserCfg();
 
+				// get the created triggers, and get their times, so we can schedule random EMA prompts around them
+				var medPromptTriggers = _.map(createdMedPromptTriggerIds, function(triggerId) { self.fetchTrigger(triggerId); });
+				self.debug('medPromptTriggers = ' + medPromptTriggers, fn);
+				var medPromptTriggerDateTimes = _.map(medPromptTriggers, function(t) { self.debug('t = ' + JSON.stringify(t)); return self.iCalToDate(t.datetime_start); });
+				self.debug('medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes, fn);
+
+				// set EMA triggers
 				_.each(self.userCfg.doses, function(d, i) {
 					var doseStr = JSON.stringify(d);
 					self.debug('d = ' + doseStr, fn);
@@ -900,7 +944,11 @@ var PRNM = (function(exports) {
 							,actionScriptText = null
 							,startDateTime = sdt
 							,endDateTime = sdt.clone().addMinutes(1)
-							,untilDateTime = sdt.clone().addWeeks(1).set({hour:0,minute:0,second:0})
+							// ,untilDateTime = sdt.clone()
+							,untilDateTime = (new Date())
+								// .addHours(1)
+								.addDays(1)
+								// .set({hour:0,minute:0,second:0})
 							;
 
 					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
@@ -920,7 +968,6 @@ var PRNM = (function(exports) {
 						// All of this gets eval'd in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
 						,self.convertFnToString(self.actions.onMedPromptYes, [
 								self.actionFns.getCommonFnSetForActions()
-							// + self.actionFns.getAppCfg()
 							+ self.actionFns.getTriggerFns() 
 							+ self.actionFns.getMedPromptFns()
 							+ self.actionFns.getAppCfgFns()
@@ -928,7 +975,6 @@ var PRNM = (function(exports) {
 							])
 						,self.convertFnToString(self.actions.onMedPromptNo, [
 								self.actionFns.getCommonFnSetForActions() 
-							// + self.actionFns.getAppCfg()
 							+ self.actionFns.getTriggerFns()
 							+ self.actionFns.getMedPromptFns()
 							+ self.actionFns.getAppCfgFns()
@@ -945,6 +991,106 @@ var PRNM = (function(exports) {
 				});
 
 				self.debug('exiting',fn);
+			},
+
+
+			/*** MedPrompt ***/
+
+			genMedPromptTriggerId: function(dose) { var fn = 'genMedPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('entered',fn);
+				// provide some nice tokenizing string-replacement for ID-setting
+				// 		%M = the dose medication
+				// 		%T = the dose time
+				// 		%S = the dose strength
+				// 		%U = the dispensation unit
+				var id = (self.getAppCfg()).staticOrDefault.showNativeDialogTitles.medPrompt;
+				_.each([
+					 {'%M': dose.medication}
+					,{'%T': dose.time}
+					,{'%S': dose.strength}
+					,{'%U': dose.dispensationUnit}
+					], function(replacementPair) {
+						var key = _.keys(replacementPair)[0];
+						id = id.replace(key, replacementPair[key]);
+				});
+				self.debug('exiting; id = ' + id,fn);
+				return id;
+			},
+
+
+			/**
+			 * Sets all the MedPrompts for the following 24 hours.
+			 * @param  {[type]} ) {            var fn = 'setAllMedPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
+			 * @return {[type]}   [description]
+			 */
+			setAllMedPrompts: function() { var fn = 'setAllMedPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('entered',fn);
+				self.getUserCfg();
+
+				// keep a list of the triggers we create here
+				var createdTriggerIds = [];
+
+				_.each(self.userCfg.doses, function(d, i) {
+					var doseStr = JSON.stringify(d);
+					self.debug('d = ' + doseStr, fn);
+					
+					var sdt = self.genDateFromTime(d.time);
+					self.debug('sdt = ' + sdt, fn);
+					var  type = 'datetime'
+							// ,name = self.triggerIdPrefixes.medPrompt + d.medication + ' at ' + d.time
+							,name = self.genMedPromptTriggerId(d)
+							,actionScriptText = null
+							,startDateTime = sdt
+							,endDateTime = sdt.clone().addMinutes(1)
+							// ,untilDateTime = sdt.clone()
+							,untilDateTime = (new Date())
+								// .addHours(1)
+								.addDays(1)
+								// .set({hour:0,minute:0,second:0})
+							;
+
+					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
+
+					var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No'
+						// // v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
+						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
+						
+						// v3 - WORKS!!!!!
+						// In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
+						// 
+						// The idea here is to mock the 'self' object using the specified function's current context.
+						// Then, specify all the function dependencies in-order in the array string here.
+						// Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+						// Then, append the current dose as a string.
+						// All of this gets eval'd in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
+						,self.convertFnToString(self.actions.onMedPromptYes, [
+								self.actionFns.getCommonFnSetForActions()
+							+ self.actionFns.getTriggerFns() 
+							+ self.actionFns.getMedPromptFns()
+							+ self.actionFns.getAppCfgFns()
+							+ 'var dose = ' + doseStr + ';'
+							])
+						,self.convertFnToString(self.actions.onMedPromptNo, [
+								self.actionFns.getCommonFnSetForActions() 
+							+ self.actionFns.getTriggerFns()
+							+ self.actionFns.getMedPromptFns()
+							+ self.actionFns.getAppCfgFns()
+							+ 'var dose = ' + doseStr + ';'
+							])
+						], ',', "'");
+
+					// the generated action to execute in a trigger
+					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
+					
+					self.debug('actionScriptText = ' + actionScriptText,fn);
+					self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
+
+					createdTriggerIds.push(name);
+				});
+
+				self.debug('exiting',fn);
+				return createdTriggerIds;
 			},
 
 
@@ -1007,18 +1153,6 @@ var PRNM = (function(exports) {
 					return s;
 				},
 
-				// /**
-				//  * Enables easy appCfg access in actions.
-				//  * @return {[type]} [description]
-				//  */
-				// getAppCfg: function() { var fn = 'getAppCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				// 	var s = 'var appCfgStr = self.fetchEncryptedString("' + self.envConsts.appCfg.namespace + '", "' + self.envConsts.appCfg.key + '");'
-				// 				+	'self.appCfg = JSON.parse(appCfgStr);'
-				// 	;
-				// 	self.debug(fn + ' = ' + s, fn);
-				// 	return s;
-				// },
-
 				/**
 				 * Enables easy userCfg access in actions.
 				 * @return {[type]} [description]
@@ -1030,7 +1164,6 @@ var PRNM = (function(exports) {
 					self.debug(fn + ' = ' + s, fn);
 					return s;
 				},
-
 
 				getTriggerFns: function() { var fn = 'getTriggerFns'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 					var s = 'self.fetchTriggerIds = ' + self.fetchTriggerIds.toString() + ';'
@@ -1100,14 +1233,10 @@ self.clearAllNonPRNMTriggers();
 				// create the app config repo in PR, if not already created.
 				self.appConfigCreate(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key);
 
-				self.setAllMedPrompts();
-
-				// 20130517, estory: this really works! :-)
-				// self.showNativeDialog("main: Test Prompt", "Would you like to hit a button?", "Yes", "No", 'PurpleRobot.log("hit OK");', 'PurpleRobot.log("hit cancel");');
-				
-				// STEP 1: is it time for med or for survey?
-				// STEP 2: if time for med, then prompt
-				// STEP 3: if time for survey, then prompt
+				// set MedPrompt triggers
+				var createdMedPromptTriggerIds = self.setAllMedPrompts();
+				// set assessment / EMA triggers
+				self.setAllEMAPrompts(createdMedPromptTriggerIds);
 
 				self.log('exiting...', fn);
 			},

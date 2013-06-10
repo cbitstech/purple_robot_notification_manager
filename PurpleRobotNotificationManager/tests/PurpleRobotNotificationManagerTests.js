@@ -21,7 +21,8 @@ var prnm = new PurpleRobotNotificationManager.ctor(
       },
       "appCfg": {
         "namespace": "Heart2HAART-TEST",
-        "key": "cfgs/appCfg.json.txt"
+        "key": "cfgs/appCfg.json.txt",
+        "triggerPath": "cfgs/Heart2HAART-TEST.triggers.json.txt"
       }
     }
   });
@@ -328,6 +329,32 @@ suite('PurpleRobotNotificationManager', function() {
           assert.equal(actualRet, expectedRet);
           assert.equal(actualFnTxt, expectedFnTxt);          
         }
+      })
+    );
+
+
+    test('fetchTriggerIds', function() {
+      var actualRet = prnm.fetchTriggerIds();
+      assert(_.isArray(actualRet), true);
+      assert(actualRet.length > 0, true);
+      console.log('actualRet = ' + actualRet);
+    });
+
+    test('fetchTrigger', cases([
+      ["Heart2HAART: MedPrompt: medA at 09:00:00"]
+      ],
+      function(triggerId) {
+        var actualRet = prnm.fetchTrigger(triggerId);
+        assert(actualRet != null, true);
+        assert(_.isObject(actualRet), true);
+        assert(_.isArray(actualRet), false);
+        assert(
+          _.difference(
+            _.keys(actualRet), 
+            ['identifier', 'type', 'name', 'action', 'datetime_start', 'datetime_end', 'datetime_repeat']
+          ),
+          null);
+        console.log('actualRet = ' + actualRet);
       })
     );
 
