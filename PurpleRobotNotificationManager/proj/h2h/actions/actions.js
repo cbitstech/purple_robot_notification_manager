@@ -20,8 +20,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 	  	self: null,
 	  	data: null,
 
-			test: function() {
-		  	self.log('ENTERED actions.ctor.prototype.test...')
+			test: function(codeFromPrnm) { var fn = 'test'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
 	      return 'hello world from actions.test';
 			},
 

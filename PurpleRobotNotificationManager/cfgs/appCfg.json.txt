@@ -13,8 +13,8 @@
 			"onWidgetPress": "http://mohrlab.northwestern.edu/h2h"
 		},
 		"showNativeDialogTitles": {
-			"medPrompt": "Heart2HAART: ",
-			"EMA": "Heart2HAART: "
+			"medPrompt": "Heart2HAART, MP: %M@%T, %S%U",
+			"assessment": "Heart2HAART, EMA: Survey Time!"
 		}
 	},
 	"dynamicOrModified": {
