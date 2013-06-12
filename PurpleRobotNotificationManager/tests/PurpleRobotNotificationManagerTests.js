@@ -294,18 +294,17 @@ suite('PurpleRobotNotificationManager', function() {
         var sd = Date.today().set({hour:arr[0][0],minute:arr[0][1],second:arr[0][2]});
         var ed = Date.today().set({hour:arr[1][0],minute:arr[1][1],second:arr[1][2]});
         var ud = Date.today().set({hour:arr[2][0],minute:arr[2][1],second:arr[2][2]});
-        var actual = prnm.setAllEMAPrompts();
+        var actual = prnm.setAllEMAPrompts(prnm.setAllMedPrompts());
       })
     );
 
-    test('genEMATriggerId', cases([
+    test('genEMAPromptTriggerId', cases([
         [ 
-          { 'medication': 'MedA', 'time': '05:43:21', 'strength': 3, 'dispensationUnit': 'mg' },
-          'Survey Time',
-          'Heart2HAART, EMA: Survey Time!'
+          { 'name': 'Cravings', 'time': new Date(2013,6,12,16,55,0) },
+          'Heart2HAART, EMA: Cravings@16:55:00'
         ]
-      ], function(dose, userStr, expected) {
-        var actual = prnm.genEMATriggerId(dose);
+      ], function(dose, expected) {
+        var actual = prnm.genEMAPromptTriggerId(dose);
         console.log('actual = ', actual);
         assert.equal(actual,expected);
       })

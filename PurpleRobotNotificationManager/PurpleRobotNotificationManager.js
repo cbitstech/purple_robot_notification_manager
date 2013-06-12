@@ -479,12 +479,17 @@ var PRNM = (function(exports) {
 			 * @param  {[type]} paramArray [description]
 			 * @return {[type]}            [description]
 			 */
-			getQuotedAndDelimitedStr: function(paramArray, delim, quoteChar) { var fn = 'getQuotedAndDelimitedStr'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+			getQuotedAndDelimitedStr: function(paramArray, delim, quoteChar, doNotQuoteTokens) { var fn = 'getQuotedAndDelimitedStr'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				// self.log('entered and exiting, with paramArray = ' + paramArray,fn);
 				var qc = self.isNullOrUndefined(quoteChar) ? '\'' : quoteChar;
-				return _.reduce(_.map(paramArray, function(param) { return qc + param + qc; }), function(memo, val) {
-					return paramArray.length == 1 ? val : memo + delim + val;
-					});
+				return _.reduce(_.map(paramArray, function(param) { 
+						return !self.isNullOrUndefined(doNotQuoteTokens) && _.isArray(doNotQuoteTokens) && _.contains(doNotQuoteTokens, param)
+							? param
+							: qc + param + qc;
+					}),
+					function(memo, val) {
+						return paramArray.length == 1 ? val : memo + delim + val;
+				});
 			},
 
 
@@ -609,7 +614,7 @@ var PRNM = (function(exports) {
 			 * @param  {[type]} repeatStr)       {            var fn = 'setDateTimeTrigger'; if(!this.CURRENTLY_IN_TRIGGER [description]
 			 * @return {[type]}                  [description]
 			 */
-			setDateTimeTrigger: function(type, name, actionScriptText, startDateTime, endDateTime, repeatStr) { var fn = 'setDateTimeTrigger'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+			setDateTimeTrigger: function(id, type, name, actionScriptText, startDateTime, endDateTime, repeatStr) { var fn = 'setDateTimeTrigger'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered, for trigger name = ' + name,fn);
 				// self.debug('actionScriptText = ' + actionScriptText, fn);
 
@@ -626,7 +631,7 @@ var PRNM = (function(exports) {
 						// self.scheduleScript(name, dical, actionScriptText);
 						
 						// deletes the trigger if it already exists
-						if(_.contains(self.fetchTriggerIds(), name)) { self.log('Deleting trigger: ' + name, fn); self.deleteTrigger(name); }
+						if(_.contains(self.fetchTriggerIds(), id)) { self.log('Deleting trigger: ' + id, fn); self.deleteTrigger(id); }
 
 						// sets a trigger
 						// self.debug('Trigger params: ' + self.getQuotedAndDelimitedStr([name,actionScriptText,startDateTime,dsical,endDateTime,deical], ','));
@@ -637,14 +642,16 @@ var PRNM = (function(exports) {
 							+ '; PurpleRobot.log(\'***** TRIGGER END! *****\');'
 							;
 						
-						var actionKey = name + '-actionScriptText';
+						var actionKey = id + '-actionScriptText';
 
 						self.persistString(self.envConsts.appCfg.namespace, actionKey, action);
 						// self.debug('Stored action string at [' + self.envConsts.appCfg.namespace + ',' + actionKey + '] of: ' + self.fetchString(self.envConsts.appCfg.namespace, actionKey) ,fn);
+						self.debug('Stored action string at [' + self.envConsts.appCfg.namespace + ',' + actionKey + '] of: ' + action ,fn);
 
-						try {
+						// try {
 							var triggerObj = {
-								'identifier': name,
+								// 'identifier': name,
+								'identifier': id,
 								'type': 'datetime',
 								'name': name,
 								'action': ''
@@ -663,11 +670,12 @@ var PRNM = (function(exports) {
 							// store trigger history
 							self.getAppCfg();
 							var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).NotStarted, null, triggerObj);
+							self.debug('self.appCfg = ' + JSON.stringify(self.appCfg), fn);
 							self.appCfg.triggerState.push(trgWithState);
 							self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
 							self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, self.appCfg);
-						}
-						catch (e) { self.error("updateTrigger broke; e = " + e, fn); }
+						// }
+						// catch (e) { self.error("updateTrigger broke; e = " + e, fn); }
 
 						// // 'MedPrompt: medA at 09:00:00','PurpleRobot.showNativeDialog('datetime','MedPrompt: medA at 09:00:00','Yes','No','PurpleRobot.launchUrl("http://mohrlab.northwestern.edu/h2h/");','null');','20130422T143018','20130422T143118'
 						// {
@@ -925,45 +933,43 @@ var PRNM = (function(exports) {
 
 			/*** EMA / Assessments ***/
 
-			genEMATriggerId: function(dose) { var fn = 'genEMATriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				self.debug('entered',fn);
+			replaceTokensForEMA: function(inStr, schedObj) { var fn = 'replaceTokensForEMA'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				var outStr = inStr;
+				self.debug('outStr = ' + outStr, fn);
 				// provide some nice tokenizing string-replacement for ID-setting
-				// 		%M = the dose medication
-				// 		%T = the dose time
-				// 		%S = the dose strength
-				// 		%U = the dispensation unit
-				var id = (self.getAppCfg()).staticOrDefault.showNativeDialogTitles.assessment;
+				// 		%N = the assessment name
+				// 		%T = the assessment time
 				_.each([
-					//  {'%M': dose.medication}
-					// ,{'%T': dose.time}
-					// ,{'%S': dose.strength}
-					// ,{'%U': dose.dispensationUnit}
-					 {'%N': 'NAME'}
-					,{'%T': 'TIME'}
+					 {'%N': schedObj.name}
+					,{'%T': schedObj.time.toString('HH:mm:ss')}
 					], function(replacementPair) {
 						var key = _.keys(replacementPair)[0];
-						id = id.replace(key, replacementPair[key]);
+						outStr = outStr.replace(key, replacementPair[key]);
 				});
-				self.debug('exiting; id = ' + id,fn);
-				return id;
+				self.debug('exiting; outStr = ' + outStr,fn);
+				return outStr;
 			},
 
 
-			// setEMATrigger: function(name, startDate, endDate, untilDate) { var fn = 'setEMATrigger'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-			// 	self.debug('entered',fn);
-			// 	var  type = 'datetime'
-			// 			,name = !self.isNullOrUndefined(name) ? name : 'Next EMA'
-			// 			,actionScriptText = null
-			// 			,startDateTime = null
-			// 			,endDateTime = null
-			// 			,untilDateTime = null
-			// 			,ret = null;
+			genEMAPromptTriggerId: function(schedObj) { var fn = 'genEMAPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('entered',fn);
+				// // provide some nice tokenizing string-replacement for ID-setting
+				// // 		%N = the assessment name
+				// // 		%T = the assessment time
+				// var id = (self.getAppCfg()).staticOrDefault.showNativeDialog.assessment.title;
+				// self.debug('id = ' + id, fn);
+				// _.each([
+				// 	 {'%N': schedObj.name}
+				// 	,{'%T': schedObj.time.toString('HH:mm:ss')}
+				// 	], function(replacementPair) {
+				// 		var key = _.keys(replacementPair)[0];
+				// 		id = id.replace(key, replacementPair[key]);
+				// });
+				// self.debug('exiting; id = ' + id,fn);
+				var id = self.replaceTokensForEMA((self.getAppCfg()).staticOrDefault.showNativeDialog.assessment.title, schedObj);
+				return id;
+			},
 
-			// 	actionScriptText = 'PurpleRobot.showNativeDialog(' + self.getQuotedAndDelimitedStr([type,name,actionScriptText,startDateTime,endDateTime,untilDateTime], ',') + ');';
-			// 	self.debug('actionScriptText = ' + actionScriptText,fn);
-			// 	self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, untilDateTime);
-			// 	self.debug('exiting',fn);
-			// },
 			
 			getOpenTimeRanges: function(medPromptTriggerDateTimes, rangeBoundsBufferMinutes) { var fn = 'getOpenTimeRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes + '; rangeBoundsBufferMinutes = ' + rangeBoundsBufferMinutes,fn);
@@ -987,6 +993,7 @@ var PRNM = (function(exports) {
 				self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
 				return openTimeRanges;
 			},
+
 
 			getRandomDateTimeAcrossAllOpenRanges: function(openTimeRanges) { var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
@@ -1012,7 +1019,7 @@ var PRNM = (function(exports) {
 			 * @return {[type]}   [description]
 			 */
 			setAllEMAPrompts: function(createdMedPromptTriggerIds) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				self.debug('entered',fn);
+				self.debug('entered; createdMedPromptTriggerIds = ' + createdMedPromptTriggerIds,fn);
 				self.getUserCfg();
 				self.getAppCfg();
 
@@ -1030,71 +1037,86 @@ var PRNM = (function(exports) {
 				var openTimeRanges = self.getOpenTimeRanges(medPromptTriggerDateTimes, 30);
 
 				// generate the time ranges between which EMAs may be prompted
-				var emaTransitionAndScheduleObjs = _.map(emaTransitionObjs, function(o) {
-					o.fireTime = self.getRandomDateTimeAcrossAllOpenRanges(openTimeRanges);
-					return o;
+				var emaTransitionAndScheduleObjs = _.map(emaTransitionObjs, function(key) {
+					var survSched = {
+						'name': key,
+						'time': self.getRandomDateTimeAcrossAllOpenRanges(openTimeRanges)
+					};
+					self.debug('survSched = ' + JSON.stringify(survSched),fn);
+					return survSched;
 				});
 				self.debug('emaTransitionAndScheduleObjs = ' + JSON.stringify(emaTransitionAndScheduleObjs));
 
 
-				// // set EMA triggers
-				// _.each(self.userCfg.doses, function(d, i) {
-				// 	var doseStr = JSON.stringify(d);
-				// 	self.debug('d = ' + doseStr, fn);
+				// set EMA triggers
+				_.each(emaTransitionAndScheduleObjs, function(schedObj) {
+					var schedObjStr = JSON.stringify(schedObj);
+					self.debug('schedObj = ' + schedObjStr, fn);
 					
-				// 	var sdt = self.genDateFromTime(d.time);
-				// 	self.debug('sdt = ' + sdt, fn);
-				// 	var  type = 'datetime'
-				// 			// ,name = self.triggerIdPrefixes.medPrompt + d.medication + ' at ' + d.time
-				// 			,name = self.genEMATriggerId(d)
-				// 			,actionScriptText = null
-				// 			,startDateTime = sdt
-				// 			,endDateTime = sdt.clone().addMinutes(1)
-				// 			// ,untilDateTime = sdt.clone()
-				// 			,untilDateTime = (new Date())
-				// 				// .addHours(1)
-				// 				.addDays(1)
-				// 				// .set({hour:0,minute:0,second:0})
-				// 			;
+					var sdt = schedObj.time;
+					self.debug('sdt = ' + sdt, fn);
+					var  type = 'datetime'
+							// ,name = self.triggerIdPrefixes.medPrompt + schedObj.medication + ' at ' + schedObj.time
+							,triggerId = self.genEMAPromptTriggerId(schedObj)
+							,actionScriptText = null
+							,startDateTime = sdt
+							,endDateTime = sdt.clone().addMinutes(1)
+							// ,untilDateTime = sdt.clone()
+							,untilDateTime = (new Date())
+								// .addHours(1)
+								.addDays(1)
+								// .set({hour:0,minute:0,second:0})
+							;
 
-				// 	var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
+					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
-				// 	var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No'
-				// 		// // v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
-				// 		// ,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
-				// 		// ,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
+					// var p = self.getQuotedAndDelimitedStr([type,name,
+					var p = self.getQuotedAndDelimitedStr([
+						self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.title, schedObj),
+						self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.message, schedObj),
+						'OK',
+						// 'No'
+						null
+						// // v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
+						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
 						
-				// 		// v3 - WORKS!!!!!
-				// 		// In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
-				// 		// 
-				// 		// The idea here is to mock the 'self' object using the specified function's current context.
-				// 		// Then, specify all the function dependencies in-order in the array string here.
-				// 		// Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
-				// 		// Then, append the current dose as a string.
-				// 		// All of this gets eval'd in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
-				// 		,self.convertFnToString(self.actions.onMedPromptYes, [
-				// 				self.actionFns.getCommonFnSetForActions()
-				// 			+ self.actionFns.getTriggerFns() 
-				// 			+ self.actionFns.getMedPromptFns()
-				// 			+ self.actionFns.getAppCfgFns()
-				// 			+ 'var dose = ' + doseStr + ';'
-				// 			])
-				// 		,self.convertFnToString(self.actions.onMedPromptNo, [
-				// 				self.actionFns.getCommonFnSetForActions() 
-				// 			+ self.actionFns.getTriggerFns()
-				// 			+ self.actionFns.getMedPromptFns()
-				// 			+ self.actionFns.getAppCfgFns()
-				// 			+ 'var dose = ' + doseStr + ';'
-				// 			])
-				// 		], ',', "'");
+						// v3 - WORKS!!!!!
+						// In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
+						// 
+						// The idea here is to mock the 'self' object using the specified function's current context.
+						// Then, specify all the function dependencies in-order in the array string here.
+						// Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+						// Then, append the current dose as a string.
+						// All of this gets eval'd in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
+						,self.convertFnToString(self.actions.onEMAYes, [
+								self.actionFns.getCommonFnSetForActions()
+							+ self.actionFns.getTriggerFns() 
+							+ self.actionFns.getEMAPromptFns()
+							+ self.actionFns.getAppCfgFns()
+							// + 'var dose = ' + schedObjStr + ';'
+							+ 'var schedObj = ' + schedObjStr + ';'
+							// + 'var triggerId = ' + triggerId + ';'
+							])
+						// ,self.convertFnToString(self.actions.onEMANo, [
+						// 		self.actionFns.getCommonFnSetForActions() 
+						// 	+ self.actionFns.getTriggerFns()
+						// 	+ self.actionFns.getEMAPromptFns()
+						// 	+ self.actionFns.getAppCfgFns()
+						// 	// + 'var dose = ' + schedObjStr + ';'
+						// 	+ 'var schedObj = ' + schedObjStr + ';'
+							// ])
+						,null
+						], ',', "'", [null]);
 
-				// 	// the generated action to execute in a trigger
-				// 	actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
+					// the generated action to execute in a trigger
+					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
 					
-				// 	// self.debug('actionScriptText = ' + actionScriptText,fn);
-				// 	self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
+					// self.debug('actionScriptText = ' + actionScriptText,fn);
+					var name = triggerId;
+					self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
-				// });
+				});
 
 				self.debug('exiting',fn);
 			},
@@ -1102,15 +1124,14 @@ var PRNM = (function(exports) {
 
 			/*** MedPrompt ***/
 
-			genMedPromptTriggerId: function(dose) { var fn = 'genMedPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				self.debug('entered',fn);
+			replaceTokensForMedPrompt: function(inStr, dose) { var fn = 'replaceTokensForMedPrompt'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				var outStr = inStr;
+				self.debug('outStr = ' + outStr + '; dose = ' + JSON.stringify(dose), fn);
 				// provide some nice tokenizing string-replacement for ID-setting
 				// 		%M = the dose medication
 				// 		%T = the dose time
 				// 		%S = the dose strength
 				// 		%U = the dispensation unit
-				var id = (self.getAppCfg()).staticOrDefault.showNativeDialogTitles.medPrompt;
-				self.debug('id = ' + id, fn);
 				_.each([
 					 {'%M': dose.medication}
 					,{'%T': dose.time}
@@ -1118,9 +1139,33 @@ var PRNM = (function(exports) {
 					,{'%U': dose.dispensationUnit}
 					], function(replacementPair) {
 						var key = _.keys(replacementPair)[0];
-						id = id.replace(key, replacementPair[key]);
+						outStr = outStr.replace(key, replacementPair[key]);
 				});
-				self.debug('exiting; id = ' + id,fn);
+				self.debug('exiting; outStr = ' + outStr,fn);
+				return outStr;
+			},
+
+
+			genMedPromptTriggerId: function(dose) { var fn = 'genMedPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('entered',fn);
+				// // provide some nice tokenizing string-replacement for ID-setting
+				// // 		%M = the dose medication
+				// // 		%T = the dose time
+				// // 		%S = the dose strength
+				// // 		%U = the dispensation unit
+				// var id = (self.getAppCfg()).staticOrDefault.showNativeDialog.medPrompt.title;
+				// self.debug('id = ' + id, fn);
+				// _.each([
+				// 	 {'%M': dose.medication}
+				// 	,{'%T': dose.time}
+				// 	,{'%S': dose.strength}
+				// 	,{'%U': dose.dispensationUnit}
+				// 	], function(replacementPair) {
+				// 		var key = _.keys(replacementPair)[0];
+				// 		id = id.replace(key, replacementPair[key]);
+				// });
+				// self.debug('exiting; id = ' + id,fn);
+				var id = self.replaceTokensForMedPrompt((self.getAppCfg()).staticOrDefault.showNativeDialog.medPrompt.title, dose);
 				return id;
 			},
 
@@ -1145,7 +1190,7 @@ var PRNM = (function(exports) {
 					self.debug('sdt = ' + sdt, fn);
 					var  type = 'datetime'
 							// ,name = self.triggerIdPrefixes.medPrompt + d.medication + ' at ' + d.time
-							,name = self.genMedPromptTriggerId(d)
+							,triggerId = self.genMedPromptTriggerId(d)
 							,actionScriptText = null
 							,startDateTime = sdt
 							,endDateTime = sdt.clone().addMinutes(1)
@@ -1158,7 +1203,11 @@ var PRNM = (function(exports) {
 
 					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
-					var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No'
+					// var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No'
+					var p = self.getQuotedAndDelimitedStr([
+						self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title, d),
+						self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.message, d),						
+						'Yes','No'
 						// // v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
 						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
 						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
@@ -1177,6 +1226,7 @@ var PRNM = (function(exports) {
 							+ self.actionFns.getMedPromptFns()
 							+ self.actionFns.getAppCfgFns()
 							+ 'var dose = ' + doseStr + ';'
+							// + 'var triggerId = ' + triggerId + ';'
 							])
 						,self.convertFnToString(self.actions.onMedPromptNo, [
 								self.actionFns.getCommonFnSetForActions() 
@@ -1184,6 +1234,7 @@ var PRNM = (function(exports) {
 							+ self.actionFns.getMedPromptFns()
 							+ self.actionFns.getAppCfgFns()
 							+ 'var dose = ' + doseStr + ';'
+							// + 'var triggerId = ' + triggerId + ';'
 							])
 						], ',', "'");
 
@@ -1191,7 +1242,8 @@ var PRNM = (function(exports) {
 					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
 					
 					// self.debug('actionScriptText = ' + actionScriptText,fn);
-					self.setDateTimeTrigger(type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
+					var name = triggerId;
+					self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
 					self.debug('Pushing triggerId = ' + name, fn);
 					createdTriggerIds.push(name);
@@ -1284,6 +1336,15 @@ var PRNM = (function(exports) {
 
 				getMedPromptFns: function() { var fn = 'getTriggerFns'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 					var s = 'self.genMedPromptTriggerId = ' + self.genMedPromptTriggerId.toString() + ';'
+								+ 'self.replaceTokensForMedPrompt = ' + self.replaceTokensForMedPrompt.toString() + ';'
+						;	
+					// self.debug(fn + ' = ' + s, fn);
+					return s;
+				},
+
+				getEMAPromptFns: function() { var fn = 'getTriggerFns'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+					var s = 'self.genEMAPromptTriggerId = ' + self.genEMAPromptTriggerId.toString() + ';'
+								+ 'self.replaceTokensForEMA = ' + self.replaceTokensForEMA.toString() + ';'
 						;	
 					// self.debug(fn + ' = ' + s, fn);
 					return s;
