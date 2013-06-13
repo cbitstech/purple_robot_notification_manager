@@ -1343,20 +1343,21 @@ var PRNM = (function(exports) {
 
 			setWidget: function(widgetId) { var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				// v1 - preferable, but not working...
-				// var updateWidgetParams = {
-				// 	'identifier': widgetId,
-				// 	'title': 'PRNM: title',
-				// 	'message': 'PRNM: msg',
-				// 	'action': self.convertFnToString(self.actions.onWidgetPress, [
-				// 		self.actionFns.getCommonFnSetForActions()
-				// 	])
-				// };
-				// v2 - simplify: no action
 				var updateWidgetParams = {
 					'identifier': widgetId,
 					'title': 'PRNM: title',
-					'message': 'PRNM: msg'
+					'message': 'PRNM: time: ' + (new Date()).toString('hh:mm:ss'),
+					// 'action': self.convertFnToString(self.actions.onWidgetPress, [
+					// 	self.actionFns.getCommonFnSetForActions()
+					// ])
+					'action': 'PurpleRobot.log("HELLO WORLD FROM THE WIDGET!");'
 				};
+				// v2 - simplify: no action
+				// var updateWidgetParams = {
+				// 	'identifier': widgetId,
+				// 	'title': 'PRNM: title',
+				// 	'message': 'PRNM: msg'
+				// };
 				
 				self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
 				self.updateWidget(updateWidgetParams);
@@ -1422,31 +1423,12 @@ self.clearAllNonPRNMTriggers();
 });
 
 
-// WORKS, BUT BLOWS-UP UNDERSCORE.
-// var exports = new PRNM(typeof exports === 'undefined' ? this['PurpleRobotNotificationManager'] = {} : exports);
-// PurpleRobot.log('this = ' + JSON.stringify(this));
-// PurpleRobot.log('exports_1 = ' + JSON.stringify(exports));
-// PurpleRobot.log('ONE');
-var passedToPRNM = typeof exports === 'undefined' ? this['PurpleRobotNotificationManager'] = {} : exports;
-// if (currentExecutionContext == 0) { PurpleRobot.log('passedToPRNM = ' + (typeof passedToPRNM === 'object' ? JSON.stringify(passedToPRNM) : passedToPRNM)); }
-// else  { console.log('passedToPRNM = ' + (typeof passedToPRNM === 'object' ? JSON.stringify(passedToPRNM) : passedToPRNM)); }
-// PurpleRobot.log('TWO');
-// PurpleRobot.log('passedToPRNM = ' + (typeof passedToPRNM === 'object' ? JSON.stringify(passedToPRNM) : passedToPRNM));
-// PurpleRobot.log('THREE');
 
-// exports = new PRNM(passedToPRNM);
+var passedToPRNM = typeof exports === 'undefined' ? this['PurpleRobotNotificationManager'] = {} : exports;
 var PurpleRobotNotificationManager = new PRNM(passedToPRNM);
+
 exports = PurpleRobotNotificationManager;
 exports.ctor.prototype.execCtx = currentExecutionContext;
+
 if (currentExecutionContext == 0) { PurpleRobot.log('exports.ctor.prototype.execCtx = ' + exports.ctor.prototype.execCtx); }
 else  { console.log('exports.ctor.prototype.execCtx = ' + exports.ctor.prototype.execCtx); }
-// PurpleRobot.log('FOUR');
-// PurpleRobot.log('exports_2 = ' + JSON.stringify(exports));
-// PurpleRobot.log('FIVE');
-
-// var foo = ['type','name','Yes','No','PurpleRobot.loadUrl("http://mohrlab.northwestern.edu/h2h/");','null'];
-// // PurpleRobot.loadUrl('http://mohrlab.northwestern.edu/h2h/')
-// var foo = ["type","name","Yes","No","null","PurpleRobot.loadUrl('http://mohrlab.northwestern.edu/h2h/')"];
-// _.each(foo, function(f) { PurpleRobot.log(f); });
-// _.each(foo, function(f) { PurpleRobot.log(f); });		// dupe; testing my comment thing
-// _.each(foo, function(f) { PurpleRobot.log(f); });		// dupe; testing my comment thing: http://mohrlab.northwestern.edu
