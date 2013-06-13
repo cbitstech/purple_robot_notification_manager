@@ -618,17 +618,14 @@ var PRNM = (function(exports) {
 				self.debug('entered, for trigger name = ' + name,fn);
 				// self.debug('actionScriptText = ' + actionScriptText, fn);
 
-				// throw 'Not implemented. See: https://github.com/nupmmarkbegale/Purple-Robot-Manager/wiki/JSON-Configuration-Document-Reference and https://github.com/nupmmarkbegale/Purple-Robot-Manager/wiki/JavaScript-Reference';
 				switch(self.execCtx) {
+					// PR and Node.js paths
 					case 0:
 					case 1:
 						// self.log('PR path',fn);
 
 						var dsical = startDateTime.toICal();
 						var deical = endDateTime.toICal();
-						// self.debug('ds = ' + ds + '; dsical = ' + dsical + '; de = ' + de + '; deical = ' + deical, fn);
-						
-						// self.scheduleScript(name, dical, actionScriptText);
 						
 						// deletes the trigger if it already exists
 						if(_.contains(self.fetchTriggerIds(), id)) { self.log('Deleting trigger: ' + id, fn); self.deleteTrigger(id); }
@@ -646,11 +643,10 @@ var PRNM = (function(exports) {
 
 						self.persistString(self.envConsts.appCfg.namespace, actionKey, action);
 						// self.debug('Stored action string at [' + self.envConsts.appCfg.namespace + ',' + actionKey + '] of: ' + self.fetchString(self.envConsts.appCfg.namespace, actionKey) ,fn);
-						self.debug('Stored action string at [' + self.envConsts.appCfg.namespace + ',' + actionKey + '] of: ' + action ,fn);
+						var actionCharsToDisplay = 150 > action.length ? (action.length / 2) : 150;
+						self.debug('Stored action string at [' + self.envConsts.appCfg.namespace + ',' + actionKey + '] of (displaying first and last ' + actionCharsToDisplay + ' chars): ' + action.substr(0,actionCharsToDisplay) + ' ... ' + action.substr(action.length - actionCharsToDisplay,actionCharsToDisplay),fn);
 
-						// try {
 							var triggerObj = {
-								// 'identifier': name,
 								'identifier': id,
 								'type': 'datetime',
 								'name': name,
@@ -670,28 +666,11 @@ var PRNM = (function(exports) {
 							// store trigger history
 							self.getAppCfg();
 							var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).NotStarted, null, triggerObj);
-							self.debug('self.appCfg = ' + JSON.stringify(self.appCfg), fn);
 							self.appCfg.triggerState.push(trgWithState);
 							self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
 							self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, self.appCfg);
-						// }
-						// catch (e) { self.error("updateTrigger broke; e = " + e, fn); }
-
-						// // 'MedPrompt: medA at 09:00:00','PurpleRobot.showNativeDialog('datetime','MedPrompt: medA at 09:00:00','Yes','No','PurpleRobot.launchUrl("http://mohrlab.northwestern.edu/h2h/");','null');','20130422T143018','20130422T143118'
-						// {
-						// 	'identifier': 'MedPrompt: medA at 09:00:00',
-						// 	'type': 'datetime',
-						// 	'name': 'MedPrompt: medA at 09:00:00',
-						// 	'action': "'PurpleRobot.showNativeDialog('datetime','MedPrompt: medA at 09:00:00','Yes','No','PurpleRobot.launchUrl(\"http://mohrlab.northwestern.edu/h2h/\");','null');'",
-						// 	'datetime_start': '20130422T143018',
-						// 	'datetime_end': '20130422T143118'
-						// }
 						
 						break;
-
-					// case 1:
-					// 	// self.log('Node.js path',fn);
-					// 	break;
 
 					case 2:
 						self.warn('Not implemented for self.execCtx = ' + self.execCtx, fn);
@@ -935,37 +914,24 @@ var PRNM = (function(exports) {
 
 			replaceTokensForEMA: function(inStr, schedObj) { var fn = 'replaceTokensForEMA'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				var outStr = inStr;
-				self.debug('outStr = ' + outStr, fn);
+				// self.debug('outStr = ' + outStr, fn);
 				// provide some nice tokenizing string-replacement for ID-setting
 				// 		%N = the assessment name
 				// 		%T = the assessment time
 				_.each([
 					 {'%N': schedObj.name}
-					,{'%T': schedObj.time.toString('HH:mm:ss')}
+					,{'%T': (_.isDate(schedObj.time) ? schedObj.time.toString('HH:mm:ss') : schedObj.time.substr(11,8)) }
 					], function(replacementPair) {
 						var key = _.keys(replacementPair)[0];
 						outStr = outStr.replace(key, replacementPair[key]);
 				});
-				self.debug('exiting; outStr = ' + outStr,fn);
+				// self.debug('exiting; outStr = ' + outStr,fn);
 				return outStr;
 			},
 
 
 			genEMAPromptTriggerId: function(schedObj) { var fn = 'genEMAPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
-				// // provide some nice tokenizing string-replacement for ID-setting
-				// // 		%N = the assessment name
-				// // 		%T = the assessment time
-				// var id = (self.getAppCfg()).staticOrDefault.showNativeDialog.assessment.title;
-				// self.debug('id = ' + id, fn);
-				// _.each([
-				// 	 {'%N': schedObj.name}
-				// 	,{'%T': schedObj.time.toString('HH:mm:ss')}
-				// 	], function(replacementPair) {
-				// 		var key = _.keys(replacementPair)[0];
-				// 		id = id.replace(key, replacementPair[key]);
-				// });
-				// self.debug('exiting; id = ' + id,fn);
 				var id = self.replaceTokensForEMA((self.getAppCfg()).staticOrDefault.showNativeDialog.assessment.title, schedObj);
 				return id;
 			},
@@ -1001,7 +967,7 @@ var PRNM = (function(exports) {
 
 				if(openTimeRanges.length > 0) {
 					var randIdx = Math.floor((Math.random()*openTimeRanges.length));
-					self.debug('randIdx = ' + randIdx, fn);
+					// self.debug('randIdx = ' + randIdx, fn);
 					randomlySelectedDateTime = self.getRandomDateTimeWithinRange(
 						openTimeRanges[randIdx].start,
 						openTimeRanges[randIdx].end
@@ -1067,20 +1033,16 @@ var PRNM = (function(exports) {
 								.addDays(1)
 								// .set({hour:0,minute:0,second:0})
 							;
+					self.debug('triggerId = ' + triggerId, fn);
 
 					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
 					// var p = self.getQuotedAndDelimitedStr([type,name,
 					var p = self.getQuotedAndDelimitedStr([
-						self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.title, schedObj),
-						self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.message, schedObj),
-						'OK',
-						// 'No'
-						null
-						// // v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
-						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
-						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
-						
+						self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.title, schedObj)
+						,self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.message, schedObj)
+						,'OK'
+						,null
 						// v3 - WORKS!!!!!
 						// In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
 						// 
@@ -1094,18 +1056,9 @@ var PRNM = (function(exports) {
 							+ self.actionFns.getTriggerFns() 
 							+ self.actionFns.getEMAPromptFns()
 							+ self.actionFns.getAppCfgFns()
-							// + 'var dose = ' + schedObjStr + ';'
 							+ 'var schedObj = ' + schedObjStr + ';'
-							// + 'var triggerId = ' + triggerId + ';'
+							+ 'var triggerId = "' + triggerId + '";'
 							])
-						// ,self.convertFnToString(self.actions.onEMANo, [
-						// 		self.actionFns.getCommonFnSetForActions() 
-						// 	+ self.actionFns.getTriggerFns()
-						// 	+ self.actionFns.getEMAPromptFns()
-						// 	+ self.actionFns.getAppCfgFns()
-						// 	// + 'var dose = ' + schedObjStr + ';'
-						// 	+ 'var schedObj = ' + schedObjStr + ';'
-							// ])
 						,null
 						], ',', "'", [null]);
 
@@ -1126,7 +1079,7 @@ var PRNM = (function(exports) {
 
 			replaceTokensForMedPrompt: function(inStr, dose) { var fn = 'replaceTokensForMedPrompt'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				var outStr = inStr;
-				self.debug('outStr = ' + outStr + '; dose = ' + JSON.stringify(dose), fn);
+				// self.debug('outStr = ' + outStr + '; dose = ' + JSON.stringify(dose), fn);
 				// provide some nice tokenizing string-replacement for ID-setting
 				// 		%M = the dose medication
 				// 		%T = the dose time
@@ -1141,30 +1094,13 @@ var PRNM = (function(exports) {
 						var key = _.keys(replacementPair)[0];
 						outStr = outStr.replace(key, replacementPair[key]);
 				});
-				self.debug('exiting; outStr = ' + outStr,fn);
+				// self.debug('exiting; outStr = ' + outStr,fn);
 				return outStr;
 			},
 
 
 			genMedPromptTriggerId: function(dose) { var fn = 'genMedPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
-				// // provide some nice tokenizing string-replacement for ID-setting
-				// // 		%M = the dose medication
-				// // 		%T = the dose time
-				// // 		%S = the dose strength
-				// // 		%U = the dispensation unit
-				// var id = (self.getAppCfg()).staticOrDefault.showNativeDialog.medPrompt.title;
-				// self.debug('id = ' + id, fn);
-				// _.each([
-				// 	 {'%M': dose.medication}
-				// 	,{'%T': dose.time}
-				// 	,{'%S': dose.strength}
-				// 	,{'%U': dose.dispensationUnit}
-				// 	], function(replacementPair) {
-				// 		var key = _.keys(replacementPair)[0];
-				// 		id = id.replace(key, replacementPair[key]);
-				// });
-				// self.debug('exiting; id = ' + id,fn);
 				var id = self.replaceTokensForMedPrompt((self.getAppCfg()).staticOrDefault.showNativeDialog.medPrompt.title, dose);
 				return id;
 			},
@@ -1200,18 +1136,16 @@ var PRNM = (function(exports) {
 								.addDays(1)
 								// .set({hour:0,minute:0,second:0})
 							;
+					self.debug('triggerId = ' + triggerId, fn);
 
 					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
 					// var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No'
 					var p = self.getQuotedAndDelimitedStr([
-						self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title, d),
-						self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.message, d),						
-						'Yes','No'
-						// // v2 - WORKS!!!!! The idea here is to mock the 'self' object using the specified function's current context. Then, specify all the function dependencies in-order in the array string here. Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
-						// ,self.convertFnToString(self.actions.onMedPromptYes, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'hello world!'])
-						// ,self.convertFnToString(self.actions.onMedPromptNo, ['var self = this; self.isNullOrUndefined = ' + self.isNullOrUndefined.toString() + '; var debug = ' + self.debug.toString() + ';', 'goodbye cruel world'])
-						
+						 self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title, d)
+						,self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.message, d)
+						,'Yes'
+						,'No'
 						// v3 - WORKS!!!!!
 						// In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
 						// 
@@ -1226,7 +1160,7 @@ var PRNM = (function(exports) {
 							+ self.actionFns.getMedPromptFns()
 							+ self.actionFns.getAppCfgFns()
 							+ 'var dose = ' + doseStr + ';'
-							// + 'var triggerId = ' + triggerId + ';'
+							+ 'var triggerId = "' + triggerId + '";'
 							])
 						,self.convertFnToString(self.actions.onMedPromptNo, [
 								self.actionFns.getCommonFnSetForActions() 
@@ -1234,7 +1168,7 @@ var PRNM = (function(exports) {
 							+ self.actionFns.getMedPromptFns()
 							+ self.actionFns.getAppCfgFns()
 							+ 'var dose = ' + doseStr + ';'
-							// + 'var triggerId = ' + triggerId + ';'
+							+ 'var triggerId = "' + triggerId + '";'
 							])
 						], ',', "'");
 

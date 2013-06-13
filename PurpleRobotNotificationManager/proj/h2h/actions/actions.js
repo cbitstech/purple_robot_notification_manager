@@ -25,10 +25,12 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 			},
 
 
-
+			/**
+			 * Yes button on a MedPrompt dialog is pressed.
+			 * @param  {[type]} codeFromPrnm) {            var fn = 'onMedPromptYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm [description]
+			 * @return {[type]}               [description]
+			 */
 			onMedPromptYes: function(codeFromPrnm) { var fn = 'onMedPromptYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-
-
 
 
 
@@ -41,12 +43,12 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					+ '&medName_1=' + dose.medication
 					+ '&medStrength_1=' + dose.strength
 					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
-				self.debug('launching url = ' + url, fn);
+				self.log('Launching url = ' + url, fn);
 				self.launchUrl(url);
 
 
 
-				var trg = self.fetchTrigger(self.genMedPromptTriggerId(dose));
+				var trg = self.fetchTrigger(triggerId);
 				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
 				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
 				appCfg.triggerState.push(trgWithState);
@@ -56,9 +58,12 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 			},
 
 
+			/**
+			 * No button on a MedPrompt dialog is pressed.
+			 * @param  {[type]} codeFromPrnm) {            var fn = 'onMedPromptNo'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm [description]
+			 * @return {[type]}               [description]
+			 */
 			onMedPromptNo: function(codeFromPrnm) { var fn = 'onMedPromptNo'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-
-
 
 
 
@@ -70,12 +75,12 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					+ '&medName_1=' + dose.medication
 					+ '&medStrength_1=' + dose.strength
 					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
-				self.debug('launching url = ' + url, fn);
+				self.log('Launching url = ' + url, fn);
 				self.launchUrl(url);
 
 
 
-				var trg = self.fetchTrigger(self.genMedPromptTriggerId(dose));
+				var trg = self.fetchTrigger(triggerId);
 				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
 				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
 				appCfg.triggerState.push(trgWithState);
@@ -85,17 +90,20 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 			},
 
 
+			/**
+			 * OK (or, yes) button on an EMA dialog is pressed.
+			 * @param  {[type]} codeFromPrnm) {            var fn = 'onEMAYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm [description]
+			 * @return {[type]}               [description]
+			 */
 			onEMAYes: function(codeFromPrnm) { var fn = 'onEMAYes'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
 
+				
 
 
-
-
-				self.debug('appCfg.staticOrDefault.transition.onEMAYes = ' + JSON.stringify(appCfg.staticOrDefault.transition.onEMAYes) + '; appCfg.dynamicOrModified.transition.onEMAYes = ' + JSON.stringify(appCfg.dynamicOrModified.transition.onEMAYes), fn);
 				var staticActionCfgExists  = !self.isNullOrUndefined(appCfg.staticOrDefault.transition.onEMAYes),
 						dynamicActionCfgExists = !self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onEMAYes);
 				var dynamicIsNull = dynamicActionCfgExists ? self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onEMAYes[schedObj.name]) : true;
-				self.debug('staticActionCfgExists = ' + staticActionCfgExists + '; dynamicActionCfgExists = ' + dynamicActionCfgExists + '; dynamicIsNull = ' + dynamicIsNull, fn);
+
 				if(dynamicIsNull && !staticActionCfgExists) { 
 					throw 'ERROR: Cannot run ' + fn + ': both the static and dynamic app-configurations are missing.';
 				}
@@ -103,12 +111,14 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onEMAYes[schedObj.name] : appCfg.dynamicOrModified.transition.onEMAYes[schedObj.name];
 				var url = baseUrl;
-				self.debug('launching url = ' + url, fn);
+				self.log('Launching url = ' + url, fn);
 				self.launchUrl(url);
 
 
 
-				var trg = self.fetchTrigger(self.genEMAPromptTriggerId(schedObj));
+
+				self.debug('triggerId = ' + triggerId, fn);
+				var trg = self.fetchTrigger(triggerId);
 				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
 				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
 				appCfg.triggerState.push(trgWithState);
@@ -116,36 +126,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
 
 			},
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-				
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
