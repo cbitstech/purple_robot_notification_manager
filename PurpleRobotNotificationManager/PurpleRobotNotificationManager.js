@@ -1341,6 +1341,29 @@ var PRNM = (function(exports) {
 
 
 
+			setWidget: function(widgetId) { var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				// v1 - preferable...
+				// var updateWidgetParams = {
+				// 	'identifier': widgetId,
+				// 	'title': 'PRNM: title',
+				// 	'message': 'PRNM: msg',
+				// 	'action': self.convertFnToString(self.actions.onWidgetPress, [
+				// 		self.actionFns.getCommonFnSetForActions()
+				// 	])
+				// };
+				// v2 - simplify: no action
+				var updateWidgetParams = {
+					'identifier': widgetId,
+					'title': 'PRNM: title',
+					'message': 'PRNM: msg'
+				};
+				
+				self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
+				self.updateWidget(updateWidgetParams);
+			},
+
+
+
 			/**
 			 * Deletes all triggers except the PRNM trigger.
 			 * @return {[type]} [description]
@@ -1376,6 +1399,9 @@ self.clearAllNonPRNMTriggers();
 				var createdMedPromptTriggerIds = self.setAllMedPrompts();
 				// set assessment / EMA triggers
 				self.setAllEMAPrompts(createdMedPromptTriggerIds);
+
+				// update the widget
+				self.setWidget(self.envConsts.appCfg.namespace);
 
 				self.log('exiting...', fn);
 			},
