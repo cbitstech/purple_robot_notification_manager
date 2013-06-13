@@ -122,9 +122,29 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
 				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
 				appCfg.triggerState.push(trgWithState);
-				self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
-				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
 
+
+
+				
+
+				self.debug('childTriggerId = ' + childTriggerId + 'childTriggerId == null = ' + (childTriggerId == null), fn);
+				if(childTriggerId != null) {
+					self.debug('in parent trigger: ' + triggerId + '; childTriggerId = ' + childTriggerId, fn);
+
+
+					self.debug('Getting the child trigger to delete; childTriggerId = ' + childTriggerId, fn);
+					var trgDel = self.fetchTrigger(childTriggerId);
+					var trgWithStateDel = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).CanceledByTrigger, url, trgDel);
+					appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
+					appCfg.triggerState.push(trgWithStateDel);
+
+					self.debug('Deleting followup trigger with ID: ' + childTriggerId, fn);
+					self.deleteTrigger(childTriggerId);
+					self.log('Deleted followup trigger with ID: ' + childTriggerId, fn);
+				}
+
+				self.debug('Saving trigger state...', fn);
+				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
 			},
 
 

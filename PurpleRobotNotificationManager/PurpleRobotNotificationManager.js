@@ -660,7 +660,7 @@ var PRNM = (function(exports) {
 								'datetime_end': deical,
 								'datetime_repeat': repeatStr
 							};
-							self.debug('triggerObj = ' + JSON.stringify(triggerObj));
+							self.debug('triggerObj = ' + JSON.stringify(triggerObj), fn);
 							self.updateTrigger(name, triggerObj);
 
 							// store trigger history
@@ -1006,13 +1006,39 @@ var PRNM = (function(exports) {
 				var emaTransitionAndScheduleObjs = _.map(emaTransitionObjs, function(key) {
 					var survSched = {
 						'name': key,
-						'time': self.getRandomDateTimeAcrossAllOpenRanges(openTimeRanges)
+						'time': self.getRandomDateTimeAcrossAllOpenRanges(openTimeRanges),
+						'parentId': null,
+						'childId': null,
+						'triggerId': null
 					};
+					survSched.id = survSched.name + survSched.time;
 					self.debug('survSched = ' + JSON.stringify(survSched),fn);
 					return survSched;
 				});
 				self.debug('emaTransitionAndScheduleObjs = ' + JSON.stringify(emaTransitionAndScheduleObjs));
 
+				// Implementing the logic of:
+				// 		If prompt not answered:
+				// 			EMAs will wait 30 mins to prompt only 1 time.
+				// 			If after second prompt for same EMA the EMA is not answered, do not prompt a third time.
+				// Let's do this by simply creating a second trigger for each EMA trigger. This second trigger will be deleted on user button-press; else, it will execute.
+				emaTransitionAndScheduleObjs = emaTransitionAndScheduleObjs.concat(
+					_.map(emaTransitionAndScheduleObjs, function(o) {
+						// shallow-copy the object; this is OK because it's only 1-level deep anyway.
+						var sched2 = _.clone(o);
+						sched2.time 			= sched2.time.clone().addMinutes(30);
+						sched2.parentId 	= o.id;
+						sched2.id 				= sched2.name + sched2.time;
+						sched2.triggerId 	= null;
+						o.childId 				= sched2.id;
+						return sched2;
+					})
+				);
+				self.debug('*** emaTransitionAndScheduleObjs.length = ' + emaTransitionAndScheduleObjs.length, fn);
+				self.debug('*** JSON.stringify(emaTransitionAndScheduleObjs) = ' + JSON.stringify(emaTransitionAndScheduleObjs), fn);
+
+				// reverse the array so we work from leaf-nodes up -- this makes getting the triggerId of children much simpler!
+				emaTransitionAndScheduleObjs.reverse();
 
 				// set EMA triggers
 				_.each(emaTransitionAndScheduleObjs, function(schedObj) {
@@ -1033,9 +1059,16 @@ var PRNM = (function(exports) {
 								.addDays(1)
 								// .set({hour:0,minute:0,second:0})
 							;
+					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 					self.debug('triggerId = ' + triggerId, fn);
 
-					var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
+					// map the schedule ID to the trigger ID
+					schedObj.triggerId = triggerId;
+					// ...in parent...
+					if(schedObj.childId == null) {
+						var parent = _.find(emaTransitionAndScheduleObjs, function(o) { return o.id == schedObj.parentId; });
+						parent.childTriggerId = triggerId;
+					}
 
 					// var p = self.getQuotedAndDelimitedStr([type,name,
 					var p = self.getQuotedAndDelimitedStr([
@@ -1058,6 +1091,7 @@ var PRNM = (function(exports) {
 							+ self.actionFns.getAppCfgFns()
 							+ 'var schedObj = ' + schedObjStr + ';'
 							+ 'var triggerId = "' + triggerId + '";'
+							+ 'var childTriggerId = ' + (schedObj.childId == null ? null : '"' + schedObj.childTriggerId + '"') + ';'
 							])
 						,null
 						], ',', "'", [null]);
@@ -1263,6 +1297,7 @@ var PRNM = (function(exports) {
 				getTriggerFns: function() { var fn = 'getTriggerFns'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 					var s = 'self.fetchTriggerIds = ' + self.fetchTriggerIds.toString() + ';'
 								+	'self.fetchTrigger = ' + self.fetchTrigger.toString() + ';'
+								+	'self.deleteTrigger = ' + self.deleteTrigger.toString() + ';'
 					;
 					// self.debug(fn + ' = ' + s, fn);
 					return s;
