@@ -1,16 +1,18 @@
 #!/bin/bash
 
 # CONSTS
+DST_H2H="/home/samba/dev/metamorphoo/static/output_files/H2H"
+DST_MA="/home/samba/dev/metamorphoo/static/output_files/MA"
+
 TESTS="tests/PurpleRobotNotificationManagerTests.js"
 TESTABLE="PurpleRobotNotificationManager.js"
-DST="/home/samba/dev/metamorphoo/static/output_files/H2H"
 MOHR="/mnt/mohrlab_wwwroot"
 PROJBASE="proj"
 ACTIONS="actions"
 
 
 
-# COPY ACTIONS CODE
+# COPY ACTIONS CODE (to put them within proj scope for Github commit)
 # TODO: replace this copy-paste nastiness with function and array
 echo "***** For each known project: Copying actions code..."
 PROJ="h2h"
@@ -43,10 +45,14 @@ else
 	mocha --globals "PurpleRobot,isNullOrUndefined" -u tdd "$TESTS"
 fi
 echo
-echo "***** Copying (without '//' comment lines): $TESTABLE --> $DST"
 
-# remove '//' comment lines from PRNM code 
-cat "$TESTABLE" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$DST/$TESTABLE"
+
+#DEPRECATED; PRNM cross-project file-read now occurs in Metamorphoo's server.js
+# remove '//' comment lines from PRNM code and copy
+# echo "***** Copying (without '//' comment lines): $TESTABLE --> $DST_H2H"
+# cat "$TESTABLE" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$DST_H2H/$TESTABLE"
+# echo "***** Copying (without '//' comment lines): $TESTABLE --> $DST_MA"
+# cat "$TESTABLE" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$DST_MA/$TESTABLE"
 
 
 

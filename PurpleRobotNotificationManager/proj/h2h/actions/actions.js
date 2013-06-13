@@ -160,12 +160,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 	return ctor;
 
-
-
-
-
-
-
 });
 
 
@@ -173,5 +167,3 @@ var passedToActions = typeof exports === 'undefined' ? this['Actions'] = {} : ex
 
 var Actions = new ActionsFn(passedToActions);
 exports = Actions.ctor;
-
-

@@ -1342,7 +1342,7 @@ var PRNM = (function(exports) {
 
 
 			setWidget: function(widgetId) { var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				// v1 - preferable...
+				// v1 - preferable, but not working...
 				// var updateWidgetParams = {
 				// 	'identifier': widgetId,
 				// 	'title': 'PRNM: title',
