@@ -214,6 +214,7 @@ var PRNM = (function(exports) {
 								return this[keyOfLibInstanceToReturn];
 							}
 						};
+						self.vibrate = function(vibratePatternStr) { PurpleRobot.vibrate(vibratePatternStr); };
 
 						// support fns
 						/**
@@ -331,6 +332,7 @@ var PRNM = (function(exports) {
 						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
 						self.launchUrl = function(url) { var fn = 'launchUrl'; self.log('NOEXEC: launchUrl: ' + url, fn); };
 						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var lib = require(nameOrPath); return lib; };
+						self.vibrate = function(vibratePatternStr) { var fn = 'vibrate'; self.log('NOEXEC: vibrate: ' + vibratePatternStr, fn); };
 
 						// support fns
 						/**
@@ -396,6 +398,7 @@ var PRNM = (function(exports) {
 						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
 						self.launchUrl = function(url) { var fn = 'launchUrl'; self.log('NOEXEC: launchUrl: ' + url, fn); };
 						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var lib = require(nameOrPath); return lib; };
+						self.vibrate = function(vibratePatternStr) { var fn = 'vibrate'; self.log('NOEXEC: vibrate: ' + vibratePatternStr, fn); };
 
 						// support fns
 						/**
@@ -918,9 +921,11 @@ var PRNM = (function(exports) {
 				// provide some nice tokenizing string-replacement for ID-setting
 				// 		%N = the assessment name
 				// 		%T = the assessment time
+				// 		%APOS = an apostrpohe char ("'")
 				_.each([
 					 {'%N': schedObj.name}
 					,{'%T': (_.isDate(schedObj.time) ? schedObj.time.toString('HH:mm:ss') : schedObj.time.substr(11,8)) }
+					// ,{'%APOS': '&#39;'}
 					], function(replacementPair) {
 						var key = _.keys(replacementPair)[0];
 						outStr = outStr.replace(key, replacementPair[key]);
@@ -984,16 +989,18 @@ var PRNM = (function(exports) {
 			 * @param  {[type]} ) {            var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
 			 * @return {[type]}   [description]
 			 */
-			setAllEMAPrompts: function(createdMedPromptTriggerIds) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				self.debug('entered; createdMedPromptTriggerIds = ' + createdMedPromptTriggerIds,fn);
+			// setAllEMAPrompts: function(createdMedPromptTriggerIds) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+			// 	self.debug('entered; createdMedPromptTriggerIds = ' + createdMedPromptTriggerIds,fn);
+			setAllEMAPrompts: function(medPromptTriggerDateTimes) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
 				self.getUserCfg();
 				self.getAppCfg();
 
-				// get the created triggers, and get their times, so we can schedule random EMA prompts around them
-				var medPromptTriggers = _.map(createdMedPromptTriggerIds, function(triggerId) { self.debug('triggerId = ' + triggerId, fn); return self.fetchTrigger(triggerId); });
-				self.debug('medPromptTriggers = ' + medPromptTriggers, fn);
-				var medPromptTriggerDateTimes = _.map(medPromptTriggers, function(t) { return self.iCalToDate(t.datetime_start); });
-				self.debug('medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes, fn);
+				// // get the created triggers, and get their times, so we can schedule random EMA prompts around them
+				// var medPromptTriggers = _.map(createdMedPromptTriggerIds, function(triggerId) { self.debug('triggerId = ' + triggerId, fn); return self.fetchTrigger(triggerId); });
+				// self.debug('medPromptTriggers = ' + medPromptTriggers, fn);
+				// var medPromptTriggerDateTimes = _.map(medPromptTriggers, function(t) { return self.iCalToDate(t.datetime_start); });
+				// self.debug('medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes, fn);
 
 
 				// get the set of EMAs from-which to randomly-select and randomly schedule
@@ -1099,7 +1106,7 @@ var PRNM = (function(exports) {
 					// the generated action to execute in a trigger
 					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
 					
-					// self.debug('actionScriptText = ' + actionScriptText,fn);
+					self.debug('actionScriptText = ' + actionScriptText,fn);
 					var name = triggerId;
 					self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
@@ -1148,6 +1155,7 @@ var PRNM = (function(exports) {
 			setAllMedPrompts: function() { var fn = 'setAllMedPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
 				self.getUserCfg();
+				self.getAppCfg();
 
 				// keep a list of the triggers we create here
 				var createdTriggerIds = [];
@@ -1207,7 +1215,10 @@ var PRNM = (function(exports) {
 						], ',', "'");
 
 					// the generated action to execute in a trigger
-					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
+					// biz-logic (from "Heart2HAART (H2H) Logic Model Explanation: 01/14/2013"): "When the dose is due, the phone will vibrate and alert to remind the user to take their dose. "
+					actionScriptText = 
+							'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
+						+ 'PurpleRobot.showNativeDialog(' + p + ');';
 					
 					// self.debug('actionScriptText = ' + actionScriptText,fn);
 					var name = triggerId;
@@ -1222,15 +1233,64 @@ var PRNM = (function(exports) {
 			},
 
 
+			/*** widget ***/
+
+			replaceTokensForWidget: function(inStr, nextDoseTime) { var fn = 'replaceTokensForWidget'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				var outStr = inStr;
+				// self.debug('outStr = ' + outStr, fn);
+				// provide some nice tokenizing string-replacement
+				// 		%T = the next dose time
+				_.each([
+					{'%T': nextDoseTime.toString('HH:mm:ss') }
+					], function(replacementPair) {
+						var key = _.keys(replacementPair)[0];
+						outStr = outStr.replace(key, replacementPair[key]);
+				});
+				// self.debug('exiting; outStr = ' + outStr,fn);
+				return outStr;
+			},
+
+
 			/**
-			 * Converts a function to a string, with parameters to the function listed in an array.
-			 * @param  {[type]} fnPtr        [description]
-			 * @param  {[type]} fnParamArray [description]
-			 * @return {[type]}              [description]
+			 * Sets a widget with a medication-adherence message dependent on a set of medication-consumption ("dosing") times and a period of time prior to each at which the widget's message must change.
+			 * @param  {[type]} widgetId                   [description]
+			 * @param  {[type]} medPromptTriggerDateTimes) {            var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER [description]
+			 * @return {[type]}                            [description]
 			 */
-			convertFnToString: function(fnPtr, fnParamArray) { var fn = 'convertFnToString'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				var p = self.isNullOrUndefined(fnParamArray) ? '' : self.getQuotedAndDelimitedStr(fnParamArray,',','\\\'');
-				return '(' +  (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')(' + p.replace(/(\r\n|\n|\r)/gm,'') + ');';
+			setWidget: function(widgetId, medPromptTriggerDateTimes) { var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
+				self.getAppCfg();
+
+				// determine next dose time
+				var nextDoseDateTimes = _.sortBy(medPromptTriggerDateTimes, function(dt) { return dt; });
+				if(nextDoseDateTimes.length == 0) {
+					self.error('No next MedPrompt time found!', fn);
+					return;
+				}
+				var nextDoseDateTime = nextDoseDateTimes[0];
+				// self.debug('nextDoseDateTime = ' + nextDoseDateTime, fn);
+				var msg = nextDoseDateTime > ((new Date()).addMinutes(parseInt(self.appCfg.staticOrDefault.updateWidget.minutesUntilDoseReminder)))
+					? self.appCfg.staticOrDefault.updateWidget.messageState.default
+					: self.appCfg.staticOrDefault.updateWidget.messageState.reminder;
+				// self.debug('msg = ' + msg, fn);
+
+				// Step 1: set the widget values and transition-state.
+				var updateWidgetParams = {
+					'identifier': widgetId,
+					'title': self.appCfg.staticOrDefault.updateWidget.title,
+					'message': self.replaceTokensForWidget(msg, nextDoseDateTime),
+					'action': self.convertFnToString(
+						self.actions.onWidgetPress, 
+						[ 'var url = \'' + (self.getAppCfg()).staticOrDefault.transition.onWidgetPress + '\';' ],
+						true
+					)
+				};
+				
+				self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
+				// self.debug('updateWidgetParams.action = ' + updateWidgetParams.action, fn);
+				self.updateWidget(updateWidgetParams);
+
+				self.debug('exiting', fn);
 			},
 
 
@@ -1278,7 +1338,7 @@ var PRNM = (function(exports) {
 						+ 'Date.prototype.toICal = ' + Date.prototype.toICal.toString() + ';'
 						+ 'self.iCalToDate = ' + self.iCalToDate.toString() + ';'
 						;
-					// self.debug(fn + ' = ' + s, fn);
+					self.debug(fn + ' = ' + s, fn);
 					return s;
 				},
 
@@ -1341,28 +1401,41 @@ var PRNM = (function(exports) {
 
 
 
-			setWidget: function(widgetId) { var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				// v1 - preferable, but not working...
-				var updateWidgetParams = {
-					'identifier': widgetId,
-					'title': 'PRNM: title',
-					'message': 'PRNM: time: ' + (new Date()).toString('hh:mm:ss'),
-					// 'action': self.convertFnToString(self.actions.onWidgetPress, [
-					// 	self.actionFns.getCommonFnSetForActions()
-					// ])
-					'action': 'PurpleRobot.log("HELLO WORLD FROM THE WIDGET!");'
-				};
-				// v2 - simplify: no action
-				// var updateWidgetParams = {
-				// 	'identifier': widgetId,
-				// 	'title': 'PRNM: title',
-				// 	'message': 'PRNM: msg'
-				// };
-				
-				self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
-				self.updateWidget(updateWidgetParams);
-			},
+			/**
+			 * Converts a function to a string, with parameters to the function listed in an array.
+			 * TODO: widget-mode does not work as successfully as non-widget mode does. Not currently sure what the quoting issue is that causes this. Would be good eventually to fix this.
+			 * @param  {[type]} fnPtr        [description]
+			 * @param  {[type]} fnParamArray [description]
+			 * @return {[type]}              [description]
+			 */
+			//  // v1 - WORKS for non-widget.
+			// convertFnToString: function(fnPtr, fnParamArray) { var fn = 'convertFnToString'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+			// 	var p = self.isNullOrUndefined(fnParamArray) ? '' : self.getQuotedAndDelimitedStr(fnParamArray,',','\\\'');
+			// 	return '(' +  (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')(' + p.replace(/(\r\n|\n|\r)/gm,'') + ');';
+			// },
 
+			convertFnToString: function(fnPtr, fnParamArray, isWidgetMode) { var fn = 'convertFnToString'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				var paramQuotStr = isWidgetMode ? '"' : '\\\'';
+
+				var p = self.isNullOrUndefined(fnParamArray) 
+					? '' 
+					: self.getQuotedAndDelimitedStr(
+							fnParamArray,
+							',', 
+							paramQuotStr
+					);
+								// + '(' + (isWidgetMode ? (p.replace(/"/gm, '\\"')).replace(/(\r\n|\n|\r)/gm, '') : p.replace(/(\r\n|\n|\r)/gm,'')) + ');'
+				return (isWidgetMode
+
+						?	  '(' + (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')'
+							//.replace(/"/gm, '\\\'')
+							+ '(' + (p).replace(/(\r\n|\n|\r)/gm, '') + ');'
+
+						:	  '(' + (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')'
+							+ '(' + p.replace(/(\r\n|\n|\r)/gm,'') + ');'
+					)
+				;
+			},
 
 
 			/**
@@ -1379,30 +1452,47 @@ var PRNM = (function(exports) {
 			},
 
 
+			/**
+			 * Gets the set of MedPrompt datetimes created by another function.
+			 * @param  {[type]} ) {            var fn = "getAllMedPromptDateTimes"; if(!this.CURRENTLY_IN_TRIGGER [description]
+			 * @return {[type]}   [description]
+			 */
+			getAllMedPromptDateTimes: function(createdMedPromptTriggerIds) { var fn = "getAllMedPromptDateTimes"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				var medPromptTriggers = _.map(createdMedPromptTriggerIds, function(triggerId) { self.debug('triggerId = ' + triggerId, fn); return self.fetchTrigger(triggerId); });
+				self.debug('medPromptTriggers = ' + medPromptTriggers, fn);
+				var medPromptTriggerDateTimes = _.map(medPromptTriggers, function(t) { return self.iCalToDate(t.datetime_start); });
+				self.debug('medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes, fn);
+				return medPromptTriggerDateTimes;
+			},
 
 
 			/**
 			 * ENTRY-POINT to the rest of the application. (For flow-control clarity, not language-level requirement.)
-			 * @param  {[type]} args [description]
+			 * @param  {[type]} args [decsription]
 			 * @return {[type]}      [description]
 			 */
 			main: function(args) { var fn = 'main'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.log('entered: args: ' + args, fn);
 				self.log('execution context: ' + self.execCtx, fn);
 
-// for debugging
-self.clearAllNonPRNMTriggers();
+				// reset the available set of triggers
+				self.clearAllNonPRNMTriggers();
 	
+				// UNCOMMENT WHEN WIDGET WORK IS DONE!
 				// create the app config repo in PR, if not already created.
 				self.appConfigCreate(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key);
 
-				// set MedPrompt triggers
+				// // set MedPrompt triggers
 				var createdMedPromptTriggerIds = self.setAllMedPrompts();
-				// set assessment / EMA triggers
-				self.setAllEMAPrompts(createdMedPromptTriggerIds);
+
+				// now that the MedPrompt triggers are created, get the created triggers, and get their times, so we can schedule random EMA prompts around them, and widget-timing.
+				var medPromptTriggerDateTimes = self.getAllMedPromptDateTimes(createdMedPromptTriggerIds);
+
+				// // set assessment / EMA triggers
+				self.setAllEMAPrompts(medPromptTriggerDateTimes);
 
 				// update the widget
-				self.setWidget(self.envConsts.appCfg.namespace);
+				self.setWidget(self.envConsts.appCfg.namespace, medPromptTriggerDateTimes);
 
 				self.log('exiting...', fn);
 			},

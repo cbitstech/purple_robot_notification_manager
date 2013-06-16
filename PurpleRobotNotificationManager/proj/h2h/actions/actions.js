@@ -149,7 +149,10 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-				self.debug('ENTERED onWidgetPress...');
+
+
+				PurpleRobot.log('Launching URL: ' + url);
+				PurpleRobot.launchUrl(url);
 			}
 
 		};

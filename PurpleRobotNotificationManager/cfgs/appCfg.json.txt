@@ -21,7 +21,16 @@
 				"title": "Heart2HAART, EMA: %N@%T",
 				"message": "It\\'s time to answer a few questions."
 			}
-		}
+		},
+		"updateWidget": {
+			"title": "Heart2HAART title",
+			"minutesUntilDoseReminder": 60,
+			"messageState": {
+				"default": "No upcoming dose.",
+				"reminder": "Next dose at %T."
+			}
+		},
+		"vibratePattern": "buzz"
 	},
 	"dynamicOrModified": {
 		"transition": {
