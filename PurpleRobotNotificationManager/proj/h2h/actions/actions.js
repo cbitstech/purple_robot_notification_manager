@@ -43,18 +43,29 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					+ '&medName_1=' + dose.medication
 					+ '&medStrength_1=' + dose.strength
 					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
+
+
+
+
+
+
+
+
+
+
+				
+
+				var currentAction = {
+					'triggerId': triggerId,
+					'actionDstType': 'MedPromptYes',
+					'actionTime': dose.time,
+					'actionName': dose.medication
+				};
+				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
+				self.appConfigUpsert(self.envConsts.appCfg.namespace, 'currentAction', currentAction);
+
 				self.log('Launching url = ' + url, fn);
 				self.launchUrl(url);
-
-
-
-				var trg = self.fetchTrigger(triggerId);
-				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
-				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
-				appCfg.triggerState.push(trgWithState);
-				self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
-				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
-
 			},
 
 
@@ -80,13 +91,27 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var trg = self.fetchTrigger(triggerId);
-				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
-				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
-				appCfg.triggerState.push(trgWithState);
-				self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
-				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
 
+
+
+
+
+
+
+
+
+				var currentAction = {
+					'triggerId': triggerId,
+					'actionDstType': 'MedPromptNo',
+					'actionTime': dose.time,
+					'actionName': dose.medication
+				};
+				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
+				self.appConfigUpsert(self.envConsts.appCfg.namespace, 'currentAction', currentAction);
+
+
+				self.log('Launching url = ' + url, fn);
+				self.launchUrl(url);
 			},
 
 
@@ -111,17 +136,15 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onEMAYes[schedObj.name] : appCfg.dynamicOrModified.transition.onEMAYes[schedObj.name];
 				var url = baseUrl;
-				self.log('Launching url = ' + url, fn);
-				self.launchUrl(url);
 
 
 
 
-				self.debug('triggerId = ' + triggerId, fn);
-				var trg = self.fetchTrigger(triggerId);
-				var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).PromptedPressedButton, url, trg);
-				appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
-				appCfg.triggerState.push(trgWithState);
+
+
+
+
+
 
 
 
@@ -145,6 +168,18 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 				self.debug('Saving trigger state...', fn);
 				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
+
+
+				var currentAction = {
+					'triggerId': triggerId,
+					'actionDstType': 'EMA',
+					'actionDstSubtype': schedObj.name
+				};
+				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
+				self.appConfigUpsert(self.envConsts.appCfg.namespace, 'currentAction', currentAction);
+
+				self.log('Launching url = ' + url, fn);
+				self.launchUrl(url);
 			},
 
 
