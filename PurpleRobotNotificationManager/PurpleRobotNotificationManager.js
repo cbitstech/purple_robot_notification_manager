@@ -158,6 +158,7 @@ var PRNM = (function(exports) {
 			fetchTrigger: null,
 			deleteTrigger: null,
 			launchUrl: null,
+			launchApplication: null,
 			loadLibrary: null,
 
 			// FNGROUP: biz-logic
@@ -206,6 +207,7 @@ var PRNM = (function(exports) {
 						self.fetchTrigger = function(triggerId) { return PurpleRobot.fetchTrigger(triggerId); };
 						self.deleteTrigger = function(triggerId) { return PurpleRobot.deleteTrigger(triggerId); };
 						self.launchUrl = function(url) { return PurpleRobot.launchUrl(url); };
+						self.launchApplication = function(applicationFullName) { return PurpleRobot.launchApplication(applicationFullName); };
 						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var fn='loadLibrary'; 
 							self.debug('nameOrPath = ' + nameOrPath + '; keyOfLibInstanceToReturn = ' + keyOfLibInstanceToReturn,fn);
 							PurpleRobot.loadLibrary(nameOrPath); 
@@ -331,6 +333,7 @@ var PRNM = (function(exports) {
 						};
 						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
 						self.launchUrl = function(url) { var fn = 'launchUrl'; self.log('NOEXEC: launchUrl: ' + url, fn); };
+						self.launchApplication = function(applicationFullName) { var fn = 'launchApplication'; self.log('NOEXEC: launchApplication: ' + url, fn); };
 						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var lib = require(nameOrPath); return lib; };
 						self.vibrate = function(vibratePatternStr) { var fn = 'vibrate'; self.log('NOEXEC: vibrate: ' + vibratePatternStr, fn); };
 
@@ -397,6 +400,7 @@ var PRNM = (function(exports) {
 						self.fetchTrigger = function(triggerId) { var fn = 'fetchTrigger'; self.log('NOEXEC: fetchTrigger: ' + triggerId, fn); };
 						self.deleteTrigger = function(triggerId) { var fn = 'deleteTrigger'; self.log('NOEXEC: deleteTrigger: ' + triggerId, fn); };
 						self.launchUrl = function(url) { var fn = 'launchUrl'; self.log('NOEXEC: launchUrl: ' + url, fn); };
+						self.launchApplication = function(applicationFullName) { var fn = 'launchApplication'; self.log('NOEXEC: launchApplication: ' + url, fn); };
 						self.loadLibrary = function(nameOrPath, keyOfLibInstanceToReturn) { var lib = require(nameOrPath); return lib; };
 						self.vibrate = function(vibratePatternStr) { var fn = 'vibrate'; self.log('NOEXEC: vibrate: ' + vibratePatternStr, fn); };
 
@@ -1329,7 +1333,8 @@ var PRNM = (function(exports) {
 						+ 'self.appCfg = JSON.parse(appCfgStr);'
 
 						+ 'self.loadLibrary = ' + self.loadLibrary.toString() + ';'
-						+ 'self.launchUrl = ' + self.launchUrl.toString() + ';'
+						// + 'self.launchUrl = ' + self.launchUrl.toString() + ';'
+						+ 'self.launchApplication = ' + self.launchApplication.toString() + ';'
 
 						+ 'var _ = self.loadLibrary("underscore.js", "_");'
 

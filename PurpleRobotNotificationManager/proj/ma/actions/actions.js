@@ -64,8 +64,11 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
 				self.appConfigUpsert(self.envConsts.appCfg.namespace, 'currentAction', currentAction);
 
-				self.log('Launching url = ' + url, fn);
-				self.launchUrl(url);
+
+
+				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				self.log('Launching application = ' + applicationFullName, fn);
+				self.launchApplication(applicationFullName);
 			},
 
 
@@ -110,8 +113,11 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.appConfigUpsert(self.envConsts.appCfg.namespace, 'currentAction', currentAction);
 
 
-				self.log('Launching url = ' + url, fn);
-				self.launchUrl(url);
+
+
+				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				self.log('Launching application = ' + applicationFullName, fn);
+				self.launchApplication(applicationFullName);
 			},
 
 
@@ -178,8 +184,11 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
 				self.appConfigUpsert(self.envConsts.appCfg.namespace, 'currentAction', currentAction);
 
-				self.log('Launching url = ' + url, fn);
-				self.launchUrl(url);
+
+
+				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				self.log('Launching application = ' + applicationFullName, fn);
+				self.launchApplication(applicationFullName);
 			},
 
 
