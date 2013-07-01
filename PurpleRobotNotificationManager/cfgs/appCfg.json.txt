@@ -14,10 +14,12 @@
 		},
 		"showNativeDialog": {
 			"medPrompt": {
+				"identifier": "Heart2HAART, MP: %M@%T, %S%U",
 				"title": "Heart2HAART, MP: %M@%T, %S%U",
 				"message": "Did you take your %S %U of %M today?"
 			},
 			"assessment": {
+				"identifier": "Heart2HAART, EMA: %N@%T",
 				"title": "Heart2HAART, EMA: %N@%T",
 				"message": "It\\'s time to answer a few questions."
 			}
@@ -30,7 +32,8 @@
 				"reminder": "Next dose at %T."
 			}
 		},
-		"vibratePattern": "buzz"
+		"vibratePattern": "buzz",
+							"timeFormat": "h:mmtt"
 	},
 	"dynamicOrModified": {
 		"transition": {

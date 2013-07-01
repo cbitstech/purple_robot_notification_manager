@@ -447,6 +447,30 @@ suite('PurpleRobotNotificationManager', function() {
     );
 
 
+    test('getNextDateTime', cases([
+       [[[9,0,0],[10,0,0],[11,0,0]], [8,55,0], 0]
+      ,[[[8,0,0],[12,0,0],[16,0,0]], [9,55,0], 1]
+      ,[[[8,0,0],[12,0,0],[16,0,0]], [13,55,0], 2]
+      ,[[[8,0,0],[12,0,0],[16,0,0]], [17,55,0], null]
+      ], function(sortedAscTimeArr, comparisonTimeArr, expected) {
+        var medDateTime1 = Date.today().set({ hour: sortedAscTimeArr[0][0], minute: sortedAscTimeArr[0][1], second: sortedAscTimeArr[0][2]});
+        var medDateTime2 = Date.today().set({ hour: sortedAscTimeArr[1][0], minute: sortedAscTimeArr[1][1], second: sortedAscTimeArr[1][2]});
+        var medDateTime3 = Date.today().set({ hour: sortedAscTimeArr[2][0], minute: sortedAscTimeArr[2][1], second: sortedAscTimeArr[2][2]});
+        var triggerDateTimes = [medDateTime1,medDateTime2,medDateTime3];
+
+        var comparisonDateTime = Date.today().set({hour:comparisonTimeArr[0],minute:comparisonTimeArr[1],second:comparisonTimeArr[2]});
+        var actualDateTime = prnm.getNextDateTime(triggerDateTimes, comparisonDateTime);
+Date.today().setTimeToNow();
+        if(expected != null) {
+          assert.equal(Date.compare(actualDateTime, triggerDateTimes[expected]) == 0, true);
+        }
+        else {
+          assert.equal(actualDateTime, null);
+        }
+      })
+    );
+
+
     test('main', function() {
       var actual = prnm.main();
     });

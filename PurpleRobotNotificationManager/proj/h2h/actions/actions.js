@@ -195,8 +195,11 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
 
 
-				PurpleRobot.log('Launching URL: ' + url);
-				PurpleRobot.launchUrl(url);
+
+
+				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				PurpleRobot.log('Launching application = ' + applicationFullName);
+				PurpleRobot.launchApplication(applicationFullName);
 			}
 
 		};

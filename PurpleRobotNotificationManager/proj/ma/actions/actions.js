@@ -66,7 +66,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				var applicationFullName = "edu.northwestern.cbits.umb.ma";
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 			},
@@ -115,7 +115,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				var applicationFullName = "edu.northwestern.cbits.umb.ma";
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 			},
@@ -186,7 +186,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				var applicationFullName = "edu.northwestern.cbits.umb.ma";
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 			},
@@ -195,8 +195,11 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
 
 
-				PurpleRobot.log('Launching URL: ' + url);
-				PurpleRobot.launchUrl(url);
+
+
+				var applicationFullName = "edu.northwestern.cbits.umb.ma";
+				PurpleRobot.log('Launching application = ' + applicationFullName);
+				PurpleRobot.launchApplication(applicationFullName);
 			}
 
 		};

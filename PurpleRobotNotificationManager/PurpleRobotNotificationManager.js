@@ -668,7 +668,7 @@ var PRNM = (function(exports) {
 								'datetime_repeat': repeatStr
 							};
 							self.debug('triggerObj = ' + JSON.stringify(triggerObj), fn);
-							self.updateTrigger(name, triggerObj);
+							self.updateTrigger(id, triggerObj);
 
 							// store trigger history
 							self.getAppCfg();
@@ -941,7 +941,7 @@ var PRNM = (function(exports) {
 
 			genEMAPromptTriggerId: function(schedObj) { var fn = 'genEMAPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
-				var id = self.replaceTokensForEMA((self.getAppCfg()).staticOrDefault.showNativeDialog.assessment.title, schedObj);
+				var id = self.replaceTokensForEMA((self.getAppCfg()).staticOrDefault.showNativeDialog.assessment.identifier, schedObj);
 				return id;
 			},
 
@@ -1108,10 +1108,14 @@ var PRNM = (function(exports) {
 						], ',', "'", [null]);
 
 					// the generated action to execute in a trigger
-					actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
+					// actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
+					actionScriptText = 
+							'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
+						+ 'PurpleRobot.showNativeDialog(' + p + ');';
 					
 					self.debug('actionScriptText = ' + actionScriptText,fn);
-					var name = triggerId;
+					// var name = triggerId;
+					var name = self.appCfg.staticOrDefault.showNativeDialog.assessment.title;
 					self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
 				});
@@ -1124,6 +1128,7 @@ var PRNM = (function(exports) {
 
 			replaceTokensForMedPrompt: function(inStr, dose) { var fn = 'replaceTokensForMedPrompt'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				var outStr = inStr;
+				var timeFormat = (self.getAppCfg()).staticOrDefault.timeFormat;
 				// self.debug('outStr = ' + outStr + '; dose = ' + JSON.stringify(dose), fn);
 				// provide some nice tokenizing string-replacement for ID-setting
 				// 		%M = the dose medication
@@ -1132,7 +1137,7 @@ var PRNM = (function(exports) {
 				// 		%U = the dispensation unit
 				_.each([
 					 {'%M': dose.medication}
-					,{'%T': dose.time}
+					,{'%T': (self.genDateFromTime(dose.time)).toString(timeFormat) }
 					,{'%S': dose.strength}
 					,{'%U': dose.dispensationUnit}
 					], function(replacementPair) {
@@ -1146,7 +1151,7 @@ var PRNM = (function(exports) {
 
 			genMedPromptTriggerId: function(dose) { var fn = 'genMedPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				self.debug('entered',fn);
-				var id = self.replaceTokensForMedPrompt((self.getAppCfg()).staticOrDefault.showNativeDialog.medPrompt.title, dose);
+				var id = self.replaceTokensForMedPrompt((self.getAppCfg()).staticOrDefault.showNativeDialog.medPrompt.identifier, dose);
 				return id;
 			},
 
@@ -1225,11 +1230,11 @@ var PRNM = (function(exports) {
 						+ 'PurpleRobot.showNativeDialog(' + p + ');';
 					
 					// self.debug('actionScriptText = ' + actionScriptText,fn);
-					var name = triggerId;
+					var name = self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title;
 					self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
-					self.debug('Pushing triggerId = ' + name, fn);
-					createdTriggerIds.push(name);
+					self.debug('Pushing triggerId = ' + triggerId + '; name = ' + name, fn);
+					createdTriggerIds.push(triggerId);
 				});
 
 				self.debug('exiting',fn);
@@ -1241,17 +1246,39 @@ var PRNM = (function(exports) {
 
 			replaceTokensForWidget: function(inStr, nextDoseTime) { var fn = 'replaceTokensForWidget'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
 				var outStr = inStr;
+				var timeFormat = (self.getAppCfg()).staticOrDefault.timeFormat;
 				// self.debug('outStr = ' + outStr, fn);
 				// provide some nice tokenizing string-replacement
 				// 		%T = the next dose time
 				_.each([
-					{'%T': nextDoseTime.toString('HH:mm:ss') }
+					{'%T': nextDoseTime.toString(timeFormat) }
 					], function(replacementPair) {
 						var key = _.keys(replacementPair)[0];
 						outStr = outStr.replace(key, replacementPair[key]);
 				});
 				// self.debug('exiting; outStr = ' + outStr,fn);
 				return outStr;
+			},
+
+
+			getNextDateTime: function(sortedAscendingDateTimeArray, comparisonDateTime) { var fn = "getNextDateTime"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('entered; comparisonDateTime = ' + comparisonDateTime + '; sortedAscendingDateTimeArray = ' + sortedAscendingDateTimeArray,fn);
+
+				if(!sortedAscendingDateTimeArray || !_.isArray(sortedAscendingDateTimeArray)) { throw "sortedAscendingDateTimeArray is null, undefined, or not an array."; }
+				var ret = null;
+
+				self.debug('sortedAscendingDateTimeArray.length = ' + sortedAscendingDateTimeArray.length, fn);
+				for (var i = 0; i < sortedAscendingDateTimeArray.length; i++) {
+					var d = sortedAscendingDateTimeArray[i];
+					var dateCmpRslt = comparisonDateTime.compareTo(d);
+					self.debug('dateCmpRslt = ' + dateCmpRslt + ' given dates: ' + comparisonDateTime + ' and ' + d, fn);
+					if (dateCmpRslt == 0 || dateCmpRslt == -1) {
+						ret = sortedAscendingDateTimeArray[i];
+						break;
+					}
+				}
+				self.debug('exiting; ret = ' + ret,fn);
+				return ret;
 			},
 
 
@@ -1262,7 +1289,7 @@ var PRNM = (function(exports) {
 			 * @return {[type]}                            [description]
 			 */
 			setWidget: function(widgetId, medPromptTriggerDateTimes) { var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-				self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
+				self.debug('entered; widgetId = ' + widgetId + '; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
 				self.getAppCfg();
 
 				// determine next dose time
@@ -1271,9 +1298,11 @@ var PRNM = (function(exports) {
 					self.error('No next MedPrompt time found!', fn);
 					return;
 				}
-				var nextDoseDateTime = nextDoseDateTimes[0];
-				// self.debug('nextDoseDateTime = ' + nextDoseDateTime, fn);
-				var msg = nextDoseDateTime > ((new Date()).addMinutes(parseInt(self.appCfg.staticOrDefault.updateWidget.minutesUntilDoseReminder)))
+				// var nextDoseDateTime = nextDoseDateTimes[0];
+				var currDateTime = new Date();
+				var nextDoseDateTime = self.getNextDateTime(medPromptTriggerDateTimes, currDateTime);
+				self.debug('nextDoseDateTime = ' + nextDoseDateTime, fn);
+				var msg = nextDoseDateTime > currDateTime.addMinutes(parseInt(self.appCfg.staticOrDefault.updateWidget.minutesUntilDoseReminder))
 					? self.appCfg.staticOrDefault.updateWidget.messageState.default
 					: self.appCfg.staticOrDefault.updateWidget.messageState.reminder;
 				// self.debug('msg = ' + msg, fn);
@@ -1463,6 +1492,7 @@ var PRNM = (function(exports) {
 			 * @return {[type]}   [description]
 			 */
 			getAllMedPromptDateTimes: function(createdMedPromptTriggerIds) { var fn = "getAllMedPromptDateTimes"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				self.debug('createdMedPromptTriggerIds = ' + createdMedPromptTriggerIds, fn);
 				var medPromptTriggers = _.map(createdMedPromptTriggerIds, function(triggerId) { self.debug('triggerId = ' + triggerId, fn); return self.fetchTrigger(triggerId); });
 				self.debug('medPromptTriggers = ' + medPromptTriggers, fn);
 				var medPromptTriggerDateTimes = _.map(medPromptTriggers, function(t) { return self.iCalToDate(t.datetime_start); });
