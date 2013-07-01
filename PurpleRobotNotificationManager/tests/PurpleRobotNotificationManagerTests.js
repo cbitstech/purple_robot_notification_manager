@@ -471,6 +471,20 @@ Date.today().setTimeToNow();
     );
 
 
+    test('isStringGt0Len', cases([
+      [null, false],
+      [undefined, false],
+      ['', false],
+      [{'total': 33}, false],
+      ['foobar', true],
+      ['123', true]
+      ], function(str, expected) {
+        var actual = self.isStringGt0Len(str);
+        assert.equal(actual, expected);
+      })
+    );
+
+
     test('main', function() {
       var actual = prnm.main();
     });

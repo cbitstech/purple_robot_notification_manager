@@ -445,6 +445,12 @@ var PRNM = (function(exports) {
 				return (v == null || v == undefined || v == 'null');
 			},
 
+			isStringGt0Len: function(s) { var fn = 'isString'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+				var ret = !self.isNullOrUndefined(s) && _.isString(s) && s.length > 0;
+				self.debug('s = ' + s + '; ret = ' + ret, fn);
+				return ret;
+			},
+
 
 			/**
 			 * Generates a Date object, using today's date, with the time specified in the timeStr.
@@ -1318,6 +1324,24 @@ var PRNM = (function(exports) {
 						true
 					)
 				};
+
+				// get & display the total # points and display them in the widget
+				var pointsFromPr = self.fetchString(self.envConsts.appCfg.namespace, 'points');
+				self.debug('pointsFromPr = ' + pointsFromPr, fn);
+				if(!self.isNullOrUndefined(pointsFromPr)) {
+					var points = JSON.parse(pointsFromPr);
+					self.debug('points.total = ' + points.total, fn);
+					updateWidgetParams['badge'] = points.total;
+				}
+				else {
+					self.debug('No points path...', fn);
+					updateWidgetParams['badge'] = 'None.';
+				}
+
+				// add an optional image URL, if it exists
+				if(self.isStringGt0Len(self.appCfg.staticOrDefault.updateWidget.imageUrl)) {
+					updateWidgetParams['image'] = self.appCfg.staticOrDefault.updateWidget.imageUrl;
+				}
 				
 				self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
 				// self.debug('updateWidgetParams.action = ' + updateWidgetParams.action, fn);
