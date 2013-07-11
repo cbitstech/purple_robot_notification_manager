@@ -485,6 +485,35 @@ Date.today().setTimeToNow();
     );
 
 
+    test('getQuotedAndDelimitedStr', cases([
+      [ ['ABC', '123'], ',', '"', false, '"ABC","123"']
+      ,[ ['ABC', '123'], '|', '"', false, '"ABC"|"123"']
+      ,[ ['ABC', '123'], ',', "'", false, "'ABC','123'"]
+      ,[ [function(name) { console.log('hello ' + name); }], ',', '"', false, '"function (name) { console.log(\'hello \' + name); }"']
+      ,[ [], ',', '"', false, '']
+      ,[ null, ',', '"', false, '']
+      ,[ undefined, ',', '"', false, '']
+      ],
+      function(paramArray, delim, quoteChar, doNotQuoteTokens, expected) {
+        var actual = self.getQuotedAndDelimitedStr(paramArray, delim, quoteChar, doNotQuoteTokens);
+        assert.equal(actual, expected);        
+      })
+    );
+
+
+    test('isNullOrUndefined', cases([
+      [ '"', false ]
+      ,[ null, true ]
+      ,[ undefined, true ]
+      ,[ 'foobar', false ]
+      ],
+      function(v, expected) {
+        var actual = self.isNullOrUndefined(v);
+        assert.equal(actual, expected);        
+      })
+    )
+
+
     test('main', function() {
       var actual = prnm.main();
     });

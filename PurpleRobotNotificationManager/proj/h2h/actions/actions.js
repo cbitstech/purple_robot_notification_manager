@@ -66,7 +66,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 			},
@@ -115,7 +115,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 			},
@@ -186,20 +186,44 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 			},
 
 
+			/**
+			 * Widget is pressed.
+			 * @param  {[type]} codeFromPrnm) {            var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm [description]
+			 * @return {[type]}               [description]
+			 */
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
 
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.h2h";
+				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				PurpleRobot.log('Launching application = ' + applicationFullName);
 				PurpleRobot.launchApplication(applicationFullName);
+			},
+
+
+			/**
+			 * Countdown timer trigger fired.
+			 * @param  {[type]} codeFromPrnm) {             var fn = 'onCountdownTick'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm [description]
+			 * @return {[type]}               [description]
+			 */
+			onCountdownTriggerFired: function(codeFromPrnm) {  var fn = 'onCountdownTick'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
+
+        self.debug('entered; setting updateWidgetParams...', fn);
+
+
+
+
+
+
+
+
 			}
 
 		};

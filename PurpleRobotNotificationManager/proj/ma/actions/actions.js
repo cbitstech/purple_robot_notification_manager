@@ -66,7 +66,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.ma";
+				var applicationFullName = self.envConsts.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 			},
@@ -115,7 +115,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.ma";
+				var applicationFullName = self.envConsts.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 			},
@@ -186,7 +186,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.ma";
+				var applicationFullName = self.envConsts.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 			},
@@ -197,7 +197,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var applicationFullName = "edu.northwestern.cbits.umb.ma";
+				var applicationFullName = self.envConsts.appCfg.staticOrDefault.appPackageName;
 				PurpleRobot.log('Launching application = ' + applicationFullName);
 				PurpleRobot.launchApplication(applicationFullName);
 			}
