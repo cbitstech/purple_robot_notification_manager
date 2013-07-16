@@ -1160,7 +1160,7 @@ var PRNM = (function(exports) {
       replaceTokensForMedPrompt: function(inStr, dose) { var fn = 'replaceTokensForMedPrompt'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         var outStr = inStr;
         var timeFormat = (self.getAppCfg()).staticOrDefault.timeFormat;
-        // self.debug('outStr = ' + outStr + '; dose = ' + JSON.stringify(dose), fn);
+        self.debug('outStr = ' + outStr + '; dose = ' + JSON.stringify(dose), fn);
         // provide some nice tokenizing string-replacement for ID-setting
         //    %M = the dose medication
         //    %T = the dose time
@@ -1188,6 +1188,49 @@ var PRNM = (function(exports) {
 
 
       /**
+       * Generates a parameter string to be passed into a string definition of an action for a trigger.
+       * @param  {[type]} triggerId [description]
+       * @param  {[type]} doseStr   [description]
+       * @return {[type]}           [description]
+       */
+      genShowNativeDialogParams: function(triggerId, doseStr, dose) {
+        var p = self.getQuotedAndDelimitedStr([
+           self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title, dose)
+          ,self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.message, dose)
+          ,'Yes'
+          ,'No'
+          // v3 - WORKS!!!!!
+          // In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
+          // 
+          // The idea here is to mock the 'self' object using the specified function's current context.
+          // Then, specify all the function dependencies in-order in the array string here.
+          // Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+          // Then, append the current dose as a string.
+          // All of this gets eval'dose in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
+          ,self.convertFnToString(self.actions.onMedPromptYes, [
+              self.actionFns.getCommonFnSetForActions()
+            + self.actionFns.getTriggerFns() 
+            + self.actionFns.getMedPromptFns()
+            + self.actionFns.getAppCfgFns()
+            + self.actionFns.getWidgetFns()
+            + 'var dose = ' + doseStr + ';'
+            + 'var triggerId = "' + triggerId + '";'
+            ])
+          ,self.convertFnToString(self.actions.onMedPromptNo, [
+              self.actionFns.getCommonFnSetForActions() 
+            + self.actionFns.getTriggerFns()
+            + self.actionFns.getMedPromptFns()
+            + self.actionFns.getAppCfgFns()
+            + self.actionFns.getWidgetFns()
+            + 'var dose = ' + doseStr + ';'
+            + 'var triggerId = "' + triggerId + '";'
+            ])
+          ], ',', "'");
+
+        return p;
+      },
+
+      /**
        * Sets all the MedPrompts for the following 24 hours.
        * @param  {[type]} ) {            var fn = 'setAllMedPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
        * @return {[type]}   [description]
@@ -1212,58 +1255,36 @@ var PRNM = (function(exports) {
               ,actionScriptText = null
               ,startDateTime = sdt
               ,endDateTime = sdt.clone().addMinutes(1)
-              // ,untilDateTime = sdt.clone()
-              ,untilDateTime = (new Date())
-                // .addHours(1)
-                .addDays(1)
-                // .set({hour:0,minute:0,second:0})
+              ,untilDateTime = (new Date()).addDays(1)
               ;
           self.debug('triggerId = ' + triggerId, fn);
-
           var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
-          // var p = self.getQuotedAndDelimitedStr([type,name,'Yes','No'
-          var p = self.getQuotedAndDelimitedStr([
-             self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title, d)
-            ,self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.message, d)
-            ,'Yes'
-            ,'No'
-            // v3 - WORKS!!!!!
-            // In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
-            // 
-            // The idea here is to mock the 'self' object using the specified function's current context.
-            // Then, specify all the function dependencies in-order in the array string here.
-            // Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
-            // Then, append the current dose as a string.
-            // All of this gets eval'd in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
-            ,self.convertFnToString(self.actions.onMedPromptYes, [
-                self.actionFns.getCommonFnSetForActions()
-              + self.actionFns.getTriggerFns() 
-              + self.actionFns.getMedPromptFns()
-              + self.actionFns.getAppCfgFns()
-              + 'var dose = ' + doseStr + ';'
-              + 'var triggerId = "' + triggerId + '";'
-              ])
-            ,self.convertFnToString(self.actions.onMedPromptNo, [
-                self.actionFns.getCommonFnSetForActions() 
-              + self.actionFns.getTriggerFns()
-              + self.actionFns.getMedPromptFns()
-              + self.actionFns.getAppCfgFns()
-              + 'var dose = ' + doseStr + ';'
-              + 'var triggerId = "' + triggerId + '";'
-              ])
-            ], ',', "'");
-
+          var showNativeDialogParams = self.genShowNativeDialogParams(triggerId, doseStr, d);
+  
           // the generated action to execute in a trigger
           // biz-logic (from "Heart2HAART (H2H) Logic Model Explanation: 01/14/2013"): "When the dose is due, the phone will vibrate and alert to remind the user to take their dose. "
           actionScriptText = 
               'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
-            + 'PurpleRobot.showNativeDialog(' + p + ');';
+            + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
           
-          var numChars = 1500;
-          self.debug('actionScriptText (first & last ' + numChars + ' of ' + actionScriptText.length + ' chars) = ' + actionScriptText.substr(0,numChars) + ' ... ' + actionScriptText.substr(actionScriptText.length - numChars, actionScriptText.length),fn);
+          // var numChars = 1500;
+          // self.debug('actionScriptText (first & last ' + numChars + ' of ' + actionScriptText.length + ' chars) = ' + actionScriptText.substr(0,numChars) + ' ... ' + actionScriptText.substr(actionScriptText.length - numChars, actionScriptText.length),fn);
           var name = self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title;
           self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
+
+          // keep track of all the MedPrompt-at-the-scheduled-time triggers we've created
+          self.debug('Pushing triggerId = ' + triggerId + '; name = ' + name, fn);
+          createdTriggerIds.push(triggerId);
+
+
+          // * generate the +TTL (UMB says 30) minutes reminder instance of this trigger. *
+          var triggerIdPlusTTL = triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+          var showNativeDialogParamsPlusTTL = self.genShowNativeDialogParams(triggerIdPlusTTL, doseStr, d);
+          actionScriptText = 
+              'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
+            + 'PurpleRobot.showNativeDialog(' + showNativeDialogParamsPlusTTL + ');';
+          self.setDateTimeTrigger(triggerIdPlusTTL, type, name, actionScriptText, startDateTime.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), endDateTime.addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), repeatStr);
 
 
           /***
@@ -1271,62 +1292,21 @@ var PRNM = (function(exports) {
 
             Logic doc: https://docs.google.com/viewer?a=v&pid=gmail&attid=0.1&thid=13fa517a59a0eef5&mt=application/vnd.openxmlformats-officedocument.wordprocessingml.document&url=https://mail.google.com/mail/u/0/?ui%3D2%26ik%3D9c7d25f93d%26view%3Datt%26th%3D13fa517a59a0eef5%26attid%3D0.1%26disp%3Dsafe%26realattid%3Df_hiony1d90%26zw&sig=AHIEtbSDFhDKbLh21b9p7CtZpIG8K7tFQg
           ***/
-          var activeStateStartMinsOffset = -(self.appCfg.staticOrDefault.updateWidget.minutesUntilDoseReminder);
-          var untilStateStartMinsOffset = -5;
-          self.log('Generating Active state trigger starting ' + activeStateStartMinsOffset + ' from the prompt time.', fn);
-
           // * Active State: set 60-minutes-prior trigger *
           // The “Active” state: This state is activated when the participant has a medication 
           // reminder due in the next 60 minutes. One hour (60 minutes) before the medication is 
           // due a “countdown” timer will begin for that dose.
-          var triggerIdFirstPrior     = self.genMedPromptTriggerId(d) + '-1h';
-          var startDateTimeFirstPrior = sdt.clone().addMinutes(activeStateStartMinsOffset);
+          self.log('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + ' from the prompt time.', fn);
+          var triggerIdFirstPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + 'min';
+          var startDateTimeFirstPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first));
           var endDateTimeFirstPrior   = startDateTimeFirstPrior.clone().addMinutes(1);
-          var untilDateTimeFirstPrior = sdt.clone().addMinutes(untilStateStartMinsOffset);
+          var untilDateTimeFirstPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second));
           var repeatStrFirstPrior     = 'FREQ=MINUTELY;INTERVAL=1;UNTIL=' + untilDateTimeFirstPrior.toICal();
+          
           self.debug(self.getQuotedAndDelimitedStr([triggerIdFirstPrior, sdt.clone(), startDateTimeFirstPrior, endDateTimeFirstPrior, untilDateTimeFirstPrior, repeatStrFirstPrior], ',', "'"), fn);
-          
-          // ATTEMPT 1: use the existing actions.js infrastructure, code-quoting, etc..
-          // RESULT (unresolved): W/System.err(30131): org.mozilla.javascript.EcmaError: SyntaxError: illegal character (<engine>#1(eval)#1)
-          // // self.debug('updateWidgetParams = ' + updateWidgetParams, fn);
-          // var actionScriptTextFirstPrior = 
-          //   self.convertFnToString(self.actions.onCountdownTriggerFired, [
-          //   //   self.actionFns.getCommonFnSetForActions()
-          //   // + self.actionFns.getAppCfgFns()
-          //   // + self.actionFns.getWidgetFns()
-          //   'PurpleRobot.log(1);'
-          //   ]
-          // );
-          
-          // ATTEMPT 2: for expediency vs. attempt #1, let's re-implement the important parts of replaceTokensForWidget in concatenated strings. *sigh*
-          // Implies the TODO of refactoring this to the goal of attempt #1!
-          // WORKS!
-          // var actionScriptTextFirstPrior = ''
-          //   + 'PurpleRobot.loadLibrary(\'date.js\');'
-          //   + 'var dispStr = \'' + self.appCfg.staticOrDefault.updateWidget.messageState.reminder + '\';'
-          //   + 'PurpleRobot.log(\'[DBG] 111 dispStr = \' + timeFormat);'
-          //   + 'var timeFormat = \'' + self.appCfg.staticOrDefault.timeFormat + '\';'
-          //   + 'PurpleRobot.log(\'[DBG] timeFormat = \' + timeFormat);'
-          //   + 'var nextDoseTime = new Date(' + sdt.getFullYear() + ',' + sdt.getMonth() + ',' + sdt.getDate() + ',' + sdt.getHours() + ',' + sdt.getMinutes() + ',' + sdt.getSeconds() + ');'
-          //   + 'PurpleRobot.log(\'[DBG] nextDoseTime = \' + nextDoseTime);'
-          //   + 'var tokenArr = [\'%T\', \'%ETAMIN\'];'
-          //   + 'for (var i = 0; i < tokenArr.length; i++) {'
-          //   + '  if(i==0) { dispStr = dispStr.replace(tokenArr[i], nextDoseTime.toString(timeFormat)); }'
-          //   + '  if(i==1) { dispStr = dispStr.replace(tokenArr[i], Math.round((Math.abs(nextDoseTime.getTime() - (new Date()).getTime())) / 1000 / 60)); }'
-          //   + '}'
-          //   + 'PurpleRobot.log(\'[DBG] 222 dispStr = \' + dispStr);'
-          //   + 'var updateWidgetParams = {'
-          //   + '    \'identifier\': \'' + self.envConsts.appCfg.namespace + '\','
-          //   + '    \'title\': \'' + self.appCfg.staticOrDefault.updateWidget.title + '\','
-          //   + '    \'message\': dispStr,'
-          //   + '    \'action\': \'PurpleRobot.log("Widget tapped; launching app: ' + self.appCfg.staticOrDefault.appPackageName + '"); PurpleRobot.launchApplication("' + self.appCfg.staticOrDefault.appPackageName + '");\''
-          //   + '  };'
-          //   + 'PurpleRobot.log(\'[DBG] Updating widget; updateWidgetParams = \' + JSON.stringify(updateWidgetParams));'
-          //   + 'PurpleRobot.updateWidget(updateWidgetParams);'
-          // ;
-          var actionScriptTextFirstPrior = self.getWidgetReminderTriggerActionText(sdt);
-
+          var actionScriptTextFirstPrior = self.getWidgetReminderTriggerActionText(sdt, self.appCfg.staticOrDefault.updateWidget.widgetState.active.message);
           self.debug('actionScriptTextFirstPrior = ' + actionScriptTextFirstPrior, fn);
+
           var nameFirstPrior = triggerIdFirstPrior;
           self.setDateTimeTrigger(triggerIdFirstPrior, type, nameFirstPrior, actionScriptTextFirstPrior, startDateTimeFirstPrior, endDateTimeFirstPrior, repeatStrFirstPrior);
 
@@ -1336,15 +1316,72 @@ var PRNM = (function(exports) {
           // will trigger a vibrate and audible alert for the participant. This serves as their 
           // five-minute warning. At the time their dose is due (in this example 12:00pm) 
           // the pop-up will appear (as indicated on the logic diagram).
+          self.log('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + ' from the prompt time.', fn);
+          var triggerIdSecondPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + 'min';
+          var startDateTimeSecondPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second));
+          var endDateTimeSecondPrior   = startDateTimeSecondPrior.clone().addMinutes(1);
+          var untilDateTimeSecondPrior = sdt.clone();
+          var repeatStrSecondPrior     = 'FREQ=MINUTELY;INTERVAL=1;UNTIL=' + untilDateTimeSecondPrior.toICal();
+
+          self.debug(self.getQuotedAndDelimitedStr([triggerIdSecondPrior, sdt.clone(), startDateTimeSecondPrior, endDateTimeSecondPrior, untilDateTimeSecondPrior, repeatStrSecondPrior], ',', "'"), fn);
+          var actionScriptTextSecondPrior = self.getWidgetReminderTriggerActionText(sdt, self.appCfg.staticOrDefault.updateWidget.widgetState.active.message);
+          // do the 5-min-before haptic and auditory alerts...
+          actionScriptTextSecondPrior += ''
+            + 'if(minutesBeforeDose == ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + ') { PurpleRobot.vibrate(\'' + self.appCfg.staticOrDefault.vibratePattern + '\'); PurpleRobot.playDefaultTone(); }'
+            ;
+          self.debug('actionScriptTextSecondPrior = ' + actionScriptTextSecondPrior, fn);
+
+          var nameSecondPrior = triggerIdSecondPrior;
+          self.setDateTimeTrigger(triggerIdSecondPrior, type, nameSecondPrior, actionScriptTextSecondPrior, startDateTimeSecondPrior, endDateTimeSecondPrior, repeatStrSecondPrior);
 
 
+          // * Non-Responsive State: 0 min: set trigger for NRS -> Neutral transition after 30min *
+          // Non-Responsive State: This state is activated when the participant has ignored the 
+          // medication reminder pop-up (they have not pressed “Yes” or “No” on the pop-up 
+          // window). It should state: “Press here to begin.” Please make this stand out on the 
+          // screen (red, flashing, etc). This will launch the medication prompt pop-up. 
+          //    It will stay in this state for 30 minutes. At the end of 30 minutes, the pop-up is 
+          //    will come back up automatically again. If it is ignored this time, the widget will 
+          //    return to the neutral state.
 
-          // * Non-Responsive State: set trigger for NRS -> Neutral transition after 30min *
+          // * Generate NonResponsive state trigger *
+          self.log('Generating Non-Responsive state trigger starting at the prompt time (' + sdt + ').', fn);
+          var triggerIdNonResponsive     = self.genMedPromptTriggerId(d) + '-nonResponsive+0min';
+          var startDateTimeNonResponsive = sdt.clone();
+          var endDateTimeNonResponsive   = startDateTimeNonResponsive.clone().addMinutes(1);
+          var untilDateTimeNonResponsive = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
+          var repeatStrNonResponsive     = 'FREQ=MINUTELY;COUNT=1';
+          self.debug(self.getQuotedAndDelimitedStr([triggerIdNonResponsive, sdt.clone(), startDateTimeNonResponsive, endDateTimeNonResponsive, untilDateTimeNonResponsive, repeatStrNonResponsive], ',', "'"), fn);
+ 
+          var actionScriptTextNonResponsive = self.getWidgetReminderTriggerActionText(
+            sdt, 
+            self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.message,
+            [{ "color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }]
+          );
+
+          self.debug('actionScriptTextNonResponsive = ' + actionScriptTextNonResponsive, fn);
+          var nameNonResponsive = triggerIdNonResponsive;
+          self.setDateTimeTrigger(triggerIdNonResponsive, type, nameNonResponsive, actionScriptTextNonResponsive, startDateTimeNonResponsive, endDateTimeNonResponsive, repeatStrNonResponsive);
           
+          // * Generate automatic-return-to-Neutral-state trigger *
+          self.log('Generating Neutral state trigger starting at the prompt time (' + sdt + ').', fn);
+          var triggerIdNeutral     = triggerId + '-retToNeutral+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+          var startDateTimeNeutral = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
+          var endDateTimeNeutral   = startDateTimeNeutral.clone().addMinutes(1);
+          var untilDateTimeNeutral = startDateTimeNeutral.clone().addMinutes(1);
+          var repeatStrNeutral     = 'FREQ=MINUTELY;COUNT=1';
+          self.debug(self.getQuotedAndDelimitedStr([triggerIdNeutral, sdt.clone(), startDateTimeNeutral, endDateTimeNeutral, untilDateTimeNeutral, repeatStrNeutral], ',', "'"), fn);
+ 
+          var actionScriptTextNeutral = self.getWidgetReminderTriggerActionText(
+            sdt, 
+            self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
+            [{ "color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }]
+          );
+          self.debug('actionScriptTextNeutral = ' + actionScriptTextNeutral, fn);
 
+          var nameNeutral = triggerIdNeutral;
+          self.setDateTimeTrigger(triggerIdNeutral, type, nameNeutral, actionScriptTextNeutral, startDateTimeNeutral, endDateTimeNeutral, repeatStrNeutral);
 
-          self.debug('Pushing triggerId = ' + triggerId + '; name = ' + name, fn);
-          createdTriggerIds.push(triggerId);
         });
 
         self.debug('exiting',fn);
@@ -1359,28 +1396,43 @@ var PRNM = (function(exports) {
        * @param  {[type]} nextDoseTime) {            var fn = 'getWidgetReminderTriggerActionText'; if(!this.CURRENTLY_IN_TRIGGER [description]
        * @return {[type]}               [description]
        */
-      getWidgetReminderTriggerActionText: function(nextDoseDateTime) { var fn = 'getWidgetReminderTriggerActionText'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      getWidgetReminderTriggerActionText: function(nextDoseDateTime, dispStr, addlUpdateWidgetParams) { var fn = 'getWidgetReminderTriggerActionText'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.getAppCfg();
         return ''
             + 'PurpleRobot.loadLibrary(\'date.js\');'
-            + 'var dispStr = \'' + self.appCfg.staticOrDefault.updateWidget.messageState.reminder + '\';'
+            + 'var dispStr = \'' + dispStr + '\';'
             // + 'PurpleRobot.log(\'[DBG][' + fn + '] 111 dispStr = \' + timeFormat);'
             + 'var timeFormat = \'' + self.appCfg.staticOrDefault.timeFormat + '\';'
             // + 'PurpleRobot.log(\'[DBG][' + fn + '] timeFormat = \' + timeFormat);'
             + 'var nextDoseDateTime = new Date(' + nextDoseDateTime.getFullYear() + ',' + nextDoseDateTime.getMonth() + ',' + nextDoseDateTime.getDate() + ',' + nextDoseDateTime.getHours() + ',' + nextDoseDateTime.getMinutes() + ',' + nextDoseDateTime.getSeconds() + ');'
             // + 'PurpleRobot.log(\'[DBG][' + fn + '] nextDoseDateTime = \' + nextDoseDateTime);'
+            + 'var minutesBeforeDose = Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60);'
             + 'var tokenArr = [\'%T\', \'%ETAMIN\'];'
             + 'for (var i = 0; i < tokenArr.length; i++) {'
             + '  if(i==0) { dispStr = dispStr.replace(tokenArr[i], nextDoseDateTime.toString(timeFormat)); }'
-            + '  if(i==1) { dispStr = dispStr.replace(tokenArr[i], Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60)); }'
+            + '  if(i==1) { dispStr = dispStr.replace(tokenArr[i], minutesBeforeDose); }'
             + '}'
             // + 'PurpleRobot.log(\'[DBG][' + fn + '] 222 dispStr = \' + dispStr);'
             + 'var updateWidgetParams = {'
             + '    \'identifier\': \'' + self.envConsts.appCfg.namespace + '\','
-            // + '    \'title\': \'' + self.appCfg.staticOrDefault.updateWidget.title + '\','
             + '    \'message\': dispStr,'
             + '    \'action\': \'PurpleRobot.log("Widget tapped; launching app: ' + self.appCfg.staticOrDefault.appPackageName + '"); PurpleRobot.launchApplication("' + self.appCfg.staticOrDefault.appPackageName + '");\''
             + '  };'
+            // via a map-reduce, generate code to represent inserting additional params in the updateWidgetParams obj.
+            + (self.isNullOrUndefined(addlUpdateWidgetParams)
+              ? ''
+              : (
+                _.reduce(_.map(addlUpdateWidgetParams, 
+                    function (keyValuePair) {
+                      return 'updateWidgetParams["' + _.keys(keyValuePair) + '"] = "' + _.values(keyValuePair) + '";';
+                    }
+                  ),
+                  function(memo, i) {
+                    return memo + i;
+                  }
+                )
+              )
+            )
             + 'PurpleRobot.log(\'[DBG][' + fn + '] Updating widget; updateWidgetParams = \' + JSON.stringify(updateWidgetParams));'
             + 'PurpleRobot.updateWidget(updateWidgetParams);'
             ;
@@ -1425,6 +1477,12 @@ var PRNM = (function(exports) {
       },
 
 
+      // inNeutralState: function(nextDoseDateTime) { var fn = "inNeutralState"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      //   var inNeutralState = nextDoseDateTime > (new Date()).addMinutes(parseInt(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first));
+      //   return inNeutralState;
+      // },
+
+
       /**
        * Sets a widget with a medication-adherence message dependent on a set of medication-consumption ("dosing") times and a period of time prior to each at which the widget's message must change.
        * @param  {[type]} widgetId                   [description]
@@ -1445,21 +1503,29 @@ var PRNM = (function(exports) {
         var currDateTime = new Date();
         var nextDoseDateTime = self.getNextDateTime(medPromptTriggerDateTimes, currDateTime);
         self.debug('nextDoseDateTime = ' + nextDoseDateTime, fn);
-        var msg = nextDoseDateTime > currDateTime.addMinutes(parseInt(self.appCfg.staticOrDefault.updateWidget.minutesUntilDoseReminder))
-          ? self.appCfg.staticOrDefault.updateWidget.messageState.default
-          : self.appCfg.staticOrDefault.updateWidget.messageState.reminder;
+        var inNeutralState = nextDoseDateTime > currDateTime.addMinutes(parseInt(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first));
+        var msg = inNeutralState
+          ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message
+          : self.appCfg.staticOrDefault.updateWidget.widgetState.active.message;
         // self.debug('msg = ' + msg, fn);
 
         // Step 1: set the widget values and transition-state.
         var updateWidgetParams = {
           'identifier': widgetId,
           'title': self.appCfg.staticOrDefault.updateWidget.title,
-          'message': self.replaceTokensForWidget(msg, nextDoseDateTime),
-          'action': self.convertFnToString(
-            self.actions.onWidgetPress, 
-            [ 'var url = \'' + (self.getAppCfg()).staticOrDefault.transition.onWidgetPress + '\';' ],
-            true
-          )
+          'message': nextDoseDateTime != null ? self.replaceTokensForWidget(msg, nextDoseDateTime) : self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
+          'action': 
+            'eval(' 
+              + self.getQuotedAndDelimitedStr(
+                [
+                  self.convertFnToString(
+                    self.actions.onWidgetPress,
+                    [ self.actionFns.getCommonFnSetForActions() ],
+                    false
+                  )
+                ]
+              )
+            + ');'
         };
 
         // get & display the total # points and display them in the widget
@@ -1476,14 +1542,16 @@ var PRNM = (function(exports) {
         }
 
         // add an optional image URL, if it exists
-        if(self.isStringGt0Len(self.appCfg.staticOrDefault.updateWidget.imageUrl)) {
-          self.debug('self.appCfg.staticOrDefault.updateWidget.imageUrl = ' + self.appCfg.staticOrDefault.updateWidget.imageUrl, fn);
-          updateWidgetParams['image'] = self.appCfg.staticOrDefault.updateWidget.imageUrl;
+        var selectedImageUrl = inNeutralState ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl : self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl;
+        if(self.isStringGt0Len(selectedImageUrl)) {
+          self.debug('selectedImageUrl = ' + selectedImageUrl, fn);
+          updateWidgetParams['image'] = selectedImageUrl;
         }
         // set the text color
-        if(self.isStringGt0Len(self.appCfg.staticOrDefault.updateWidget.textColor)) {
-          self.debug('self.appCfg.staticOrDefault.updateWidget.textColor = ' + self.appCfg.staticOrDefault.updateWidget.textColor, fn);
-          updateWidgetParams['color'] = self.appCfg.staticOrDefault.updateWidget.textColor;         
+        var selectedTextColor = inNeutralState ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor : self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor;
+        if(self.isStringGt0Len(selectedTextColor)) {
+          self.debug('selectedTextColor = ' + selectedTextColor, fn);
+          updateWidgetParams['color'] = selectedTextColor;
         }
         
         self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
@@ -1525,8 +1593,9 @@ var PRNM = (function(exports) {
             + 'self.debug = ' + self.debug.toString() + ';'
 
             + 'self.getAppCfg = ' + self.getAppCfg.toString() + ';'
-            + 'var appCfgStr = self.fetchEncryptedString("' + self.envConsts.appCfg.namespace + '", "' + self.envConsts.appCfg.key + '");'
-            + 'self.appCfg = JSON.parse(appCfgStr);'
+            // + 'var appCfgStr = self.fetchEncryptedString("' + self.envConsts.appCfg.namespace + '", "' + self.envConsts.appCfg.key + '");'
+            // + 'self.appCfg = JSON.parse(appCfgStr);'
+            + 'self.appCfg = self.getAppCfg();'
 
             + 'self.loadLibrary = ' + self.loadLibrary.toString() + ';'
             // + 'self.launchUrl = ' + self.launchUrl.toString() + ';'

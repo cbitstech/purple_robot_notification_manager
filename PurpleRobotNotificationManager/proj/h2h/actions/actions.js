@@ -35,8 +35,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 				PurpleRobot.log('this.CURRENTLY_IN_TRIGGER = ' + this.CURRENTLY_IN_TRIGGER);
-				var dynamicIsNull = self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onMedPromptYes);
-				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onMedPromptYes : appCfg.dynamicOrModified.transition.onMedPromptYes;
+				var dynamicIsNull = self.isNullOrUndefined(self.appCfg.dynamicOrModified.transition.onMedPromptYes);
+				var baseUrl = dynamicIsNull ? self.appCfg.staticOrDefault.transition.onMedPromptYes : self.appCfg.dynamicOrModified.transition.onMedPromptYes;
 				var url = baseUrl
 				 	+ '?'
 					+ 'med1time1=' + dose.time
@@ -62,13 +62,31 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					'actionName': dose.medication
 				};
 				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
-				self.appConfigUpsert(self.envConsts.appCfg.namespace, 'currentAction', currentAction);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
 
 
 
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
+
+
+				var triggerIdToDelete = (
+					triggerId.indexOf('+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min') != -1
+					? triggerId 
+					: triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min'
+				);
+				self.log('Deleting reminder trigger; ID = ' + triggerIdToDelete, fn);
+				self.deleteTrigger(triggerIdToDelete);
+
+
+				var updateWidgetParams = {
+					'identifier': self.appCfg.staticOrDefault.namespace,
+					'message': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
+					'color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor
+				};
+				self.debug('Setting widget to Neutral state using: ' + JSON.stringify(updateWidgetParams), fn);
+				self.updateWidget(updateWidgetParams);
 			},
 
 
@@ -81,16 +99,14 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 
-				var dynamicIsNull = self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onMedPromptNo);
-				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onMedPromptNo : appCfg.dynamicOrModified.transition.onMedPromptNo;
+				var dynamicIsNull = self.isNullOrUndefined(self.appCfg.dynamicOrModified.transition.onMedPromptNo);
+				var baseUrl = dynamicIsNull ? self.appCfg.staticOrDefault.transition.onMedPromptNo : self.appCfg.dynamicOrModified.transition.onMedPromptNo;
 				var url = baseUrl
 				 	+ '?'
 					+ 'med1time1=' + dose.time
 					+ '&medName_1=' + dose.medication
 					+ '&medStrength_1=' + dose.strength
 					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
-				self.log('Launching url = ' + url, fn);
-				self.launchUrl(url);
 
 
 
@@ -110,7 +126,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					'actionName': dose.medication
 				};
 				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
-				self.appConfigUpsert(self.envConsts.appCfg.namespace, 'currentAction', currentAction);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
 
 
 
@@ -118,6 +134,24 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
+
+
+				var triggerIdToDelete = (
+					triggerId.indexOf('+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min') != -1
+					? triggerId 
+					: triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min'
+				);
+				self.log('Deleting reminder trigger; ID = ' + triggerIdToDelete, fn);
+				self.deleteTrigger(triggerIdToDelete);
+
+
+				var updateWidgetParams = {
+					'identifier': self.appCfg.staticOrDefault.namespace,
+					'message': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
+					'color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor
+				};
+				self.debug('Setting widget to Neutral state using: ' + JSON.stringify(updateWidgetParams), fn);
+				self.updateWidget(updateWidgetParams);
 			},
 
 
@@ -131,16 +165,16 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				
 
 
-				var staticActionCfgExists  = !self.isNullOrUndefined(appCfg.staticOrDefault.transition.onEMAYes),
-						dynamicActionCfgExists = !self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onEMAYes);
-				var dynamicIsNull = dynamicActionCfgExists ? self.isNullOrUndefined(appCfg.dynamicOrModified.transition.onEMAYes[schedObj.name]) : true;
+				var staticActionCfgExists  = !self.isNullOrUndefined(self.appCfg.staticOrDefault.transition.onEMAYes),
+						dynamicActionCfgExists = !self.isNullOrUndefined(self.appCfg.dynamicOrModified.transition.onEMAYes);
+				var dynamicIsNull = dynamicActionCfgExists ? self.isNullOrUndefined(self.appCfg.dynamicOrModified.transition.onEMAYes[schedObj.name]) : true;
 
 				if(dynamicIsNull && !staticActionCfgExists) { 
 					throw 'ERROR: Cannot run ' + fn + ': both the static and dynamic app-configurations are missing.';
 				}
 				
 
-				var baseUrl = dynamicIsNull ? appCfg.staticOrDefault.transition.onEMAYes[schedObj.name] : appCfg.dynamicOrModified.transition.onEMAYes[schedObj.name];
+				var baseUrl = dynamicIsNull ? self.appCfg.staticOrDefault.transition.onEMAYes[schedObj.name] : self.appCfg.dynamicOrModified.transition.onEMAYes[schedObj.name];
 				var url = baseUrl;
 
 
@@ -163,9 +197,9 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 					self.debug('Getting the child trigger to delete; childTriggerId = ' + childTriggerId, fn);
 					var trgDel = self.fetchTrigger(childTriggerId);
-					var trgWithStateDel = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).CanceledByTrigger, url, trgDel);
-					appCfg.triggerState = appCfg.triggerState != null ? appCfg.triggerState : [];
-					appCfg.triggerState.push(trgWithStateDel);
+					var trgWithStateDel = appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).CanceledByTrigger, url, trgDel);
+					self.appCfg.triggerState = self.appCfg.triggerState != null ? self.appCfg.triggerState : [];
+					self.appCfg.triggerState.push(trgWithStateDel);
 
 					self.debug('Deleting followup trigger with ID: ' + childTriggerId, fn);
 					self.deleteTrigger(childTriggerId);
@@ -173,7 +207,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				}
 
 				self.debug('Saving trigger state...', fn);
-				self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, appCfg);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, self.appCfg.key, appCfg);
 
 
 				var currentAction = {
@@ -182,7 +216,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					'actionDstSubtype': schedObj.name
 				};
 				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
-				self.appConfigUpsert(self.envConsts.appCfg.namespace, 'currentAction', currentAction);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
 
 
 
@@ -205,26 +239,28 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				PurpleRobot.log('Launching application = ' + applicationFullName);
 				PurpleRobot.launchApplication(applicationFullName);
-			},
-
-
-			/**
-			 * Countdown timer trigger fired.
-			 * @param  {[type]} codeFromPrnm) {             var fn = 'onCountdownTick'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm [description]
-			 * @return {[type]}               [description]
-			 */
-			onCountdownTriggerFired: function(codeFromPrnm) {  var fn = 'onCountdownTick'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-
-        self.debug('entered; setting updateWidgetParams...', fn);
-
-
-
-
-
-
-
-
 			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		};
 

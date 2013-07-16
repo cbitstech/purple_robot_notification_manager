@@ -25,11 +25,28 @@
 			}
 		},
 		"updateWidget": {
-			"title": "Heart2HAART title",
-			"minutesUntilDoseReminder": 60,
-			"messageState": {
-				"default": "No upcoming dose.",
-				"reminder": "Next dose at %T."
+			"title": "Heart2HAART",
+			"widgetState": {
+				"active": {
+					"message": "Next dose in %ETAMIN minutes (%T).",
+					"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/widgetbadge.png?foo=bar",
+					"textColor": "#000000",
+					"reminderMinutesBeforeDose": {
+						"first": 60,
+						"second": 5
+					}
+				},
+				"nonResponsive": {
+					"message": "Press here to begin.",
+					"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/widgetbadge.png?foo=bar",
+					"textColor": "#FF0000",
+					"TTLinMins": 30
+				},
+				"neutral": {
+					"message": "No upcoming dose.",
+					"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/widgetbadge.png?foo=bar",
+					"textColor": "#000000"
+				}
 			}
 		},
 		"vibratePattern": "buzz",
