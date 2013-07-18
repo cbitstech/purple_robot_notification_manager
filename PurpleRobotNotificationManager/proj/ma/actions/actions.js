@@ -236,26 +236,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				PurpleRobot.log('Launching application = ' + applicationFullName);
 				PurpleRobot.launchApplication(applicationFullName);
-			},
-
-
-			/**
-			 * Countdown timer trigger fired.
-			 * TODO: Implement this, then replace the use of PRNM's "getWidgetReminderTriggerActionText" function with this.
-			 * @param  {[type]} codeFromPrnm) {             var fn = 'onCountdownTick'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm [description]
-			 * @return {[type]}               [description]
-			 */
-			onCountdownTriggerFired: function(codeFromPrnm) {  var fn = 'onCountdownTick'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-
-        self.debug('entered; setting updateWidgetParams...', fn);
-
-
-
-
-
-
-
-
 			}
 
 		};

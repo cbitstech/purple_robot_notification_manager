@@ -165,31 +165,6 @@ suite('PurpleRobotNotificationManager', function() {
     );
 
 
-    /**
-     * Run a set of test-cases against a set of bounds-checks.
-     */
-    test('isUserAvailable: should return true/false given the last parameter in each case-array',
-      cases([
-        [0,0,0,false],
-        [8,59,0,false],
-        [9,0,0,true],
-        [9,0,1,true],
-        [12,0,0,true],
-        [16,59,59,true],
-        [17,0,0,false],
-        [17,0,1,false],
-        [23,59,59,false]
-        ],
-        function(h,m,s,expected) {
-          var actual = prnm.isUserAvailable(
-            testData, Date.today().set({hour:h,minute:m,second:s})
-          );
-          assert.equal(actual, expected);
-        }
-      )
-    );
-
-
     test('getUserCfg: should return user-config contents', function() {
       var actual = prnm.getUserCfg();
       assert.notEqual(actual,null);
@@ -207,28 +182,6 @@ suite('PurpleRobotNotificationManager', function() {
         assert.equal((t.search('^\\d\\d:\\d\\d:\\d\\d$')) == 0, true);
       });
     });
-
-
-    test('isTimeForDose: fuzzy-match: static test data: must return true/false given the last parameter in each case-array',
-      cases([
-        [['9:00:00'], [8,59,59], false]
-        ,[['9:00:00'], [9,0,0], true]
-        ,[['9:00:00'], [9,0,1], true]
-        ,[['9:00:00'], [9,0,59], true]
-        ,[['9:00:00'], [9,1,0], false]
-        ,[['9:00:00', '13:00:00', '17:00:00'], [13,0,55], true]
-        ,[['9:00:00', '13:00:00', '17:00:00'], [13,1,55], false]
-        ,[['9:00:00', '13:00:00', '17:00:00'], [17,0,18], true]
-        ,[['9:00:00', '13:00:00', '17:00:00'], [17,1,18], false]
-        ],
-        function(allDoseTimes, timePart, expected) {
-          console.log('allDoseTimes,timePart,expected',allDoseTimes,timePart,expected);
-          var currTime = Date.today().set({hour:timePart[0],minute:timePart[1],second:timePart[2]});
-          var actual = prnm.isTimeForDose(allDoseTimes, currTime, {seconds:59});
-          assert.equal(actual, expected);
-        }
-      )
-    );
 
 
     test('getRandomDateTimeWithinRange', cases([

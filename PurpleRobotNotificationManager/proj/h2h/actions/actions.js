@@ -241,27 +241,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				PurpleRobot.launchApplication(applicationFullName);
 			}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		};
 
 	

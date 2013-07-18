@@ -41,7 +41,8 @@
 					"assessment": {
 						"identifier": "Heart2HAART, EMA: %N@%T",
 						"title": "Heart2HAART",
-						"message": "Its time to answer a few questions."
+						"message": "Its time to answer a few questions.",
+						"minTimeFromMedPromptMins": 30
 					}
 				},
 				"updateWidget": {
@@ -64,7 +65,7 @@
 						},
 						"neutral": {
 							"message": "No upcoming dose.",
-							"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/widgetbadge.png?foo=bar",
+							"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/gold-coin.png?foo=bar",
 							"textColor": "#000000"
 						}
 					}
@@ -130,7 +131,8 @@
 					"assessment": {
 						"identifier": "MedActive, MP: %M@%T, %S%U",
 						"title": "MedActive, EMA: %N@%T",
-						"message": "Its time to answer a few questions."
+						"message": "Its time to answer a few questions.",
+						"minTimeFromMedPromptMins": 30
 					}
 				},
 				"updateWidget": {
@@ -153,7 +155,7 @@
 						},
 						"neutral": {
 							"message": "No upcoming dose.",
-							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/widgetbadge.png?foo=bar",
+							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/gold-coin.png?foo=bar",
 							"textColor": "#000000"
 						}
 					}

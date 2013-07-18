@@ -512,42 +512,6 @@ var PRNM = (function(exports) {
       // Biz-logic (GENERIC)
       // ==============================
 
-      /**
-       * Determines whether the specified time is in a period of time scheduled to be unavailable, as defined in the user config.
-       * @param  {[type]} userCfg  [description]
-       * @param  {[type]} dateTime [description]
-       * @return {[type]}          [description]
-       */
-      isUserAvailable: function(userCfg, dateTime) { var fn = 'isUserAvailable';
-        var rslt = false;
-
-        // var w = userCfg.promptBehavior.wakeSleepTimes.daily.wakeTime.split(':');
-        // var wh = parseInt(w[0], 10),
-        //    wm = parseInt(w[1], 10),
-        //    ws = parseInt(w[2], 10);
-        // var wdate = Date.today().set({ hour: wh, minute: wm, second: ws});
-
-        // var s = userCfg.promptBehavior.wakeSleepTimes.daily.sleepTime.split(':');
-        // var sh = parseInt(s[0], 10),
-        //    sm = parseInt(s[1], 10),
-        //    ss = parseInt(s[2], 10);
-        // // add -1 sec to force the .between function to evaluate the sleep-time as exclusive, rather than inclusive.
-        // var sdate = Date.today()
-        //  .set({ hour: sh, minute: sm, second: ss})
-        //  .add({seconds: -1});
-
-        var wdate = ctor.prototype.genDateFromTime(userCfg.promptBehavior.wakeSleepTimes.daily.wakeTime);
-        var sdate = (ctor.prototype.genDateFromTime(userCfg.promptBehavior.wakeSleepTimes.daily.sleepTime))
-          .add({seconds: -1});
-
-        // console.log('wdate',wdate);
-        // console.log('sdate',sdate);
-        // console.log('dateTime',dateTime);
-        rslt = dateTime.between(wdate,sdate);
-
-        return rslt;
-      },
-
 
       /**
        * Returns all the dose times in a user config.
@@ -564,42 +528,6 @@ var PRNM = (function(exports) {
 
         self.debug('exiting',fn);
         return allDoseTimes;
-      },
-
-
-      /**
-       * Determines whether the specified time is one at which the user must take a dose of a medication.
-       * Returns the medication if it is time, else null.
-       * @param  {[type]}  allDoseTimes       Array of dose times.
-       * @param  {[type]}  dateTime           Current time.
-       * @param  {[type]}  dateJsCfgObjForFuzzyMatch -Non-null = date.js object definining an offset of time, starting with the specified dose time, to allow for a true response.
-       *                                      Enables inexact time-matching (useful e.g. for non-deterministic environments), s.t. e.g. a dose time of '9:00:00' may, for a range of 1 minute, return a true value for any time between 9:00:00 and 9:00:59, inclusive.
-       *                                      -null = Indicates exact matching is desired.
-       * @return {Boolean}                    [description]
-       */
-      isTimeForDose: function(allDoseTimes, dateTime, dateJsCfgObjForFuzzyMatch) { var fn = 'isTimeForDose';
-        var currDtStr = dateTime.toString('hh:mm:ss');
-        // ctor.prototype.debug('allDoseTimes = ' + allDoseTimes, fn);
-        // ctor.prototype.debug('currDtStr = ' + currDtStr, fn);
-        ctor.prototype.debug((dateJsCfgObjForFuzzyMatch != null ? 'fuzzy' : 'exact') + ' match: dateJsCfgObjForFuzzyMatch = ' + JSON.stringify(dateJsCfgObjForFuzzyMatch),fn);
-        return dateJsCfgObjForFuzzyMatch != null
-          ? _.any(allDoseTimes, function(doseTime) {
-              var doseDateTime = ctor.prototype.genDateFromTime(doseTime);
-              var doseMaxFuzzyEndTime = doseDateTime.clone().add(dateJsCfgObjForFuzzyMatch);
-
-              // var today = Date.today();
-              // ctor.prototype.debug('_.isDate(today) = ' + _.isDate(today) + '; today = ' + today + '; _.keys(today) = ' + _.keys(today),fn);
-              // ctor.prototype.debug('today.isAfter(Date.tomorrow()) = ' + today.isAfter(new Date().add(1).day()),fn);
-              // ctor.prototype.debug('_.isDate(dateTime) = ' + _.isDate(dateTime) + '; dateTime = ' + dateTime + '; _.keys(dateTime) = ' + _.keys(dateTime),fn);
-              // ctor.prototype.debug('_.isDate(doseDateTime) = ' + _.isDate(doseDateTime) + '; doseDateTime = ' + doseDateTime + '; _.keys(doseDateTime) = ' + _.keys(doseDateTime),fn);
-              // ctor.prototype.debug('_.isDate(doseMaxFuzzyEndTime) = ' + _.isDate(doseMaxFuzzyEndTime) + '; doseMaxFuzzyEndTime = ' + doseMaxFuzzyEndTime + '; _.keys(doseMaxFuzzyEndTime) = ' + _.keys(doseMaxFuzzyEndTime),fn);
-              var r = dateTime.between(doseDateTime, doseMaxFuzzyEndTime);
-              // var r =    dateTime.isAfter(doseDateTime) 
-              //        &&  dateTime.isBefore(doseMaxFuzzyEndTime);
-              // ctor.prototype.debug('r = ' + r,fn);
-              return r;
-            } )
-          : _.contains(allDoseTimes, currDtStr);
       },
 
 
@@ -971,16 +899,11 @@ var PRNM = (function(exports) {
         var medPromptsDefined = !self.isNullOrUndefined(medPromptTriggerDateTimes) && medPromptTriggerDateTimes.length > 0;
 
         /* append a range between the wake time and the first MedPrompt boundary */
-var dbgi = 0;
-        self.debug(++dbgi,fn);
         var startTime = self.genDateFromTime(wakeTime);
-        self.debug(++dbgi,fn);
         var endTime = medPromptsDefined
         	? medPromptTriggerDateTimes[0].clone().addMinutes(-(rangeBoundsBufferMinutes))
         	: self.genDateFromTime(sleepTime);
-        self.debug(++dbgi,fn);
         if (startTime < endTime) {
-        	// self.debug('FIRST', fn);
 	        openTimeRanges.push({ "start": startTime, "end": endTime });
 	      }
 
@@ -1005,7 +928,6 @@ var dbgi = 0;
 	        startTime = medPromptTriggerDateTimes[medPromptTriggerDateTimes.length - 1].clone().addMinutes(rangeBoundsBufferMinutes),
 	        endTime = self.genDateFromTime(sleepTime);
 	        if (startTime < endTime) {
-	        	// self.debug('LAST', fn);
 		        openTimeRanges.push({ "start": startTime, "end": endTime });
 	        }
 				}
@@ -1050,23 +972,12 @@ var dbgi = 0;
         self.getUserCfg();
         self.getAppCfg();
 
-        // // get the created triggers, and get their times, so we can schedule random EMA prompts around them
-        // var medPromptTriggers = _.map(createdMedPromptTriggerIds, function(triggerId) { self.debug('triggerId = ' + triggerId, fn); return self.fetchTrigger(triggerId); });
-        // self.debug('medPromptTriggers = ' + medPromptTriggers, fn);
-        // var medPromptTriggerDateTimes = _.map(medPromptTriggers, function(t) { return self.iCalToDate(t.datetime_start); });
-        // self.debug('medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes, fn);
-
-
         // get the set of EMAs from-which to randomly-select and randomly schedule
         var emaTransitionObjs = _.keys(self.appCfg.staticOrDefault.transition.onEMAYes);
         
         // get available open time ranges
-        // var openTimeRanges = self.getOpenTimeRanges(medPromptTriggerDateTimes, 30);
         var wakeTime = self.userCfg.promptBehavior.wakeSleepTimes.daily.wakeTime;
         var sleepTime = self.userCfg.promptBehavior.wakeSleepTimes.daily.sleepTime;
-// self.debug('self.appCfg.staticOrDefault.showNativeDialog = ' + self.appCfg.staticOrDefault.showNativeDialog, fn);
-// self.debug('self.appCfg.staticOrDefault.showNativeDialog.assessment = ' + self.appCfg.staticOrDefault.showNativeDialog.assessment, fn);
-// self.debug('self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMin = ' + self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMins, fn);
         var openTimeRanges = self.getOpenTimeRanges(wakeTime, sleepTime, medPromptTriggerDateTimes, self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMins);
 
         // generate the time ranges between which EMAs may be prompted
@@ -1109,11 +1020,6 @@ var dbgi = 0;
             _.map(emaTransitionAndScheduleObjs, function(o) {
               // shallow-copy the object; this is OK because it's only 1-level deep anyway.
               var sched2 = _.clone(o);
-  // self.debug('CLONE: ', fn);
-  // self.debug('  emaTransitionAndScheduleObjs.length = ' + emaTransitionAndScheduleObjs.length, fn);
-  // self.debug('  JSON.stringify(o) = ' + JSON.stringify(o), fn);
-  // self.debug('  JSON.stringify(sched2) = ' + JSON.stringify(sched2), fn);
-  // self.debug('  sched2.time = ' + sched2.time, fn);
               sched2.time       = sched2.time.clone().addMinutes(30);
               sched2.parentId   = o.id;
               sched2.id         = sched2.name + sched2.time;
@@ -1141,11 +1047,8 @@ var dbgi = 0;
                 ,actionScriptText = null
                 ,startDateTime = sdt
                 ,endDateTime = sdt.clone().addMinutes(1)
-                // ,untilDateTime = sdt.clone()
                 ,untilDateTime = (new Date())
-                  // .addHours(1)
                   .addDays(1)
-                  // .set({hour:0,minute:0,second:0})
                 ;
             var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
             self.debug('triggerId = ' + triggerId, fn);
@@ -1158,8 +1061,7 @@ var dbgi = 0;
               parent.childTriggerId = triggerId;
             }
 
-            // var p = self.getQuotedAndDelimitedStr([type,name,
-            var p = self.getQuotedAndDelimitedStr([
+            var showNativeDialogParams = self.getQuotedAndDelimitedStr([
               self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.title, schedObj)
               ,self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.message, schedObj)
               ,'OK'
@@ -1185,13 +1087,11 @@ var dbgi = 0;
               ], ',', "'", [null]);
 
             // the generated action to execute in a trigger
-            // actionScriptText = 'PurpleRobot.showNativeDialog(' + p + ');';
             actionScriptText = 
                 'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
-              + 'PurpleRobot.showNativeDialog(' + p + ');';
+              + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
             
             self.debug('actionScriptText = ' + actionScriptText,fn);
-            // var name = triggerId;
             var name = self.appCfg.staticOrDefault.showNativeDialog.assessment.title;
             self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
@@ -1241,7 +1141,7 @@ var dbgi = 0;
        * @param  {[type]} doseStr   [description]
        * @return {[type]}           [description]
        */
-      genShowNativeDialogParams: function(triggerId, doseStr, dose) {
+      genMedPromptShowNativeDialogParams: function(triggerId, doseStr, dose) {
         var p = self.getQuotedAndDelimitedStr([
            self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title, dose)
           ,self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.message, dose)
@@ -1308,7 +1208,7 @@ var dbgi = 0;
           self.debug('triggerId = ' + triggerId, fn);
           var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
-          var showNativeDialogParams = self.genShowNativeDialogParams(triggerId, doseStr, d);
+          var showNativeDialogParams = self.genMedPromptShowNativeDialogParams(triggerId, doseStr, d);
   
           // the generated action to execute in a trigger
           // biz-logic (from "Heart2HAART (H2H) Logic Model Explanation: 01/14/2013"): "When the dose is due, the phone will vibrate and alert to remind the user to take their dose. "
@@ -1316,8 +1216,6 @@ var dbgi = 0;
               'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
             + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
           
-          // var numChars = 1500;
-          // self.debug('actionScriptText (first & last ' + numChars + ' of ' + actionScriptText.length + ' chars) = ' + actionScriptText.substr(0,numChars) + ' ... ' + actionScriptText.substr(actionScriptText.length - numChars, actionScriptText.length),fn);
           var name = self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title;
           self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
@@ -1328,7 +1226,7 @@ var dbgi = 0;
 
           // * generate the +TTL (UMB says 30) minutes reminder instance of this trigger. *
           var triggerIdPlusTTL = triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
-          var showNativeDialogParamsPlusTTL = self.genShowNativeDialogParams(triggerIdPlusTTL, doseStr, d);
+          var showNativeDialogParamsPlusTTL = self.genMedPromptShowNativeDialogParams(triggerIdPlusTTL, doseStr, d);
           actionScriptText = 
               'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
             + 'PurpleRobot.showNativeDialog(' + showNativeDialogParamsPlusTTL + ');';
@@ -1467,24 +1365,20 @@ var dbgi = 0;
         return ''
             + 'PurpleRobot.loadLibrary(\'date.js\');'
             + 'var dispStr = \'' + dispStr + '\';'
-            // + 'PurpleRobot.log(\'[DBG][' + fn + '] 111 dispStr = \' + timeFormat);'
             + 'var timeFormat = \'' + self.appCfg.staticOrDefault.timeFormat + '\';'
-            // + 'PurpleRobot.log(\'[DBG][' + fn + '] timeFormat = \' + timeFormat);'
             + 'var nextDoseDateTime = new Date(' + nextDoseDateTime.getFullYear() + ',' + nextDoseDateTime.getMonth() + ',' + nextDoseDateTime.getDate() + ',' + nextDoseDateTime.getHours() + ',' + nextDoseDateTime.getMinutes() + ',' + nextDoseDateTime.getSeconds() + ');'
-            // + 'PurpleRobot.log(\'[DBG][' + fn + '] nextDoseDateTime = \' + nextDoseDateTime);'
             + 'var minutesBeforeDose = Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60);'
             + 'var tokenArr = [\'%T\', \'%ETAMIN\'];'
             + 'for (var i = 0; i < tokenArr.length; i++) {'
             + '  if(i==0) { dispStr = dispStr.replace(tokenArr[i], nextDoseDateTime.toString(timeFormat)); }'
             + '  if(i==1) { dispStr = dispStr.replace(tokenArr[i], minutesBeforeDose); }'
             + '}'
-            // + 'PurpleRobot.log(\'[DBG][' + fn + '] 222 dispStr = \' + dispStr);'
             + 'var updateWidgetParams = {'
             + '    \'identifier\': \'' + self.envConsts.appCfg.namespace + '\','
             + '    \'message\': dispStr,'
             + '    \'action\': \'PurpleRobot.log("Widget tapped; launching app: ' + self.appCfg.staticOrDefault.appPackageName + '"); PurpleRobot.launchApplication("' + self.appCfg.staticOrDefault.appPackageName + '");\''
             + '  };'
-            // via a map-reduce, generate code to represent inserting additional params in the updateWidgetParams obj.
+            // generate code to represent inserting additional params in the updateWidgetParams obj.
             + (self.isNullOrUndefined(addlUpdateWidgetParams)
               ? ''
               : (
@@ -1543,12 +1437,6 @@ var dbgi = 0;
       },
 
 
-      // inNeutralState: function(nextDoseDateTime) { var fn = "inNeutralState"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-      //   var inNeutralState = nextDoseDateTime > (new Date()).addMinutes(parseInt(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first));
-      //   return inNeutralState;
-      // },
-
-
       /**
        * For a value with a string length > 0, append it to the specified widget parameters object at the specified key.
        * @param  {[type]} widgetParamsObj [description]
@@ -1582,7 +1470,6 @@ var dbgi = 0;
           self.error('No next MedPrompt time found!', fn);
           return;
         }
-        // var nextDoseDateTime = nextDoseDateTimes[0];
         var currDateTime = new Date();
         var nextDoseDateTime = self.getNextDateTime(medPromptTriggerDateTimes, currDateTime);
         self.debug('nextDoseDateTime = ' + nextDoseDateTime, fn);
@@ -1624,24 +1511,16 @@ var dbgi = 0;
           updateWidgetParams['badge'] = 'None.';
         }
 
-        // // add an optional image URL, if it exists
+        // add an optional image URL, if it exists
         var selectedImageUrl = inNeutralState ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl : self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl;
         self.appendNonZeroLenValueToWidgetParams(updateWidgetParams, 'image', selectedImageUrl);
-        // if(self.isStringGt0Len(selectedImageUrl)) {
-        //   self.debug('selectedImageUrl = ' + selectedImageUrl, fn);
-        //   updateWidgetParams['image'] = selectedImageUrl;
-        // }
-        // // set the text color
+
+        // set the text color
         var selectedTextColor = inNeutralState ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor : self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor;
         self.appendNonZeroLenValueToWidgetParams(updateWidgetParams, 'color', selectedTextColor);
-				// if(self.isStringGt0Len(selectedTextColor)) {
-        //   self.debug('selectedTextColor = ' + selectedTextColor, fn);
-        //   updateWidgetParams['color'] = selectedTextColor;
-        // }
-
         
+        // update the widget
         self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
-        // self.debug('updateWidgetParams.action = ' + updateWidgetParams.action, fn);
         self.updateWidget(updateWidgetParams);
 
         self.debug('exiting', fn);
@@ -1791,7 +1670,6 @@ var dbgi = 0;
         return (isWidgetMode
 
             ?   '(' + (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')'
-              //.replace(/"/gm, '\\\'')
               + '(' + (p).replace(/(\r\n|\n|\r)/gm, '') + ');'
 
             :   '(' + (fnPtr.toString().replace(/'/g, '\\\'')).replace(/(\r\n|\n|\r)/gm,'') + ')'
@@ -1864,7 +1742,7 @@ var dbgi = 0;
         self.log('Getting all MedPropmt datetimes...', fn);
         var medPromptTriggerDateTimes = self.getAllMedPromptDateTimes(createdMedPromptTriggerIds);
 
-        // sort the MP trigger datetime array; src: http://stackoverflow.com/questions/10123953/sort-javascript-object-array-by-date
+        // sort the MP trigger datetime array
         medPromptTriggerDateTimes.sort(function(a,b){ return a-b; });
 
         // set assessment / EMA triggers
