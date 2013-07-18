@@ -312,12 +312,12 @@ suite('PurpleRobotNotificationManager', function() {
 
 
     test('getOpenTimeRanges', cases([
-        [[[9,0,0],[10,0,0],[11,0,0]], 45, 0]
-       ,[[[9,0,0],[10,0,0],[11,0,0]], 30, 0]
-       ,[[[9,0,0],[12,0,0],[15,0,0]], 30, 2]
-       ,[[[9,0,0],[12,0,0],[15,0,0]], 60, 2]
-       ,[[[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, 3]
-      ], function(arr, rangeBoundsBufferMinutes, expectedRangeCount) {
+        ['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 45, 0]
+       ,['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 30, 0]
+       ,['08:00:00', '21:00:00', [[9,0,0],[12,0,0],[15,0,0]], 30, 4]
+       ,['08:00:00', '21:00:00', [[9,0,0],[12,0,0],[15,0,0]], 60, 3]
+       ,['08:00:00', '21:00:00', [[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, 5]
+      ], function(wakeTime, sleepTime, arr, rangeBoundsBufferMinutes, expectedRangeCount) {
         console.log('-------------------------------------');
         var medDateTime1 = Date.today().set({hour:arr[0][0],minute:arr[0][1],second:arr[0][2]});
         var medDateTime2 = Date.today().set({hour:arr[1][0],minute:arr[1][1],second:arr[1][2]});
@@ -327,20 +327,20 @@ suite('PurpleRobotNotificationManager', function() {
         
         // console.log('triggerDateTimes', triggerDateTimes);
 
-        var actual = prnm.getOpenTimeRanges(triggerDateTimes, rangeBoundsBufferMinutes);
-        assert.equal(actual.length, expectedRangeCount);
+        var actual = prnm.getOpenTimeRanges(wakeTime, sleepTime, triggerDateTimes, rangeBoundsBufferMinutes);
         console.log('actual', actual);
+        assert.equal(actual.length, expectedRangeCount);
       })
     );
 
 
     test('getRandomDateTimeAcrossAllOpenRanges',cases([
-        [[[9,0,0],[10,0,0],[11,0,0]], 45, false]
-       ,[[[9,0,0],[10,0,0],[11,0,0]], 30, false]
-       ,[[[9,0,0],[12,0,0],[15,0,0]], 30, true]
-       ,[[[9,0,0],[12,0,0],[15,0,0]], 60, true]
-       ,[[[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, true]
-      ], function(arr, rangeBoundsBufferMinutes, expectNotNullOrUndefined) {
+        ['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 45, false]
+       ,['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 30, false]
+       ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 30, true]
+       ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 60, true]
+       ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, true]
+      ], function(wakeTime, sleepTime, arr, rangeBoundsBufferMinutes, expectNotNullOrUndefined) {
 
         console.log('-------------------------------------');
         var medDateTime1 = Date.today().set({hour:arr[0][0],minute:arr[0][1],second:arr[0][2]});
@@ -349,7 +349,7 @@ suite('PurpleRobotNotificationManager', function() {
         var triggerDateTimes = [medDateTime1,medDateTime2,medDateTime3];
         if(arr.length>3){triggerDateTimes.push(Date.today().set({hour:arr[3][0],minute:arr[3][1],second:arr[3][2]}))}
         
-        var openRanges = prnm.getOpenTimeRanges(triggerDateTimes, rangeBoundsBufferMinutes);
+        var openRanges = prnm.getOpenTimeRanges(wakeTime, sleepTime, triggerDateTimes, rangeBoundsBufferMinutes);
         var randTime = prnm.getRandomDateTimeAcrossAllOpenRanges(openRanges);
 
         assert.notEqual(prnm.isNullOrUndefined(randTime), expectNotNullOrUndefined);
@@ -357,6 +357,15 @@ suite('PurpleRobotNotificationManager', function() {
       })
     );
 
+// // ['08:00:00', '21:00:00', ]
+
+// test('sort dates', cases([
+//   [[new Date(1999,1,1,1,1,1), new Date(2013,2,2,2,2,2), new Date(1990,5,5,5,5,5)], [new Date(1990,5,5,5,5,5), new Date(2013,1,1,1,1,1), new Date(2013,2,2,2,2,2)]]
+//   ], function(arr, expected) {
+//     arr.sort(function(a,b) { return a-b; });
+//     console.log(arr);
+//   })
+// );
 
 
 

@@ -954,30 +954,72 @@ var PRNM = (function(exports) {
       },
 
       
-      getOpenTimeRanges: function(medPromptTriggerDateTimes, rangeBoundsBufferMinutes) { var fn = 'getOpenTimeRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      /**
+       * Returns the set of time ranges that are open/available for scheduling events, constrained by:
+       * 		1) A wake time (inclusive).
+       * 		2) A sleep time (exclusive.
+       * 		3) A "buffer zone" of time (in minutes) around specified other datetimes during which scheduling is not permitted.
+       * @param  {[type]} medPromptTriggerDateTimes [description]
+       * @param  {[type]} rangeBoundsBufferMinutes) {            var fn = 'getOpenTimeRanges'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}                           [description]
+       */
+      getOpenTimeRanges: function(wakeTime, sleepTime, medPromptTriggerDateTimes, rangeBoundsBufferMinutes) { var fn = 'getOpenTimeRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes + '; rangeBoundsBufferMinutes = ' + rangeBoundsBufferMinutes,fn);
 
         var openTimeRanges = [];
-        for(var i = 0; i < medPromptTriggerDateTimes.length; i++) {
-          if(i < medPromptTriggerDateTimes.length - 1) {
-            // compute the start and end time boundaries.
-            var startTime = medPromptTriggerDateTimes[i].clone().addMinutes(rangeBoundsBufferMinutes);
-            var endTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
-            // if a valid time range is found, then include it for return
-            if(endTime > startTime) {
-              var range = {
-                "start": startTime,
-                "end": endTime
-              };
-              openTimeRanges.push(range);             
-            }
-          }
-        }
+
+        var medPromptsDefined = !self.isNullOrUndefined(medPromptTriggerDateTimes) && medPromptTriggerDateTimes.length > 0;
+
+        /* append a range between the wake time and the first MedPrompt boundary */
+var dbgi = 0;
+        self.debug(++dbgi,fn);
+        var startTime = self.genDateFromTime(wakeTime);
+        self.debug(++dbgi,fn);
+        var endTime = medPromptsDefined
+        	? medPromptTriggerDateTimes[0].clone().addMinutes(-(rangeBoundsBufferMinutes))
+        	: self.genDateFromTime(sleepTime);
+        self.debug(++dbgi,fn);
+        if (startTime < endTime) {
+        	// self.debug('FIRST', fn);
+	        openTimeRanges.push({ "start": startTime, "end": endTime });
+	      }
+
+	      // If no MedPrompts are defined, then our only range is the wake time to the sleep time -- so return here.
+	      // Else, process the MedPrompt times and append the range after the last MedPrompt.
+	      if(medPromptsDefined) {
+
+	        /* append the MedPrompt-based time ranges, with time boundaries, EXCLUSIVE of wake/sleep times */
+	        for(var i = 0; i < medPromptTriggerDateTimes.length; i++) {
+	          if(i < medPromptTriggerDateTimes.length - 1) {
+	            // compute the start and end time boundaries.
+	            startTime = medPromptTriggerDateTimes[i].clone().addMinutes(rangeBoundsBufferMinutes);
+	            endTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
+	            // if a valid time range is found, then include it for return
+	            if(endTime > startTime) {
+	              openTimeRanges.push({ "start": startTime, "end": endTime });
+	            }
+	          }
+	        }
+
+	        /* append a range between the last MedPrompt boundary and the sleep time */
+	        startTime = medPromptTriggerDateTimes[medPromptTriggerDateTimes.length - 1].clone().addMinutes(rangeBoundsBufferMinutes),
+	        endTime = self.genDateFromTime(sleepTime);
+	        if (startTime < endTime) {
+	        	// self.debug('LAST', fn);
+		        openTimeRanges.push({ "start": startTime, "end": endTime });
+	        }
+				}
+
         self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
         return openTimeRanges;
       },
 
 
+      /**
+       * Returns a randomly-selected datetime in the set of open/available time ranges.
+       * @param  {[type]} openTimeRanges) {            var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}                 [description]
+       */
       getRandomDateTimeAcrossAllOpenRanges: function(openTimeRanges) { var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.debug('entered; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
         var randomlySelectedDateTime = null;
@@ -1019,7 +1061,13 @@ var PRNM = (function(exports) {
         var emaTransitionObjs = _.keys(self.appCfg.staticOrDefault.transition.onEMAYes);
         
         // get available open time ranges
-        var openTimeRanges = self.getOpenTimeRanges(medPromptTriggerDateTimes, 30);
+        // var openTimeRanges = self.getOpenTimeRanges(medPromptTriggerDateTimes, 30);
+        var wakeTime = self.userCfg.promptBehavior.wakeSleepTimes.daily.wakeTime;
+        var sleepTime = self.userCfg.promptBehavior.wakeSleepTimes.daily.sleepTime;
+// self.debug('self.appCfg.staticOrDefault.showNativeDialog = ' + self.appCfg.staticOrDefault.showNativeDialog, fn);
+// self.debug('self.appCfg.staticOrDefault.showNativeDialog.assessment = ' + self.appCfg.staticOrDefault.showNativeDialog.assessment, fn);
+// self.debug('self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMin = ' + self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMins, fn);
+        var openTimeRanges = self.getOpenTimeRanges(wakeTime, sleepTime, medPromptTriggerDateTimes, self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMins);
 
         // generate the time ranges between which EMAs may be prompted
         var emaTransitionAndScheduleObjs = _.map(emaTransitionObjs, function(key) {
@@ -1304,7 +1352,13 @@ var PRNM = (function(exports) {
           var repeatStrFirstPrior     = 'FREQ=MINUTELY;INTERVAL=1;UNTIL=' + untilDateTimeFirstPrior.toICal();
           
           self.debug(self.getQuotedAndDelimitedStr([triggerIdFirstPrior, sdt.clone(), startDateTimeFirstPrior, endDateTimeFirstPrior, untilDateTimeFirstPrior, repeatStrFirstPrior], ',', "'"), fn);
-          var actionScriptTextFirstPrior = self.getWidgetReminderTriggerActionText(sdt, self.appCfg.staticOrDefault.updateWidget.widgetState.active.message);
+          var actionScriptTextFirstPrior = self.getWidgetReminderTriggerActionText(
+          	sdt, 
+          	self.appCfg.staticOrDefault.updateWidget.widgetState.active.message,
+          	[
+							{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
+          	]
+          );
           self.debug('actionScriptTextFirstPrior = ' + actionScriptTextFirstPrior, fn);
 
           var nameFirstPrior = triggerIdFirstPrior;
@@ -1324,7 +1378,13 @@ var PRNM = (function(exports) {
           var repeatStrSecondPrior     = 'FREQ=MINUTELY;INTERVAL=1;UNTIL=' + untilDateTimeSecondPrior.toICal();
 
           self.debug(self.getQuotedAndDelimitedStr([triggerIdSecondPrior, sdt.clone(), startDateTimeSecondPrior, endDateTimeSecondPrior, untilDateTimeSecondPrior, repeatStrSecondPrior], ',', "'"), fn);
-          var actionScriptTextSecondPrior = self.getWidgetReminderTriggerActionText(sdt, self.appCfg.staticOrDefault.updateWidget.widgetState.active.message);
+          var actionScriptTextSecondPrior = self.getWidgetReminderTriggerActionText(
+          	sdt, 
+          	self.appCfg.staticOrDefault.updateWidget.widgetState.active.message,
+          	[
+							{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
+          	]
+        	);
           // do the 5-min-before haptic and auditory alerts...
           actionScriptTextSecondPrior += ''
             + 'if(minutesBeforeDose == ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + ') { PurpleRobot.vibrate(\'' + self.appCfg.staticOrDefault.vibratePattern + '\'); PurpleRobot.playDefaultTone(); }'
@@ -1352,11 +1412,14 @@ var PRNM = (function(exports) {
           var untilDateTimeNonResponsive = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
           var repeatStrNonResponsive     = 'FREQ=MINUTELY;COUNT=1';
           self.debug(self.getQuotedAndDelimitedStr([triggerIdNonResponsive, sdt.clone(), startDateTimeNonResponsive, endDateTimeNonResponsive, untilDateTimeNonResponsive, repeatStrNonResponsive], ',', "'"), fn);
- 
+
           var actionScriptTextNonResponsive = self.getWidgetReminderTriggerActionText(
             sdt, 
             self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.message,
-            [{ "color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }]
+            [
+            	 { "color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
+            	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.imageUrl }
+            ]
           );
 
           self.debug('actionScriptTextNonResponsive = ' + actionScriptTextNonResponsive, fn);
@@ -1375,7 +1438,10 @@ var PRNM = (function(exports) {
           var actionScriptTextNeutral = self.getWidgetReminderTriggerActionText(
             sdt, 
             self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
-            [{ "color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }]
+            [
+            	 { "color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
+            	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
+            ]
           );
           self.debug('actionScriptTextNeutral = ' + actionScriptTextNeutral, fn);
 
@@ -1484,6 +1550,23 @@ var PRNM = (function(exports) {
 
 
       /**
+       * For a value with a string length > 0, append it to the specified widget parameters object at the specified key.
+       * @param  {[type]} widgetParamsObj [description]
+       * @param  {[type]} key             [description]
+       * @param  {[type]} value           [description]
+       * @return {[type]}                 [description]
+       */
+      appendNonZeroLenValueToWidgetParams: function(widgetParamsObj, key, value) {  var fn = "appendNonZeroLenValueToWidgetParams"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        // add an optional image URL, if it exists
+        if(self.isStringGt0Len(value)) {
+          self.debug('key = ' + key + '; value = ' + value, fn);
+          widgetParamsObj[key] = value;
+        }
+        return widgetParamsObj;
+      },
+
+
+      /**
        * Sets a widget with a medication-adherence message dependent on a set of medication-consumption ("dosing") times and a period of time prior to each at which the widget's message must change.
        * @param  {[type]} widgetId                   [description]
        * @param  {[type]} medPromptTriggerDateTimes) {            var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER [description]
@@ -1541,18 +1624,21 @@ var PRNM = (function(exports) {
           updateWidgetParams['badge'] = 'None.';
         }
 
-        // add an optional image URL, if it exists
+        // // add an optional image URL, if it exists
         var selectedImageUrl = inNeutralState ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl : self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl;
-        if(self.isStringGt0Len(selectedImageUrl)) {
-          self.debug('selectedImageUrl = ' + selectedImageUrl, fn);
-          updateWidgetParams['image'] = selectedImageUrl;
-        }
-        // set the text color
+        self.appendNonZeroLenValueToWidgetParams(updateWidgetParams, 'image', selectedImageUrl);
+        // if(self.isStringGt0Len(selectedImageUrl)) {
+        //   self.debug('selectedImageUrl = ' + selectedImageUrl, fn);
+        //   updateWidgetParams['image'] = selectedImageUrl;
+        // }
+        // // set the text color
         var selectedTextColor = inNeutralState ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor : self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor;
-        if(self.isStringGt0Len(selectedTextColor)) {
-          self.debug('selectedTextColor = ' + selectedTextColor, fn);
-          updateWidgetParams['color'] = selectedTextColor;
-        }
+        self.appendNonZeroLenValueToWidgetParams(updateWidgetParams, 'color', selectedTextColor);
+				// if(self.isStringGt0Len(selectedTextColor)) {
+        //   self.debug('selectedTextColor = ' + selectedTextColor, fn);
+        //   updateWidgetParams['color'] = selectedTextColor;
+        // }
+
         
         self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
         // self.debug('updateWidgetParams.action = ' + updateWidgetParams.action, fn);
@@ -1778,7 +1864,10 @@ var PRNM = (function(exports) {
         self.log('Getting all MedPropmt datetimes...', fn);
         var medPromptTriggerDateTimes = self.getAllMedPromptDateTimes(createdMedPromptTriggerIds);
 
-        // // set assessment / EMA triggers
+        // sort the MP trigger datetime array; src: http://stackoverflow.com/questions/10123953/sort-javascript-object-array-by-date
+        medPromptTriggerDateTimes.sort(function(a,b){ return a-b; });
+
+        // set assessment / EMA triggers
         self.log('Setting all EMA prompts...', fn);
         self.setAllEMAPrompts(medPromptTriggerDateTimes);
 
