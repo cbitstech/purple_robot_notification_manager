@@ -21,7 +21,8 @@
 			"assessment": {
 				"identifier": "Heart2HAART, EMA: %N@%T",
 				"title": "Heart2HAART, EMA: %N@%T",
-				"message": "It\\'s time to answer a few questions."
+				"message": "It\\'s time to answer a few questions.",
+				"minTimeFromMedPromptMins": 30
 			}
 		},
 		"updateWidget": {

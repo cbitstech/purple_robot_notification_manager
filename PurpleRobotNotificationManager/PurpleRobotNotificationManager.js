@@ -464,7 +464,7 @@ var PRNM = (function(exports) {
             tm = parseInt(tarr[1], 10),
             ts = parseInt(tarr[2], 10);
         var date = Date.today().set({ hour: th, minute: tm, second: ts});
-        self.debug(self.getQuotedAndDelimitedStr([timeStr,th,tm,ts,date],','),fn);
+        // self.debug(self.getQuotedAndDelimitedStr([timeStr,th,tm,ts,date],','),fn);
         return date;
       },
 
@@ -513,22 +513,22 @@ var PRNM = (function(exports) {
       // ==============================
 
 
-      /**
-       * Returns all the dose times in a user config.
-       * @return {[type]} [description]
-       */
-      getAllDoseTimes: function() { var fn = 'getAllDoseTimes'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered',fn);
-        self.getUserCfg();
-        // self.debug('self.userCfg = ' + JSON.stringify(self.userCfg),fn);
-        // self.debug('_.keys(self.userCfg) = ' + _.keys(self.userCfg),fn);
-        // self.debug('self.userCfg.doses = ' + self.userCfg.doses,fn);
-        var allDoseTimes = _.pluck(self.userCfg.doses, 'time');
-        self.debug('allDoseTimes = ' + allDoseTimes,fn);
+      // /**
+      //  * Returns all the dose times in a user config.
+      //  * @return {[type]} [description]
+      //  */
+      // getAllDoseTimes: function() { var fn = 'getAllDoseTimes'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      //   self.debug('entered',fn);
+      //   self.getUserCfg();
+      //   // self.debug('self.userCfg = ' + JSON.stringify(self.userCfg),fn);
+      //   // self.debug('_.keys(self.userCfg) = ' + _.keys(self.userCfg),fn);
+      //   // self.debug('self.userCfg.doses = ' + self.userCfg.doses,fn);
+      //   var allDoseTimes = _.pluck(self.userCfg.doses, 'time');
+      //   self.debug('allDoseTimes = ' + allDoseTimes,fn);
 
-        self.debug('exiting',fn);
-        return allDoseTimes;
-      },
+      //   self.debug('exiting',fn);
+      //   return allDoseTimes;
+      // },
 
 
       /**
@@ -536,13 +536,21 @@ var PRNM = (function(exports) {
        * @return {[type]} [description]
        */
       getRandomDateTimeWithinRange: function(startDateTime, endDateTime) { var fn = 'getRandomDateTimeWithinRange'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        // // apparently doing a date-diff in terms of milliseconds is way-simpler than I thought: http://stackoverflow.com/questions/327429/whats-the-best-way-to-calculate-date-difference-in-javascript
+        // var msInTimeSpan = endDateTime - startDateTime;
+        // // randomly-select an offset between 0 and msInTimeSpan, inclusive.
+        // var randVal = Math.random();
+        // var randOffsetInMs = (Math.floor(randVal * msInTimeSpan) + 1);
+        // var randDateTime = startDateTime.clone().addMilliseconds(randOffsetInMs);
+        // self.debug('randVal = ' + randVal + '; randDateTime = ' + randDateTime,fn);
+        // return randDateTime;
         // apparently doing a date-diff in terms of milliseconds is way-simpler than I thought: http://stackoverflow.com/questions/327429/whats-the-best-way-to-calculate-date-difference-in-javascript
         var msInTimeSpan = endDateTime - startDateTime;
         // randomly-select an offset between 0 and msInTimeSpan, inclusive.
         var randVal = Math.random();
-        var randOffsetInMs = (Math.floor(randVal * msInTimeSpan) + 1);
+        var randOffsetInMs = (Math.floor(randVal * msInTimeSpan));
         var randDateTime = startDateTime.clone().addMilliseconds(randOffsetInMs);
-        self.debug('randVal = ' + randVal + '; randDateTime = ' + randDateTime,fn);
+        // self.debug('randVal = ' + randVal + '; randDateTime = ' + randDateTime,fn);
         return randDateTime;
       },
 
@@ -606,12 +614,12 @@ var PRNM = (function(exports) {
               self.debug('triggerObj = ' + JSON.stringify(triggerObj), fn);
               self.updateTrigger(id, triggerObj);
 
-              // store trigger history
-              self.getAppCfg();
-              var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).NotStarted, null, triggerObj);
-              self.appCfg.triggerState.push(trgWithState);
-              self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
-              self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, self.appCfg);
+              // // store trigger history
+              // self.getAppCfg();
+              // var trgWithState = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).NotStarted, null, triggerObj);
+              // self.appCfg.triggerState.push(trgWithState);
+              // self.debug('Saving trigger state = ' + JSON.stringify(trgWithState), fn);
+              // self.appConfigUpsert(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key, self.appCfg);
             
             break;
 
@@ -752,18 +760,18 @@ var PRNM = (function(exports) {
           else {
             self.warn('appCfg already exists in PR database; not creating.', fn);
 
-            // ensure triggerState exists
-            if(self.isNullOrUndefined(appCfg.triggerState)) {
-            self.log('Updating and persisting appCfg for: ("' + namespace + '", "' + keyInPR + '"); reason: no triggerState array.');
-              // clone the appCfg, update, then persist: http://heyjavascript.com/4-creative-ways-to-clone-objects/
-              appCfg.triggerState = [];
-              self.appConfigUpsert(namespace, keyInPR, appCfg);
-            // self.persistEncryptedString(namespace, keyInPR, JSON.stringify(appCfg));
-            self.appCfg = appCfg;
-            // self.debug('self.appCfg = ' + JSON.stringify(self.appCfg), fn);
-            var storedAppCfg = self.fetchEncryptedString(namespace, keyInPR);
-            self.debug('storedAppCfg = ' + storedAppCfg, fn);
-            }
+            // // ensure triggerState exists
+            // if(self.isNullOrUndefined(appCfg.triggerState)) {
+            //   self.log('Updating and persisting appCfg for: ("' + namespace + '", "' + keyInPR + '"); reason: no triggerState array.');
+            //     // clone the appCfg, update, then persist: http://heyjavascript.com/4-creative-ways-to-clone-objects/
+            //     appCfg.triggerState = [];
+            //     self.appConfigUpsert(namespace, keyInPR, appCfg);
+            //   // self.persistEncryptedString(namespace, keyInPR, JSON.stringify(appCfg));
+            //   self.appCfg = appCfg;
+            //   // self.debug('self.appCfg = ' + JSON.stringify(self.appCfg), fn);
+            //   var storedAppCfg = self.fetchEncryptedString(namespace, keyInPR);
+            //   self.debug('storedAppCfg = ' + storedAppCfg, fn);
+            // }
           }
 
           self.debug('CREATE(' + [namespace,keyInPR] + ')');
@@ -788,8 +796,9 @@ var PRNM = (function(exports) {
          * @return {[type]}              [description]
          */
         appConfigUpsert: function(namespace, keyInPR, appConfigObj) { var fn = 'appConfigUpsert'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-          self.persistEncryptedString(namespace, keyInPR, JSON.stringify(appConfigObj));
-          self.debug('UPSERT(' + [namespace,keyInPR,appConfigObj] + ')');
+          var upsertable = JSON.stringify(appConfigObj);
+          self.persistEncryptedString(namespace, keyInPR, upsertable);
+          self.debug('UPSERT(' + [namespace,keyInPR,upsertable] + ')');
         },
         /**
          * 'Deletes' (actually, marks empty) a namespaced key.
@@ -887,6 +896,11 @@ var PRNM = (function(exports) {
        * 		1) A wake time (inclusive).
        * 		2) A sleep time (exclusive.
        * 		3) A "buffer zone" of time (in minutes) around specified other datetimes during which scheduling is not permitted.
+       *
+       * Ranges must be defined according to this constraint hierarchy, with each higher (shallower) level taking precedence over its succeeding lower (deeper) level:
+       *   wake/sleep times
+       *     MedPrompts
+       *       EMAs
        * @param  {[type]} medPromptTriggerDateTimes [description]
        * @param  {[type]} rangeBoundsBufferMinutes) {            var fn = 'getOpenTimeRanges'; if(!this.CURRENTLY_IN_TRIGGER [description]
        * @return {[type]}                           [description]
@@ -934,6 +948,99 @@ var PRNM = (function(exports) {
 
         self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
         return openTimeRanges;
+
+
+
+
+
+
+        // // V2: ABORT THIS; looked initially like a good idea, but let's rewrite...
+        // self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes + '; rangeBoundsBufferMinutes = ' + rangeBoundsBufferMinutes,fn);
+
+        // var openTimeRanges = [];
+
+        // var medPromptsDefined = !self.isNullOrUndefined(medPromptTriggerDateTimes) && medPromptTriggerDateTimes.length > 0;
+
+        // /* append a range between the wake time and the first MedPrompt boundary */
+        // var startTime = self.genDateFromTime(wakeTime);
+        // var initEndDateTime = self.genDateFromTime(wakeTime);
+        // var firstEndTimeIsMedPromptNotSleepTime = medPromptsDefined ? initEndDateTime > medPromptTriggerDateTimes[0] : false;
+        // var endTime = medPromptsDefined
+        //   ? (
+        //       firstEndTimeIsMedPromptNotSleepTime
+        //       ? medPromptTriggerDateTimes[0].clone().addMinutes(-(rangeBoundsBufferMinutes))
+        //       : initEndDateTime
+        //     )
+        //   : initEndDateTime;
+        // if (startTime < endTime) {
+        //   openTimeRanges.push({ "start": startTime, "end": endTime });
+        // }
+
+        // // If no MedPrompts are defined, then our only range is the wake time to the sleep time -- so return here.
+        // // Else, process the MedPrompt times and append the range after the last MedPrompt.
+        // if(medPromptsDefined) {
+
+        //   /* append the MedPrompt-based time ranges, with time boundaries, EXCLUSIVE of wake/sleep times */
+        //   for(var i = 0; i < medPromptTriggerDateTimes.length; i++) {
+        //     if(i < medPromptTriggerDateTimes.length - 1) {
+        //       // compute the start and end time boundaries.
+        //       startTime = medPromptTriggerDateTimes[i].clone().addMinutes(rangeBoundsBufferMinutes);
+        //       endTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
+        //       // if a valid time range is found, then include it for return
+        //       if(endTime > startTime) {
+        //         openTimeRanges.push({ "start": startTime, "end": endTime });
+        //       }
+        //     }
+        //   }
+
+        //   /* append a range between the last MedPrompt boundary and the sleep time */
+        //   startTime = medPromptTriggerDateTimes[medPromptTriggerDateTimes.length - 1].clone().addMinutes(rangeBoundsBufferMinutes),
+        //   endTime = self.genDateFromTime(sleepTime);
+        //   if (startTime < endTime) {
+        //     openTimeRanges.push({ "start": startTime, "end": endTime });
+        //   }
+        // }
+
+        // self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
+        // return openTimeRanges;
+        
+
+        // // V3: rewrite the algo to loop-over the set of MPs, and for each, 
+        // // compare the appropriate start/end times before assigning (slightly more computationally-expensive than above, 
+        // // but more-elegant and probably more easily-provable)
+        // // // wakeTime, sleepTime, medPromptTriggerDateTimes, rangeBoundsBufferMinutes
+        // var openTimeRanges = [];
+
+        // var currDateTime = new Date();
+        // var currentWakeDateTime = self.genDateFromTime(wakeTime);
+        // var currentSleepDateTime = self.genDateFromTime(sleepTime);
+
+        // // compute next wake-sleep period for cases in which the if we are currently beyond a wake-time start, then wake-time analysis should be for next day, not today.
+        // // same goes for sleep time.
+        // var nextWakeDateTime = currentWakeDateTime.clone().addDays(1);
+        // var nextSleepDateTime = currentSleepDateTime.clone().addDays(1);
+
+        // var medPromptsDefined = !self.isNullOrUndefined(medPromptTriggerDateTimes) && medPromptTriggerDateTimes.length > 0;
+
+        // if(medPromptsDefined) {
+        // 	++
+
+        //   for(var i = 0; i < medPromptTriggerDateTimes.length ; i++) {
+        //     var mptStartTime = medPromptTriggerDateTimes[i].clone().addMinutes(rangeBoundsBufferMinutes);
+        //     var mptEndTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
+
+        //     if(mptStartTime)
+        //   }
+
+        // }
+        // // no MedPrompts => set 1 range = wake:sleep
+        // else {
+        //   openTimeRanges.push({ "start": currentWakeDateTime, "end": currentSleepDateTime })
+        // }
+
+        // for(var i = 0; i < )
+
+        // return openTimeRanges;
       },
 
 
@@ -949,9 +1056,14 @@ var PRNM = (function(exports) {
         if(openTimeRanges.length > 0) {
           var randIdx = Math.floor((Math.random()*openTimeRanges.length));
           // self.debug('randIdx = ' + randIdx, fn);
+          var startTime = openTimeRanges[randIdx].start;
+          var endTime = openTimeRanges[randIdx].end;
+          self.debug('startTime = ' + startTime + '; endTime = ' + endTime, fn);
           randomlySelectedDateTime = self.getRandomDateTimeWithinRange(
-            openTimeRanges[randIdx].start,
-            openTimeRanges[randIdx].end
+            // openTimeRanges[randIdx].start,
+            // openTimeRanges[randIdx].end
+            startTime,
+            endTime
             );
         }
 
@@ -1280,7 +1392,9 @@ var PRNM = (function(exports) {
           	sdt, 
           	self.appCfg.staticOrDefault.updateWidget.widgetState.active.message,
           	[
-							{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
+            	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
+            	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
+							,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
           	]
         	);
           // do the 5-min-before haptic and auditory alerts...
@@ -1315,7 +1429,8 @@ var PRNM = (function(exports) {
             sdt, 
             self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.message,
             [
-            	 { "color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
+            	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
+            	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
             	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.imageUrl }
             ]
           );
@@ -1337,7 +1452,8 @@ var PRNM = (function(exports) {
             sdt, 
             self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
             [
-            	 { "color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
+            	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
+            	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
             	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
             ]
           );
@@ -1517,7 +1633,8 @@ var PRNM = (function(exports) {
 
         // set the text color
         var selectedTextColor = inNeutralState ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor : self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor;
-        self.appendNonZeroLenValueToWidgetParams(updateWidgetParams, 'color', selectedTextColor);
+        self.appendNonZeroLenValueToWidgetParams(updateWidgetParams, 'message_color', selectedTextColor);
+        self.appendNonZeroLenValueToWidgetParams(updateWidgetParams, 'title_color', selectedTextColor);
         
         // update the widget
         self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);

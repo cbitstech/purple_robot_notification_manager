@@ -61,8 +61,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					'actionTime': dose.time,
 					'actionName': dose.medication
 				};
-				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
-				self.appConfigUpsert(self.appCfg.namespace, 'currentAction', currentAction);
+				self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
 
 
 
@@ -126,8 +126,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					'actionTime': dose.time,
 					'actionName': dose.medication
 				};
-				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
-				self.appConfigUpsert(self.appCfg.namespace, 'currentAction', currentAction);
+				self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
 
 
 
@@ -209,7 +209,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				}
 
 				self.debug('Saving trigger state...', fn);
-				self.appConfigUpsert(self.appCfg.namespace, self.appCfg.key, self.appCfg);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, self.appCfg.key, self.appCfg);
 
 
 				var currentAction = {
@@ -217,8 +217,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					'actionDstType': 'EMA',
 					'actionDstSubtype': schedObj.name
 				};
-				self.debug('Saving currentAction = ' + JSON.stringify(currentAction), fn);
-				self.appConfigUpsert(self.appCfg.namespace, 'currentAction', currentAction);
+				self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
 
 
 

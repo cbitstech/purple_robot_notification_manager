@@ -171,28 +171,77 @@ suite('PurpleRobotNotificationManager', function() {
     });
 
 
-    test('getAllDoseTimes: must get a set of 3 dose times', function() {
-      var actual = prnm.getAllDoseTimes();
-      assert.equal(actual.length,3);
-      console.log('actual',actual);
-    });
-    test('getAllDoseTimes: dose time formatting must match nn:nn:nn', function() {
-      var actual = prnm.getAllDoseTimes();
-      _.map(actual, function(t) { 
-        assert.equal((t.search('^\\d\\d:\\d\\d:\\d\\d$')) == 0, true);
-      });
-    });
+    // test('getAllDoseTimes: must get a set of 3 dose times', function() {
+    //   var actual = prnm.getAllDoseTimes();
+    //   assert.equal(actual.length,3);
+    //   console.log('actual',actual);
+    // });
+    // test('getAllDoseTimes: dose time formatting must match nn:nn:nn', function() {
+    //   var actual = prnm.getAllDoseTimes();
+    //   _.map(actual, function(t) { 
+    //     assert.equal((t.search('^\\d\\d:\\d\\d:\\d\\d$')) == 0, true);
+    //   });
+    // });
 
 
-    test('getRandomDateTimeWithinRange', cases([
-      [[9,0,0], [10,0,0], true]
-      ], function(startTimeParts, endTimeParts, expected) {
+    test('getRandomDateTimeWithinRange', 
+      cases([
+      [[0,0,0], [0,0,0], true]
+      ,[[0,0,0], [0,0,1], true]
+      ,[[9,0,0], [9,1,0], true]
+      ,[[9,0,0], [10,0,0], true]
+      ,[[9,0,0], [21,0,0], true]
+      ,[[0,0,0], [23,59,59], true]
+      ], 
+      function(startTimeParts, endTimeParts, expected) {
+        // V1: case-based.
         var startDate = Date.today().set({hour:startTimeParts[0],minute:startTimeParts[1],second:startTimeParts[2]});
         var endDate = Date.today().set({hour:endTimeParts[0],minute:endTimeParts[1],second:endTimeParts[2]});
         var actual = prnm.getRandomDateTimeWithinRange(startDate, endDate);        
         // must always be true
-        assert.equal(actual.between(startDate, endDate), true);
+        assert.equal(actual.between(startDate, endDate), expected);                    
       })
+
+      //   // V2: combinatorial exhaustion.
+      //   // TEST EVERY PER-SECOND RANGE POSSIBLE IN A DAY. There will be (24*60*60)^2 = 7,464,960,000 cases tested.
+      //   // start date
+      //   var i = 0;
+      //   for(var sh = 0; sh<24; sh++) {
+      //     for(var sm = 0; sm<60; sm++) {
+      //       for(var ss = 0; ss<60; ss++) {
+      //         for(var eh = 0; eh<24; eh++) {
+      //           for(var em = 0; em<60; em++) {
+      //             for(var es = 0; es<60; es++) {
+      //               // if the generated date inputs don't entail a valid range, then iterate through the combination space, ignoring the test code.
+      //               if(  eh<sh || 
+      //                   (eh>=sh && em<sm) ||
+      //                   (eh>=sh && em>=sm && es<ss)
+      //                 ) {
+      //                 continue;
+      //               }
+
+      //               var startDate = Date.today().set({hour:sh,minute:sm,second:ss});
+      //               var endDate = Date.today().set({hour:eh,minute:em,second:es});
+      //               var actual = prnm.getRandomDateTimeWithinRange(startDate, endDate);
+      //               // every n-many iterations, show the current test params, as a progress indicator
+      //               if(i%1000000 == 0) {
+      //                 console.log('s=' + startDate.toString("yyyyMMdd-hhmmss") + "; e=" + endDate.toString("yyyyMMdd-hhmmss") + "; actual=" + actual);
+      //               }
+      //               // must always be true
+      //               try {
+      //                 assert.equal(actual.between(startDate, endDate), true);
+      //               }
+      //               catch(e) {
+      //                 console.log('FAILURE CASE: s=' + startDate.toString("yyyyMMdd-hhmmss") + "; e=" + endDate.toString("yyyyMMdd-hhmmss") + "; actual=" + actual);
+      //                 throw e;
+      //               }
+      //               i++;
+      //             }
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
     );
     test('getRandomDateTimeWithinRange: 2 consecutive randomly-selected times must not be the same (within the available value-space and to the degree of PRNG randomness)', cases([
       [[9,0,0], [10,0,0], true]
@@ -237,6 +286,8 @@ suite('PurpleRobotNotificationManager', function() {
         var ed = Date.today().set({hour:arr[1][0],minute:arr[1][1],second:arr[1][2]});
         var ud = Date.today().set({hour:arr[2][0],minute:arr[2][1],second:arr[2][2]});
         var actual = prnm.setAllMedPrompts();
+        assert.notEqual(actual, null);
+        console.log(actual);
       })
     );
 
@@ -247,7 +298,29 @@ suite('PurpleRobotNotificationManager', function() {
         var sd = Date.today().set({hour:arr[0][0],minute:arr[0][1],second:arr[0][2]});
         var ed = Date.today().set({hour:arr[1][0],minute:arr[1][1],second:arr[1][2]});
         var ud = Date.today().set({hour:arr[2][0],minute:arr[2][1],second:arr[2][2]});
-        var actual = prnm.setAllEMAPrompts(prnm.setAllMedPrompts());
+        // third and finally, set the prompts.
+        var actual = prnm.setAllEMAPrompts(
+          // second, fetch the MedPrompt triggers by their IDs and return an array of their starting datetimes
+          self.getAllMedPromptDateTimes(
+            // first, set all MedPrompts.
+            prnm.setAllMedPrompts()
+            )
+          );
+        // setAllEMAPrompts does not return anything, which JS takes to mean the value is undefined (equivalent of void in C++)
+        assert.equal(actual, undefined);
+      })
+    );
+
+    test('getAllMedPromptDateTimes', cases([
+      ['Heart2HAART, EMA: Mood@21:39:22', (Date.today()).set({ hour: 21, minute: 39, second: 22}) ]
+      ],
+      function(id, expected) {
+        console.log('id = ', id, 'expected = ', expected);
+        var actual = prnm.getAllMedPromptDateTimes([id]);
+        assert.notEqual(actual, null);
+        console.log(actual);
+        assert.equal(_.isDate(actual[0]), true);
+        assert.equal(Date.equals(actual[0], expected), true);
       })
     );
 
@@ -288,11 +361,12 @@ suite('PurpleRobotNotificationManager', function() {
 
 
     test('getRandomDateTimeAcrossAllOpenRanges',cases([
-        ['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 45, false]
-       ,['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 30, false]
-       ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 30, true]
-       ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 60, true]
-       ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, true]
+       //  ['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 45, false]
+       // ,['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 30, false]
+       // ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 30, true]
+       // ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 60, true]
+       // ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, true]
+       ['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, true]
       ], function(wakeTime, sleepTime, arr, rangeBoundsBufferMinutes, expectNotNullOrUndefined) {
 
         console.log('-------------------------------------');
@@ -391,11 +465,12 @@ suite('PurpleRobotNotificationManager', function() {
     });
 
     test('fetchTrigger', cases([
-      ["Heart2HAART, MP: 14@23:13:00, 15mg"]
+      ["Heart2HAART, MP: 6@4:05PM, 7mg"]
       ],
       function(triggerId) {
         var actualRet = prnm.fetchTrigger(triggerId);
-        assert(actualRet != null, true);
+        // assert(actualRet != null, true);
+        assert.notEqual(actualRet, null);
         assert(_.isObject(actualRet), true);
         console.log('FETCHTRIGGER: actualRet = ', actualRet);
         assert(
