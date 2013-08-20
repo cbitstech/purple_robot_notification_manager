@@ -1290,6 +1290,15 @@ var PRNM = (function(exports) {
         return p;
       },
 
+      getMedPromptActionText: function(triggerId, doseStr, dose) { var fn = 'getMedPromptActionText'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        var showNativeDialogParams = self.genMedPromptShowNativeDialogParams(triggerId, doseStr, dose);
+        var actionScriptText = 
+              'PurpleRobot.vibrate("'+ (self.getAppCfg()).staticOrDefault.vibratePattern +'");'
+            + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
+
+        return actionScriptText;
+      },
+
       /**
        * Sets all the MedPrompts for the following 24 hours.
        * @param  {[type]} ) {            var fn = 'setAllMedPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
@@ -1320,13 +1329,13 @@ var PRNM = (function(exports) {
           self.debug('triggerId = ' + triggerId, fn);
           var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
 
-          var showNativeDialogParams = self.genMedPromptShowNativeDialogParams(triggerId, doseStr, d);
-  
           // the generated action to execute in a trigger
           // biz-logic (from "Heart2HAART (H2H) Logic Model Explanation: 01/14/2013"): "When the dose is due, the phone will vibrate and alert to remind the user to take their dose. "
-          actionScriptText = 
-              'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
-            + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
+          // var showNativeDialogParams = self.genMedPromptShowNativeDialogParams(triggerId, doseStr, d);
+          // actionScriptText = 
+          //     'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
+          //   + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
+          actionScriptText = self.getMedPromptActionText(triggerId, doseStr, d);
           
           var name = self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title;
           self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
@@ -1338,10 +1347,11 @@ var PRNM = (function(exports) {
 
           // * generate the +TTL (UMB says 30) minutes reminder instance of this trigger. *
           var triggerIdPlusTTL = triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
-          var showNativeDialogParamsPlusTTL = self.genMedPromptShowNativeDialogParams(triggerIdPlusTTL, doseStr, d);
-          actionScriptText = 
-              'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
-            + 'PurpleRobot.showNativeDialog(' + showNativeDialogParamsPlusTTL + ');';
+          // var showNativeDialogParamsPlusTTL = self.genMedPromptShowNativeDialogParams(triggerIdPlusTTL, doseStr, d);
+          // actionScriptText = 
+          //     'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
+          //   + 'PurpleRobot.showNativeDialog(' + showNativeDialogParamsPlusTTL + ');';
+          actionScriptText = self.getMedPromptActionText(triggerIdPlusTTL, doseStr, d);
           self.setDateTimeTrigger(triggerIdPlusTTL, type, name, actionScriptText, startDateTime.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), endDateTime.addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), repeatStr);
 
 
