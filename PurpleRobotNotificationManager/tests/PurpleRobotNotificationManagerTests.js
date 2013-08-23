@@ -49,7 +49,7 @@ var PurpleRobotMock = {
   "log": jsonfn.stringify((function(s) { console.warn("[***** PurpleRobotNotificationTests.js *****] WOULD LOG: " + s); })),
   "launchUrl": jsonfn.stringify((function(url) { console.warn('[***** PurpleRobotNotificationTests.js *****] WOULD LAUNCH: ' + isNullOrUndefined) })),
   "showNativeDialog": jsonfn.stringify(function(p1,p2,p3,p4,p5) { console.warn('[***** PurpleRobotNotificationTests.js *****] WOULD SHOW DIALOG WITH PARAMS: ' + [p1,p2,p3,p4,p5]); } )
-}; 
+};
 
 
 
@@ -168,6 +168,12 @@ suite('PurpleRobotNotificationManager', function() {
     test('getUserCfg: should return user-config contents', function() {
       var actual = prnm.getUserCfg();
       assert.notEqual(actual,null);
+    });
+
+    test('getAppCfg: should return app-config contents', function() {
+      var actual = prnm.getAppCfg();
+      assert.notEqual(actual,null);
+      console.log(actual.staticOrDefault.medPrompt.wisePillLastSeenUrl);
     });
 
 
@@ -312,7 +318,7 @@ suite('PurpleRobotNotificationManager', function() {
     );
 
     test('getAllMedPromptDateTimes', cases([
-      ['Heart2HAART, EMA: Mood@21:39:22', (Date.today()).set({ hour: 21, minute: 39, second: 22}) ]
+      ['Heart2HAART, EMA: Mood@21:39:22', (new Date(2013, 7, 20)).set({ hour: 21, minute: 39, second: 22}) ]
       ],
       function(id, expected) {
         console.log('id = ', id, 'expected = ', expected);
@@ -393,6 +399,17 @@ suite('PurpleRobotNotificationManager', function() {
 //     console.log(arr);
 //   })
 // );
+
+
+    test('getMedPromptActionText', cases([
+      ['MyTriggerId', 'H2H DoseStr', _.first((prnm.getUserCfg()).doses), 'MANUALLY VERIFY VIA OUTPUT']
+      ], function(triggerId, doseStr, dose, expected) {
+        console.log("triggerId = ", triggerId, "; doseStr = ", doseStr, "; dose = ", dose, "; expected = ", expected);
+        var actual = prnm.getMedPromptActionText(triggerId, doseStr, dose);
+        console.log('----- getMedPromptActionText below -----');
+        console.log(actual);
+      })
+    );
 
 
 
@@ -508,6 +525,17 @@ Date.today().setTimeToNow();
     );
 
 
+    test('replaceTokensForUser', cases([
+      ["http://mohrlab.northwestern.edu/umb/integrations/?user_id=%USER&device=wisepill&key=lastSeen", "http://mohrlab.northwestern.edu/umb/integrations/?user_id=TestyMcTesterson&device=wisepill&key=lastSeen" ]
+      ], function(inStr, expected) {
+        console.log('inStr = ', inStr, '; expected = ', expected);
+        var actual = prnm.replaceTokensForUser(inStr);
+        assert.equal(self.isNullOrUndefined(actual), false);
+        assert.equal(actual, expected);
+      })
+    );
+
+
     test('isStringGt0Len', cases([
       [null, false],
       [undefined, false],
@@ -523,7 +551,7 @@ Date.today().setTimeToNow();
 
 
     test('getQuotedAndDelimitedStr', cases([
-      [ ['ABC', '123'], ',', '"', false, '"ABC","123"']
+       [ ['ABC', '123'], ',', '"', false, '"ABC","123"']
       ,[ ['ABC', '123'], '|', '"', false, '"ABC"|"123"']
       ,[ ['ABC', '123'], ',', "'", false, "'ABC','123'"]
       ,[ [function(name) { console.log('hello ' + name); }], ',', '"', false, '"function (name) { console.log(\'hello \' + name); }"']

@@ -1240,6 +1240,29 @@ var PRNM = (function(exports) {
       },
 
 
+      replaceTokensForUser: function(inStr) { var fn = 'replaceTokensForMedPrompt'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        var outStr = inStr;
+        var userCfg = (self.getUserCfg());
+        // provide some nice tokenizing string-replacement for ID-setting
+        //    %USER = username
+        _.each([
+          { '%USER': (
+            function() {
+              // find the first patient (there should only be 1) from a trial/project's userCfg.people array, and return either its 
+              // self.debug("userCfg.people = " + JSON.stringify(userCfg.people), fn);
+              var person = _.find(userCfg.people, function(p) { return p.type == 'patient'; });
+              return (!self.isNullOrUndefined(person) && self.isStringGt0Len(person.id)) ? person.id : 'NO_PERSON_ID_FOUND_CHECK_USERCFG';
+            }) ()
+          }
+          ], function(replacementPair) {
+            var key = _.keys(replacementPair)[0];
+            outStr = outStr.replace(key, replacementPair[key]);
+        });
+        // self.debug('exiting; outStr = ' + outStr,fn);
+        return outStr;
+      },
+
+
       genMedPromptTriggerId: function(dose) { var fn = 'genMedPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.debug('entered',fn);
         var id = self.replaceTokensForMedPrompt((self.getAppCfg()).staticOrDefault.showNativeDialog.medPrompt.identifier, dose);
@@ -1290,14 +1313,77 @@ var PRNM = (function(exports) {
         return p;
       },
 
+
+      /**
+       * Gets the action text for a MedPrompt.
+       * @param  {[type]} triggerId [description]
+       * @param  {[type]} doseStr   [description]
+       * @param  {[type]} dose)     {            var fn = 'getMedPromptActionText'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}           [description]
+       */
       getMedPromptActionText: function(triggerId, doseStr, dose) { var fn = 'getMedPromptActionText'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         var showNativeDialogParams = self.genMedPromptShowNativeDialogParams(triggerId, doseStr, dose);
+        self.debug('ENTERED: triggerId = ' + triggerId + '; doseStr = ' + doseStr + '; dose = ' + JSON.stringify(dose) + '; _.keys(dose) = ' + _.keys(dose) + '; self.appCfg.staticOrDefault.medPrompt.wisePillLastSeenUrl = ' + self.appCfg.staticOrDefault.medPrompt.wisePillLastSeenUrl, fn);
         var actionScriptText = 
-              'PurpleRobot.vibrate("'+ (self.getAppCfg()).staticOrDefault.vibratePattern +'");'
-            + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
+            // v1 - WORKS!
+            //   'PurpleRobot.vibrate("'+ (self.getAppCfg()).staticOrDefault.vibratePattern +'");'
+            // + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
 
+            // v2 - intended code 
+            // DESCRIPTION / PURPOSE:
+            //   The goal of this code is to determine whether to display a MedPrompt, based on the last time the user opened their WisePill pillbox.
+            //   If the user opened it within the last 5 minutes, then do not display the MedPrompt.
+            //   Else, display the MedPrompt.
+              'PurpleRobot.log(\'[getMedPromptActionText] ENTERED: triggerId = "' + triggerId + '"; doseStr = "' + doseStr + '"; dose = "' + dose + '"\');'
+
+            + 'PurpleRobot.loadLibrary(\'date.js\');'
+            + 'PurpleRobot.loadLibrary(\'underscore.js\');'
+            
+            + 'var url = "' + self.replaceTokensForUser(self.appCfg.staticOrDefault.medPrompt.wisePillLastSeenUrl) + '";'
+            + 'PurpleRobot.log(\'url = \' + url);'
+
+            + 'var wisePillLastSeenDateTimeStr = PurpleRobot.readUrl(url);'
+            // + '  PurpleRobot.log(\'[getMedPromptActionText] 1\');'
+            + 'PurpleRobot.log(\'[getMedPromptActionText] \' + wisePillLastSeenDateTimeStr);'
+            
+            + 'if (wisePillLastSeenDateTimeStr != null && wisePillLastSeenDateTimeStr != undefined) {'
+
+            // + '  PurpleRobot.log(\'[getMedPromptActionText] 2\');'
+            + '  var wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTimeStr);'
+            // + '  PurpleRobot.log(\'[getMedPromptActionText] 3\');'
+            + '  PurpleRobot.log(\'[getMedPromptActionText] \' + wisePillLastSeenDateTime);'
+
+            // + '  PurpleRobot.log(\'[getMedPromptActionText] 4\');'
+            + '  var currDateMinus5Min = (new Date()).addMinutes(-5);'
+            + '  PurpleRobot.log(\'[getMedPromptActionText] currDateMinus5Min = \' + currDateMinus5Min);'
+            // + '  PurpleRobot.log(\'[getMedPromptActionText] 5\');'
+
+            // // TESTING: force true in the conditional
+            // + 'wisePillLastSeenDateTime = currDateMinus5Min.clone().addMinutes(1);'
+
+            // if the user has opened the pillbox in the last 5 minutes, then do not notify them to take their pill; else, do notify them.
+            + '  if(wisePillLastSeenDateTime > currDateMinus5Min) {'
+            // + '    PurpleRobot.log(\'[getMedPromptActionText] 6\');'
+            + '    PurpleRobot.deleteTrigger(\'' + triggerId + '\');'
+            + '  }'
+            + '  else {'
+            // + '    PurpleRobot.log(\'[getMedPromptActionText] 7\');'
+            + '    PurpleRobot.vibrate(\''+ (self.getAppCfg()).staticOrDefault.vibratePattern +'\');'
+            + '    PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');'
+            + '  }'
+            + '}'
+
+            // if some tech glitch prevented the string from coming-through, then notify the user
+            + 'else {'
+            // + '  PurpleRobot.log(\'[getMedPromptActionText] 8\');'
+            + '  PurpleRobot.vibrate(\''+ (self.getAppCfg()).staticOrDefault.vibratePattern +'\');'
+            + '  PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');'
+            + '}'
+            ;
+        self.debug('actionScriptText = ' + actionScriptText, fn);
         return actionScriptText;
       },
+
 
       /**
        * Sets all the MedPrompts for the following 24 hours.

@@ -1,6 +1,13 @@
 {
 	"logLevel": 4,
 	"staticOrDefault": {
+		"namespace": "H2H",
+		"appPackageName": "edu.northwestern.cbits.umb.h2h",
+
+		"medPrompt": {
+			"wisePillLastSeenUrl": "http://mohrlab.northwestern.edu/umb/integrations/?user_id=%USER&device=wisepill&key=lastSeen"
+		},
+
 		"transition": {
 			"onMedPromptYes": "http://mohrlab.northwestern.edu/h2h/medprompt/2.html",
 			"onMedPromptNo": "http://mohrlab.northwestern.edu/h2h/medprompt/6.html",
