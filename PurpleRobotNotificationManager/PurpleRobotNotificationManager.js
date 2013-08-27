@@ -121,7 +121,8 @@ var PRNM = (function(exports) {
       // ========= CONSTS =================
       // ==================================
       triggerIdPrefixes: {
-        "self": "Purple Robot Notification Manager",
+        // "self": "Purple Robot Notification Manager",
+        "self": "unidentified-trigger",
         "medPrompt": "MedPrompt: ",
         "ema": "EMA: "
       },
@@ -1942,7 +1943,6 @@ var PRNM = (function(exports) {
         self.log('Clearing all non-PRNM triggers...', fn);
         self.clearAllNonPRNMTriggers();
   
-        // UNCOMMENT WHEN WIDGET WORK IS DONE!
         // create the app config repo in PR, if not already created.
         self.log('Creating the appCfg...', fn);
         self.appConfigCreate(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key);
