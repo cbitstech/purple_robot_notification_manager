@@ -21,7 +21,7 @@
 		},
 		"showNativeDialog": {
 			"medPrompt": {
-				"identifier": "Heart2HAART, MP: %M@%T, %S%U",
+				"identifier": "Heart2HAART, MP%O: %M@%T, %S%U",
 				"title": "Heart2HAART, MP: %M@%T, %S%U",
 				"message": "Did you take your %S %U of %M today?"
 			},
@@ -29,7 +29,12 @@
 				"identifier": "Heart2HAART, EMA: %N@%T",
 				"title": "Heart2HAART, EMA: %N@%T",
 				"message": "It\\'s time to answer a few questions.",
-				"minTimeFromMedPromptMins": 30
+				"minTimeFromMedPromptMins": 30,
+				"frequencyAsICal": {
+					"Craving": "DAILY",
+					"SideEffect": "DAILY",
+					"Mood": "WEEKLY"
+				}
 			}
 		},
 		"updateWidget": {

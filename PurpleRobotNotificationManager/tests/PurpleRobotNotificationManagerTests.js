@@ -105,7 +105,11 @@ suite('PurpleRobotNotificationManager', function() {
    * Setup before *EACH* test.
    * @return {[type]} [description]
    */
-  setup(function() {});
+  setup(function() {
+    var testSepLine = '';
+    for(var i = 0; i < 80; i++) { testSepLine += '**********'; }
+    console.log(testSepLine);
+  });
 
     test('test (pre-ctor)', function() {
       var actual = PurpleRobotNotificationManager.test();

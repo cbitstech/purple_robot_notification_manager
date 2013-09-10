@@ -21,7 +21,7 @@
 				"appPackageName": "edu.northwestern.cbits.umb.h2h",
 
 				"medPrompt": {
-					"wisePilllastSeenUrl": "http://mohrlab.northwestern.edu/umb/integrations/?user_id=%USER&device=wisepill&key=lastSeen"
+					"wisePillLastSeenUrl": "http://mohrlab.northwestern.edu/umb/integrations/?user_id=%USER&device=wisepill&key=lastSeen" 
 				},
 
 				"transition": {
@@ -38,7 +38,7 @@
 				
 				"showNativeDialog": {
 					"medPrompt": {
-						"identifier": "Heart2HAART, MP: %M@%T, %S%U",
+						"identifier": "Heart2HAART, MP%O: %M@%T, %S%U",
 						"title": "Heart2HAART",
 						"message": "Did you take your %S %U of %M today?"
 					},
@@ -46,7 +46,12 @@
 						"identifier": "Heart2HAART, EMA: %N@%T",
 						"title": "Heart2HAART",
 						"message": "Its time to answer a few questions.",
-						"minTimeFromMedPromptMins": 30
+						"minTimeFromMedPromptMins": 30,
+						"frequencyAsICal": {
+							"Craving": "DAILY",
+							"SideEffect": "DAILY",
+							"Mood": "WEEKLY"
+						}
 					}
 				},
 				"updateWidget": {
@@ -54,8 +59,8 @@
 					"widgetState": {
 						"active": {
 							"message": "Next dose in %ETAMIN minutes (%T).",
-							"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/widgetbadge.png?foo=bar",
-							"textColor": "#000000",
+							"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/icon.png?foo=bar",
+							"textColor": "#FFFFFF",
 							"reminderMinutesBeforeDose": {
 								"first": 60,
 								"second": 5
@@ -63,14 +68,14 @@
 						},
 						"nonResponsive": {
 							"message": "Press here to begin.",
-							"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/widgetbadge.png?foo=bar",
+							"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/icon.png?foo=bar",
 							"textColor": "#FF0000",
 							"TTLinMins": 30
 						},
 						"neutral": {
 							"message": "No upcoming dose.",
-							"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/gold-coin.png?foo=bar",
-							"textColor": "#000000"
+							"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/coin.png?foo=bar",
+							"textColor": "#FFFFFF"
 						}
 					}
 				},
@@ -115,6 +120,10 @@
 				"namespace": "MA",
 				"appPackageName": "edu.northwestern.cbits.umb.ma",
 
+				"medPrompt": {
+					"wisePillLastSeenUrl": "http://mohrlab.northwestern.edu/umb/integrations/?user_id=%USER&device=wisepill&key=lastSeen" 
+				},
+
 				"transition": {
 					"onMedPromptYes": "http://mohrlab.northwestern.edu/ma/medprompt/2.html",
 					"onMedPromptNo": "http://mohrlab.northwestern.edu/ma/medprompt/6.html",
@@ -128,7 +137,7 @@
 				
 				"showNativeDialog": {
 					"medPrompt": {
-						"identifier": "MedActive, MP: %M@%T, %S%U",
+						"identifier": "MedActive, MP%O: %M@%T, %S%U",
 						"title": "MedActive, MP: %M@%T, %S%U",
 						"message": "Did you take your %S %U of %M today?"
 					},
@@ -136,7 +145,11 @@
 						"identifier": "MedActive, MP: %M@%T, %S%U",
 						"title": "MedActive, EMA: %N@%T",
 						"message": "Its time to answer a few questions.",
-						"minTimeFromMedPromptMins": 30
+						"minTimeFromMedPromptMins": 30,
+						"frequencyAsICal": {
+							"SideEffect": "DAILY",
+							"Symptoms": "DAILY"
+						}
 					}
 				},
 				"updateWidget": {
@@ -144,8 +157,8 @@
 					"widgetState": {
 						"active": {
 							"message": "Next dose in %ETAMIN minutes (%T).",
-							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/widgetbadge.png?foo=bar",
-							"textColor": "#000000",
+							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/icon.png?foo=bar",
+							"textColor": "#FFFFFF",
 							"reminderMinutesBeforeDose": {
 								"first": 60,
 								"second": 5
@@ -153,14 +166,14 @@
 						},
 						"nonResponsive": {
 							"message": "Press here to begin.",
-							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/widgetbadge.png?foo=bar",
+							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/icon.png?foo=bar",
 							"textColor": "#FF0000",
 							"TTLinMins": 30
 						},
 						"neutral": {
 							"message": "No upcoming dose.",
-							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/gold-coin.png?foo=bar",
-							"textColor": "#000000"
+							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/coin.png?foo=bar",
+							"textColor": "#FFFFFF"
 						}
 					}
 				},

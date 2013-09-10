@@ -313,7 +313,7 @@ var PRNM = (function(exports) {
               //self.log('NOEXEC: fetchTriggerIds', fn);
               var fs = require('fs');
               var triggerArray = fs.existsSync(self.envConsts.appCfg.triggerPath) ? JSON.parse(fs.readFileSync(self.envConsts.appCfg.triggerPath)) : null;
-              self.debug('triggerArray = ' + triggerArray, fn);
+              // self.debug('triggerArray = ' + triggerArray, fn);
               var triggerIds = null;
               if (triggerArray != null) {
                 triggerIds = _.pluck(triggerArray, 'identifier');
@@ -919,7 +919,7 @@ var PRNM = (function(exports) {
         	? medPromptTriggerDateTimes[0].clone().addMinutes(-(rangeBoundsBufferMinutes))
         	: self.genDateFromTime(sleepTime);
         if (startTime < endTime) {
-	        openTimeRanges.push({ "start": startTime, "end": endTime });
+	        openTimeRanges.push({ 'start': startTime, 'end': endTime });
 	      }
 
 	      // If no MedPrompts are defined, then our only range is the wake time to the sleep time -- so return here.
@@ -934,7 +934,7 @@ var PRNM = (function(exports) {
 	            endTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
 	            // if a valid time range is found, then include it for return
 	            if(endTime > startTime) {
-	              openTimeRanges.push({ "start": startTime, "end": endTime });
+	              openTimeRanges.push({ 'start': startTime, 'end': endTime });
 	            }
 	          }
 	        }
@@ -943,7 +943,7 @@ var PRNM = (function(exports) {
 	        startTime = medPromptTriggerDateTimes[medPromptTriggerDateTimes.length - 1].clone().addMinutes(rangeBoundsBufferMinutes),
 	        endTime = self.genDateFromTime(sleepTime);
 	        if (startTime < endTime) {
-		        openTimeRanges.push({ "start": startTime, "end": endTime });
+		        openTimeRanges.push({ 'start': startTime, 'end': endTime });
 	        }
 				}
 
@@ -1073,28 +1073,73 @@ var PRNM = (function(exports) {
       },
 
 
-      /**
-       * Sets all the EMA prompts (assessment prompts) for the following 24 hours.
-       * @param  {[type]} ) {            var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
-       * @return {[type]}   [description]
-       */
-      // setAllEMAPrompts: function(createdMedPromptTriggerIds) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-      //  self.debug('entered; createdMedPromptTriggerIds = ' + createdMedPromptTriggerIds,fn);
-      setAllEMAPrompts: function(medPromptTriggerDateTimes) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
-        self.getUserCfg();
-        self.getAppCfg();
 
-        // get the set of EMAs from-which to randomly-select and randomly schedule
-        var emaTransitionObjs = _.keys(self.appCfg.staticOrDefault.transition.onEMAYes);
-        
+      /**
+       * Gets the open time ranges multiplied by the scheduling frequency specified.
+       * @param  {[type]} openTimeRanges            [description]
+       * @param  {[type]} schedulingFrequencyAsICal [description]
+       * @return {[type]}                           [description]
+       */
+      getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal: function(openTimeRanges, schedulingFrequencyAsICal) { var fn = 'getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered; openTimeRanges = ' + JSON.stringify(openTimeRanges) + '; schedulingFrequencyAsICal = ' + schedulingFrequencyAsICal, fn);
+self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].start));
+
+        switch(schedulingFrequencyAsICal) {
+          case 'DAILY':
+            return openTimeRanges;
+            break;
+          case 'WEEKLY':
+            var openTimeRangesFor1Week = [];
+
+            _.each(openTimeRanges,
+              function(otr) {
+                for (var i = 0; i < 6; i++) {
+                   openTimeRangesFor1Week.push({ 'start': otr.start.clone().addDays(i), 'end': otr.end.clone().addDays(i) });
+                }
+              }
+            );
+
+            return openTimeRangesFor1Week;
+            break;
+          case 'MONTHLY':
+            // return _.map(openTimeRanges, function(otr) {
+            //     return { 'start': otr.startTime, 'end': otr.endTime };
+            //   });
+            throw "NotImplemented; use DAILY or WEEKLY instead, or implement.";
+            break;
+        }
+      },
+
+
+      /**
+       * Determines the scheduled and 
+       * @param  {[type]} medPromptTriggerDateTimes) {            var fn = 'getScheduledAndUnscheduledEMAs'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}                            [description]
+       */
+      getScheduledAndUnscheduledEMAs: function(medPromptTriggerDateTimes, schedulingFrequencyAsICal) { var fn = 'getScheduledAndUnscheduledEMAs'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
+
         // get available open time ranges
         var wakeTime = self.userCfg.promptBehavior.wakeSleepTimes.daily.wakeTime;
         var sleepTime = self.userCfg.promptBehavior.wakeSleepTimes.daily.sleepTime;
-        var openTimeRanges = self.getOpenTimeRanges(wakeTime, sleepTime, medPromptTriggerDateTimes, self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMins);
+        var openTimeRangesFor1Day = self.getOpenTimeRanges(wakeTime, sleepTime, medPromptTriggerDateTimes, self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMins);
+
+        // get all open time ranges for the specified period
+        var openTimeRanges = self.getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal(openTimeRangesFor1Day, schedulingFrequencyAsICal);
+
+        // get the set of EMAs from-which to randomly-select and randomly schedule
+        // var emaTransitionObjs = _.keys(self.appCfg.staticOrDefault.transition.onEMAYes);
+        var emaTransitionObjs = 
+          _.filter(
+            _.keys(self.appCfg.staticOrDefault.showNativeDialog.assessment.frequencyAsICal),
+            function(k) {
+              return self.appCfg.staticOrDefault.showNativeDialog.assessment.frequencyAsICal[k] == schedulingFrequencyAsICal;
+            }
+          );
+        self.debug('emaTransitionObjs = ' + emaTransitionObjs, fn);
 
         // generate the time ranges between which EMAs may be prompted
-        var emaTransitionAndScheduleObjs = _.map(emaTransitionObjs, function(key) {
+        var scheduledEMAs = _.map(emaTransitionObjs, function(key) {
           var survSched = {
             'name': key,
             'time': self.getRandomDateTimeAcrossAllOpenRanges(openTimeRanges),
@@ -1106,111 +1151,178 @@ var PRNM = (function(exports) {
           self.debug('survSched = ' + JSON.stringify(survSched),fn);
           return survSched;
         });
-        self.debug('emaTransitionAndScheduleObjs = ' + JSON.stringify(emaTransitionAndScheduleObjs));
+        self.debug('scheduledEMAs = ' + JSON.stringify(scheduledEMAs));
 
         // if any EMA does not have a time-slot, then barf-up an error; else, schedule them...
-        var unscheduledEMAs = _.filter(emaTransitionAndScheduleObjs, function(o) { return o.time == null; });
+        var unscheduledEMAs = _.filter(scheduledEMAs, function(o) { return o.time == null; });
         // self.debug('unscheduledEMAs = ' + self.getQuotedAndDelimitedStr(unscheduledEMAs, ',', "'"), fn);
         self.debug('unscheduledEMAs = ' + JSON.stringify(unscheduledEMAs), fn);
 
-        if(unscheduledEMAs.length > 0) {
-          var msg = "ERROR: the following EMAs do not have a randomly-scheduled time: " + _.pluck(unscheduledEMAs, 'name');
-          self.error(msg, fn);
-          self.updateWidget({
-            'identifier': self.envConsts.appCfg.namespace,
-            'title': self.appCfg.staticOrDefault.updateWidget.title,
-            'message': msg,
-            'action': 'PurpleRobot.launchApplication("com.google.android.gm");'
-          });
+        return [scheduledEMAs, unscheduledEMAs];
+      },
+
+
+      /**
+       * Sets scheduled EMAs in Purple Robot.
+       * @param {[type]} schedObj                  [description]
+       * @param {[type]} schedulingFrequencyAsICal [description]
+       */
+      setScheduledEMA: function(schedObj, emaTransitionAndScheduleObjs, schedulingFrequencyAsICal) { var fn = 'setScheduledEMA'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        var schedObjStr = JSON.stringify(schedObj);
+        self.debug('schedObj = ' + schedObjStr, fn);
+        
+        var sdt = schedObj.time;
+        self.debug('sdt = ' + sdt, fn);
+        var  type = 'datetime'
+            // ,name = self.triggerIdPrefixes.medPrompt + schedObj.medication + ' at ' + schedObj.time
+            ,triggerId = self.genEMAPromptTriggerId(schedObj)
+            ,actionScriptText = null
+            ,startDateTime = sdt
+            ,endDateTime = sdt.clone().addMinutes(1)
+            ,untilDateTime = (new Date())
+              .addDays(1)
+            ;
+        // var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
+        var repeatStr = 'FREQ=' + schedulingFrequencyAsICal + ';INTERVAL=1;UNTIL=' + untilDateTime.toICal();
+        self.debug('triggerId = ' + triggerId, fn);
+
+        // map the schedule ID to the trigger ID
+        schedObj.triggerId = triggerId;
+        // ...in parent...
+        if(schedObj.childId == null) {
+          var parent = _.find(emaTransitionAndScheduleObjs, function(o) { return o.id == schedObj.parentId; });
+          parent.childTriggerId = triggerId;
         }
-        else {
-          // Implementing the logic of:
-          //    If prompt not answered:
-          //      EMAs will wait 30 mins to prompt only 1 time.
-          //      If after second prompt for same EMA the EMA is not answered, do not prompt a third time.
-          // Let's do this by simply creating a second trigger for each EMA trigger. This second trigger will be deleted on user button-press; else, it will execute.
-          emaTransitionAndScheduleObjs = emaTransitionAndScheduleObjs.concat(
-            _.map(emaTransitionAndScheduleObjs, function(o) {
-              // shallow-copy the object; this is OK because it's only 1-level deep anyway.
-              var sched2 = _.clone(o);
-              sched2.time       = sched2.time.clone().addMinutes(30);
-              sched2.parentId   = o.id;
-              sched2.id         = sched2.name + sched2.time;
-              sched2.triggerId  = null;
-              o.childId         = sched2.id;
-              return sched2;
-            })
-          );
-          self.debug('*** emaTransitionAndScheduleObjs.length = ' + emaTransitionAndScheduleObjs.length, fn);
-          self.debug('*** JSON.stringify(emaTransitionAndScheduleObjs) = ' + JSON.stringify(emaTransitionAndScheduleObjs), fn);
 
-          // reverse the array so we work from leaf-nodes up -- this makes getting the triggerId of children much simpler!
-          emaTransitionAndScheduleObjs.reverse();
+        var showNativeDialogParams = self.getQuotedAndDelimitedStr([
+          self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.title, schedObj)
+          ,self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.message, schedObj)
+          ,'OK'
+          ,null
+          // v3 - WORKS!!!!!
+          // In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
+          // 
+          // The idea here is to mock the 'self' object using the specified function's current context.
+          // Then, specify all the function dependencies in-order in the array string here.
+          // Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
+          // Then, append the current dose as a string.
+          // All of this gets eval'd in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
+          ,self.convertFnToString(self.actions.onEMAYes, [
+              self.actionFns.getCommonFnSetForActions()
+            + self.actionFns.getTriggerFns() 
+            + self.actionFns.getEMAPromptFns()
+            + self.actionFns.getAppCfgFns()
+            + 'var schedObj = ' + schedObjStr + ';'
+            + 'var triggerId = "' + triggerId + '";'
+            + 'var childTriggerId = ' + (schedObj.childId == null ? null : '"' + schedObj.childTriggerId + '"') + ';'
+            ])
+          ,null
+          ], ',', "'", [null]);
 
-          // set EMA triggers
-          _.each(emaTransitionAndScheduleObjs, function(schedObj) {
-            var schedObjStr = JSON.stringify(schedObj);
-            self.debug('schedObj = ' + schedObjStr, fn);
-            
-            var sdt = schedObj.time;
-            self.debug('sdt = ' + sdt, fn);
-            var  type = 'datetime'
-                // ,name = self.triggerIdPrefixes.medPrompt + schedObj.medication + ' at ' + schedObj.time
-                ,triggerId = self.genEMAPromptTriggerId(schedObj)
-                ,actionScriptText = null
-                ,startDateTime = sdt
-                ,endDateTime = sdt.clone().addMinutes(1)
-                ,untilDateTime = (new Date())
-                  .addDays(1)
-                ;
-            var repeatStr = 'FREQ=DAILY;INTERVAL=1;UNTIL=' + untilDateTime.toICal();
-            self.debug('triggerId = ' + triggerId, fn);
+        // the generated action to execute in a trigger
+        actionScriptText = 
+            'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
+          + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
+        
+        // self.debug('actionScriptText = ' + actionScriptText,fn);
+        // var name = self.appCfg.staticOrDefault.showNativeDialog.assessment.title;
+        var name = self.appCfg.staticOrDefault.showNativeDialog.assessment.title + ', EMA@' + startDateTime.toString('MM/dd h:mmtt');
+        self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
-            // map the schedule ID to the trigger ID
-            schedObj.triggerId = triggerId;
-            // ...in parent...
-            if(schedObj.childId == null) {
-              var parent = _.find(emaTransitionAndScheduleObjs, function(o) { return o.id == schedObj.parentId; });
-              parent.childTriggerId = triggerId;
-            }
+      },
 
-            var showNativeDialogParams = self.getQuotedAndDelimitedStr([
-              self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.title, schedObj)
-              ,self.replaceTokensForEMA(self.appCfg.staticOrDefault.showNativeDialog.assessment.message, schedObj)
-              ,'OK'
-              ,null
-              // v3 - WORKS!!!!!
-              // In the parameters to the specified function (e.g. the parameters to onMedPromptYes are specified in the array passed as the second param to convertFnToString):
-              // 
-              // The idea here is to mock the 'self' object using the specified function's current context.
-              // Then, specify all the function dependencies in-order in the array string here.
-              // Then, functions that live in PRNM can access other functions that live in PRNM -- enabling code-reuse.
-              // Then, append the current dose as a string.
-              // All of this gets eval'd in the trigger action, including the dose string (making it a dose obj after eval) and ready for use in the trigger.
-              ,self.convertFnToString(self.actions.onEMAYes, [
-                  self.actionFns.getCommonFnSetForActions()
-                + self.actionFns.getTriggerFns() 
-                + self.actionFns.getEMAPromptFns()
-                + self.actionFns.getAppCfgFns()
-                + 'var schedObj = ' + schedObjStr + ';'
-                + 'var triggerId = "' + triggerId + '";'
-                + 'var childTriggerId = ' + (schedObj.childId == null ? null : '"' + schedObj.childTriggerId + '"') + ';'
-                ])
-              ,null
-              ], ',', "'", [null]);
 
-            // the generated action to execute in a trigger
-            actionScriptText = 
-                'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
-              + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
-            
-            self.debug('actionScriptText = ' + actionScriptText,fn);
-            var name = self.appCfg.staticOrDefault.showNativeDialog.assessment.title;
-            self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
+      // /**
+      //  * Sets all EMA prompts (survey prompts) for the following 168 hours.
+      //  * @param {[type]} ) { var fn = 'setAllWeeklyEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
+      //  */
+      // setAllWeeklyEMAPrompts: function(medPromptTriggerDateTimes) { var fn = 'setAllWeeklyEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      //   self.debug('entered', fn);
 
-          });
+      //   var schedulingFrequencyAsICal = 'WEEKLY';
+      //   var scheduledAndUnscheduledEMAs = self.getScheduledAndUnscheduledEMAs(medPromptTriggerDateTimes, schedulingFrequencyAsICal);
+      //   var emaTransitionAndScheduleObjs = scheduledAndUnscheduledEMAs[0];
+      //   var unscheduledEMAs = scheduledAndUnscheduledEMAs[1];
 
-        }
+      //   if(unscheduledEMAs.length > 0) {
+      //     var msg = "ERROR: the following EMAs do not have a randomly-scheduled time: " + _.pluck(unscheduledEMAs, 'name');
+      //     self.error(msg, fn);
+      //     self.updateWidget({
+      //       'identifier': self.envConsts.appCfg.namespace,
+      //       'title': self.appCfg.staticOrDefault.updateWidget.title,
+      //       'message': msg,
+      //       'action': 'PurpleRobot.launchApplication("com.google.android.gm");'
+      //     });
+      //   }
+      //   else {
+      //     // emaTransitionAndScheduleObjs represents a set of start/end times for 1 day. Duplicate this pattern for all 7 days.
+      //     _.each(emaTransitionAndScheduleObjs, function(schedObj) { self.setAllWeeklyEMAPrompts(schedObj, emaTransitionAndScheduleObjs, schedulingFrequencyAsICal); });
+      //   }
+      // },
+
+
+      /**
+       * Sets all EMA prompts (survey prompts) for the following 24 hours.
+       * @param  {[type]} ) {            var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}   [description]
+       */
+      // setAllEMAPrompts: function(createdMedPromptTriggerIds) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      //  self.debug('entered; createdMedPromptTriggerIds = ' + createdMedPromptTriggerIds,fn);
+      setAllEMAPrompts: function(medPromptTriggerDateTimes) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
+
+        // get the configs necessary to run, if not done already.
+        self.getUserCfg();
+        self.getAppCfg();
+
+        // for each scheduling frequency we handle...
+        _.each(['DAILY', 'WEEKLY'], function(schedulingFrequencyAsICal) {
+
+          // get the scheduled and unscheduled EMAs
+          var scheduledAndUnscheduledEMAs = self.getScheduledAndUnscheduledEMAs(medPromptTriggerDateTimes, schedulingFrequencyAsICal);
+          var scheduledEMAs = scheduledAndUnscheduledEMAs[0];
+          var unscheduledEMAs = scheduledAndUnscheduledEMAs[1];
+
+          // if a scheduling error occurred...
+          if(unscheduledEMAs.length > 0) {
+            var msg = "ERROR: the following EMAs do not have a randomly-scheduled time: " + _.pluck(unscheduledEMAs, 'name');
+            self.error(msg, fn);
+            self.updateWidget({
+              'identifier': self.envConsts.appCfg.namespace,
+              'title': self.appCfg.staticOrDefault.updateWidget.title,
+              'message': msg,
+              'action': 'PurpleRobot.launchApplication("com.google.android.gm");'
+            });
+          }
+          else {
+            // Implementing the logic of:
+            //    If prompt not answered:
+            //      EMAs will wait 30 mins to prompt only 1 time.
+            //      If after second prompt for same EMA the EMA is not answered, do not prompt a third time.
+            // Let's do this by simply creating a second trigger for each EMA trigger. This second trigger will be deleted on user button-press; else, it will execute.
+            scheduledEMAs = scheduledEMAs.concat(
+              _.map(scheduledEMAs, function(o) {
+                // shallow-copy the object; this is OK because it's only 1-level deep anyway.
+                var sched2 = _.clone(o);
+                sched2.time       = sched2.time.clone().addMinutes(30);
+                sched2.parentId   = o.id;
+                sched2.id         = sched2.name + sched2.time;
+                sched2.triggerId  = null;
+                o.childId         = sched2.id;
+                return sched2;
+              })
+            );
+            self.debug('*** scheduledEMAs.length = ' + scheduledEMAs.length, fn);
+            self.debug('*** JSON.stringify(scheduledEMAs) = ' + JSON.stringify(scheduledEMAs), fn);
+
+            // reverse the array so we work from leaf-nodes up -- this makes getting the triggerId of children much simpler!
+            scheduledEMAs.reverse();
+
+            // set EMA triggers
+            _.each(scheduledEMAs, function(schedObj) { self.setScheduledEMA(schedObj, scheduledEMAs, schedulingFrequencyAsICal); });
+          }
+
+        });
 
         self.debug('exiting',fn);
       },
@@ -1220,28 +1332,35 @@ var PRNM = (function(exports) {
 
       replaceTokensForMedPrompt: function(inStr, dose) { var fn = 'replaceTokensForMedPrompt'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         var outStr = inStr;
+        self.debug('entered; outStr = ' + outStr + '; dose = ' + JSON.stringify(dose), fn);
         var timeFormat = (self.getAppCfg()).staticOrDefault.timeFormat;
-        self.debug('outStr = ' + outStr + '; dose = ' + JSON.stringify(dose), fn);
+
+        // self.debug('replacing tokens in: ' + outStr, fn);
         // provide some nice tokenizing string-replacement for ID-setting
         //    %M = the dose medication
         //    %T = the dose time
         //    %S = the dose strength
         //    %U = the dispensation unit
+        //    %O = a time offset string for the name string in Purple Robot
         _.each([
            {'%M': dose.medication}
+           // {'%M': (function() { self.debug('dose = ' + JSON.stringify(dose)); return dose.medication; })()}
           ,{'%T': (self.genDateFromTime(dose.time)).toString(timeFormat) }
           ,{'%S': dose.strength}
           ,{'%U': dose.dispensationUnit}
+          ,{'%O': dose.timeOffsetStr ? dose.timeOffsetStr : ''}
           ], function(replacementPair) {
+            // self.debug('replacementPair = ' + replacementPair, fn);
+            // self.debug('dose = ' + JSON.stringify(dose), fn);
             var key = _.keys(replacementPair)[0];
             outStr = outStr.replace(key, replacementPair[key]);
         });
-        // self.debug('exiting; outStr = ' + outStr,fn);
+        self.debug('exiting; outStr = ' + outStr,fn);
         return outStr;
       },
 
 
-      replaceTokensForUser: function(inStr) { var fn = 'replaceTokensForMedPrompt'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      replaceTokensForUser: function(inStr) { var fn = 'replaceTokensForUser'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         var outStr = inStr;
         var userCfg = (self.getUserCfg());
         // provide some nice tokenizing string-replacement for ID-setting
@@ -1265,8 +1384,9 @@ var PRNM = (function(exports) {
 
 
       genMedPromptTriggerId: function(dose) { var fn = 'genMedPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered',fn);
+        self.debug('entered; dose = ' + JSON.stringify(dose),fn);
         var id = self.replaceTokensForMedPrompt((self.getAppCfg()).staticOrDefault.showNativeDialog.medPrompt.identifier, dose);
+        self.debug('exiting; id = ' + id,fn);
         return id;
       },
 
@@ -1424,7 +1544,7 @@ var PRNM = (function(exports) {
           //   + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
           actionScriptText = self.getMedPromptActionText(triggerId, doseStr, d);
           
-          var name = self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title;
+          var name = self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title + ', MP';
           self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
           // keep track of all the MedPrompt-at-the-scheduled-time triggers we've created
@@ -1439,6 +1559,7 @@ var PRNM = (function(exports) {
           //     'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
           //   + 'PurpleRobot.showNativeDialog(' + showNativeDialogParamsPlusTTL + ');';
           actionScriptText = self.getMedPromptActionText(triggerIdPlusTTL, doseStr, d);
+          name = name + ' +' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min'
           self.setDateTimeTrigger(triggerIdPlusTTL, type, name, actionScriptText, startDateTime.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), endDateTime.addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), repeatStr);
 
 
@@ -1452,7 +1573,9 @@ var PRNM = (function(exports) {
           // reminder due in the next 60 minutes. One hour (60 minutes) before the medication is 
           // due a “countdown” timer will begin for that dose.
           self.log('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + ' from the prompt time.', fn);
-          var triggerIdFirstPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + 'min';
+          // var triggerIdFirstPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + 'min';
+          d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + 'min:W';
+          var triggerIdFirstPrior     = self.genMedPromptTriggerId(d);
           var startDateTimeFirstPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first));
           var endDateTimeFirstPrior   = startDateTimeFirstPrior.clone().addMinutes(1);
           var untilDateTimeFirstPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second));
@@ -1478,7 +1601,9 @@ var PRNM = (function(exports) {
           // five-minute warning. At the time their dose is due (in this example 12:00pm) 
           // the pop-up will appear (as indicated on the logic diagram).
           self.log('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + ' from the prompt time.', fn);
-          var triggerIdSecondPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + 'min';
+          // var triggerIdSecondPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + 'min';
+          d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + 'min:W';
+          var triggerIdSecondPrior     = self.genMedPromptTriggerId(d);
           var startDateTimeSecondPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second));
           var endDateTimeSecondPrior   = startDateTimeSecondPrior.clone().addMinutes(1);
           var untilDateTimeSecondPrior = sdt.clone();
@@ -1515,7 +1640,9 @@ var PRNM = (function(exports) {
 
           // * Generate NonResponsive state trigger *
           self.log('Generating Non-Responsive state trigger starting at the prompt time (' + sdt + ').', fn);
-          var triggerIdNonResponsive     = self.genMedPromptTriggerId(d) + '-nonResponsive+0min';
+          // var triggerIdNonResponsive     = self.genMedPromptTriggerId(d) + '-nonResponsive+0min';
+          d.timeOffsetStr = '+0min:W';
+          var triggerIdNonResponsive     = self.genMedPromptTriggerId(d);
           var startDateTimeNonResponsive = sdt.clone();
           var endDateTimeNonResponsive   = startDateTimeNonResponsive.clone().addMinutes(1);
           var untilDateTimeNonResponsive = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
@@ -1538,7 +1665,10 @@ var PRNM = (function(exports) {
           
           // * Generate automatic-return-to-Neutral-state trigger *
           self.log('Generating Neutral state trigger starting at the prompt time (' + sdt + ').', fn);
-          var triggerIdNeutral     = triggerId + '-retToNeutral+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+          // var triggerIdNeutral     = triggerId + '-retToNeutral+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+          d.timeOffsetStr = '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min:W';
+          // var triggerIdNeutral     = triggerId + d.timeOffsetStr + ':W' + '-retToNeutral+';
+          var triggerIdNeutral     = self.genMedPromptTriggerId(d);
           var startDateTimeNeutral = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
           var endDateTimeNeutral   = startDateTimeNeutral.clone().addMinutes(1);
           var untilDateTimeNeutral = startDateTimeNeutral.clone().addMinutes(1);
@@ -1610,6 +1740,7 @@ var PRNM = (function(exports) {
             + 'PurpleRobot.updateWidget(updateWidgetParams);'
             ;
       },
+
 
       replaceTokensForWidget: function(inStr, nextDoseTime) { var fn = 'replaceTokensForWidget'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         var outStr = inStr;
@@ -1734,7 +1865,7 @@ var PRNM = (function(exports) {
         self.appendNonZeroLenValueToWidgetParams(updateWidgetParams, 'title_color', selectedTextColor);
         
         // update the widget
-        self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
+        // self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
         self.updateWidget(updateWidgetParams);
 
         self.debug('exiting', fn);
@@ -1787,7 +1918,7 @@ var PRNM = (function(exports) {
             + 'Date.prototype.toICal = ' + Date.prototype.toICal.toString() + ';'
             + 'self.iCalToDate = ' + self.iCalToDate.toString() + ';'
             ;
-          self.debug(fn + ' = ' + s, fn);
+          // self.debug(fn + ' = ' + s, fn);
           return s;
         },
 
@@ -1815,6 +1946,7 @@ var PRNM = (function(exports) {
         getMedPromptFns: function() { var fn = 'getTriggerFns'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
           var s = 'self.genMedPromptTriggerId = ' + self.genMedPromptTriggerId.toString() + ';'
                 + 'self.replaceTokensForMedPrompt = ' + self.replaceTokensForMedPrompt.toString() + ';'
+                + 'self.genDateFromTime = ' + self.genDateFromTime.toString() + ';'
             ; 
           // self.debug(fn + ' = ' + s, fn);
           return s;

@@ -81,6 +81,12 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.deleteTrigger(triggerIdToDelete);
 
 
+        dose.timeOffsetStr = '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min:W';
+        triggerIdToDelete     = self.genMedPromptTriggerId(dose);
+				self.log('Deleting return-to-neutral trigger; ID = ' + triggerIdToDelete, fn);
+				self.deleteTrigger(triggerIdToDelete);
+
+
 				var updateWidgetParams = {
 					'identifier': self.appCfg.staticOrDefault.namespace,
 					'message': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
@@ -144,6 +150,12 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					: triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min'
 				);
 				self.log('Deleting reminder trigger; ID = ' + triggerIdToDelete, fn);
+				self.deleteTrigger(triggerIdToDelete);
+
+
+        dose.timeOffsetStr = '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min:W';
+        triggerIdToDelete     = self.genMedPromptTriggerId(dose);
+				self.log('Deleting return-to-neutral trigger; ID = ' + triggerIdToDelete, fn);
 				self.deleteTrigger(triggerIdToDelete);
 
 
