@@ -1840,6 +1840,7 @@ self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].s
                 ]
               )
             + ');'
+            // '/* INTENTIONALLY BLANK */'
         };
 
         // get & display the total # points and display them in the widget
@@ -1847,8 +1848,10 @@ self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].s
         self.debug('pointsFromPr = ' + pointsFromPr, fn);
         if(!self.isNullOrUndefined(pointsFromPr)) {
           var points = JSON.parse(pointsFromPr);
-          self.debug('points.total = ' + points.total, fn);
-          updateWidgetParams['badge'] = points.total;
+          if(!self.isNullOrUndefined(points.total)) {
+            self.debug('points.total = ' + points.total, fn);
+            updateWidgetParams['badge'] = points.total;
+          }
         }
         else {
           self.debug('No points path...', fn);
@@ -1866,6 +1869,15 @@ self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].s
         
         // update the widget
         // self.debug('updateWidgetParams = ' + JSON.stringify(updateWidgetParams), fn);
+
+        self.debug('_.keys(updateWidgetParams) = ' + _.keys(updateWidgetParams), fn);
+        // self.debug('_.values(updateWidgetParams) = ' + _.reject(_.values(updateWidgetParams), function(v) { return (!self.isNullOrUndefined(v) && v.length > 2048); }), fn);
+        var charsToDisplay = 1024;
+        self.debug('_.values(updateWidgetParams) = ' + 
+          _.map(_.values(updateWidgetParams), function(v) { 
+            return (!self.isNullOrUndefined(v) && v.length > charsToDisplay ? v.substr(0,2*charsToDisplay) + ' ...TRUNCATING... ' + v.substr(v.length-charsToDisplay, charsToDisplay) : v);
+          }), fn);
+
         self.updateWidget(updateWidgetParams);
 
         self.debug('exiting', fn);
