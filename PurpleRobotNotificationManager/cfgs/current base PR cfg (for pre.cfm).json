@@ -79,6 +79,7 @@
 						}
 					}
 				},
+				"weeklyScheduleRunDay": "Thurs",
 				"vibratePattern": "buzz",
 				"timeFormat": "h:mmtt"
 			},
@@ -177,6 +178,7 @@
 						}
 					}
 				},
+				"weeklyScheduleRunDay": "Thurs",
 				"vibratePattern": "buzz",
 				"timeFormat": "h:mmtt"
 			},

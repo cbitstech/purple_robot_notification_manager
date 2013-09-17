@@ -570,8 +570,33 @@ Date.today().setTimeToNow();
     );
 
 
+    test('isDayToRunWeeklyScheduling', cases([
+       [new Date(2013,8,12,17,0,0), true]
+      ,[new Date(2013,8,13,18,0,0), false]
+      ,[new Date(2013,8,19,21,0,0), true]
+      // ,[null, false]
+      ],
+      function(testDate, expected) {
+        var actual = self.isDayToRunWeeklyScheduling(testDate);
+        assert.equal(actual, expected);
+      })
+    );
+
+
+    test('isWeeklyTrigger', cases([
+       ['the Craving survey', false]
+      ,['taking a Mood survey at 9:30AM', true]
+      ,['no more SideEffect?', false]
+      ],
+      function(triggerId, expected) {
+        var actual = self.isWeeklyTrigger(triggerId);
+        assert.equal(actual, expected);
+      })
+    );
+
+
     test('isNullOrUndefined', cases([
-      [ '"', false ]
+       [ '"', false ]
       ,[ null, true ]
       ,[ undefined, true ]
       ,[ 'foobar', false ]
@@ -580,7 +605,7 @@ Date.today().setTimeToNow();
         var actual = self.isNullOrUndefined(v);
         assert.equal(actual, expected);        
       })
-    )
+    );
 
 
     test('main', function() {

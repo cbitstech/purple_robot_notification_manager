@@ -885,6 +885,11 @@ var PRNM = (function(exports) {
       },
 
 
+      /**
+       * Generates an EMA prompt trigger ID.
+       * @param  {[type]} schedObj) {            var fn = 'genEMAPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}           [description]
+       */
       genEMAPromptTriggerId: function(schedObj) { var fn = 'genEMAPromptTriggerId'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.debug('entered',fn);
         var id = self.replaceTokensForEMA((self.getAppCfg()).staticOrDefault.showNativeDialog.assessment.identifier, schedObj);
@@ -1082,7 +1087,7 @@ var PRNM = (function(exports) {
        */
       getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal: function(openTimeRanges, schedulingFrequencyAsICal) { var fn = 'getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.debug('entered; openTimeRanges = ' + JSON.stringify(openTimeRanges) + '; schedulingFrequencyAsICal = ' + schedulingFrequencyAsICal, fn);
-self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].start));
+// self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].start));
 
         switch(schedulingFrequencyAsICal) {
           case 'DAILY':
@@ -1147,7 +1152,8 @@ self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].s
             'childId': null,
             'triggerId': null
           };
-          survSched.id = survSched.name + survSched.time;
+          // survSched.id = self.appCfg.staticOrDefault.namespace + survSched.name + survSched.time;
+          survSched.id = self.getEMAIDStr(self.appCfg.staticOrDefault.namespace, survSched.name, survSched.time);
           self.debug('survSched = ' + JSON.stringify(survSched),fn);
           return survSched;
         });
@@ -1230,35 +1236,31 @@ self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].s
         self.setDateTimeTrigger(triggerId, type, name, actionScriptText, startDateTime, endDateTime, repeatStr);
 
       },
+      
+
+      /**
+       * Determine whether it's time to run the weekly scheduling.
+       * @param  {[type]}  currDateTime) {            var fn = 'isDayToRunWeeklyScheduling'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {Boolean}               [description]
+       */
+      isDayToRunWeeklyScheduling: function(currDateTime) { var fn = 'isDayToRunWeeklyScheduling'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        var calcDate = self.isNullOrUndefined(currDateTime) ? (new Date()) : currDateTime;
+        self.debug('entered; run day = ' + self.appCfg.staticOrDefault.weeklyScheduleRunDay + '; calcDate = ' + calcDate, fn);
+        self.getAppCfg();
+        return calcDate.getDay() == Date.getDayNumberFromName(self.appCfg.staticOrDefault.weeklyScheduleRunDay);
+      },
 
 
-      // /**
-      //  * Sets all EMA prompts (survey prompts) for the following 168 hours.
-      //  * @param {[type]} ) { var fn = 'setAllWeeklyEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
-      //  */
-      // setAllWeeklyEMAPrompts: function(medPromptTriggerDateTimes) { var fn = 'setAllWeeklyEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-      //   self.debug('entered', fn);
-
-      //   var schedulingFrequencyAsICal = 'WEEKLY';
-      //   var scheduledAndUnscheduledEMAs = self.getScheduledAndUnscheduledEMAs(medPromptTriggerDateTimes, schedulingFrequencyAsICal);
-      //   var emaTransitionAndScheduleObjs = scheduledAndUnscheduledEMAs[0];
-      //   var unscheduledEMAs = scheduledAndUnscheduledEMAs[1];
-
-      //   if(unscheduledEMAs.length > 0) {
-      //     var msg = "ERROR: the following EMAs do not have a randomly-scheduled time: " + _.pluck(unscheduledEMAs, 'name');
-      //     self.error(msg, fn);
-      //     self.updateWidget({
-      //       'identifier': self.envConsts.appCfg.namespace,
-      //       'title': self.appCfg.staticOrDefault.updateWidget.title,
-      //       'message': msg,
-      //       'action': 'PurpleRobot.launchApplication("com.google.android.gm");'
-      //     });
-      //   }
-      //   else {
-      //     // emaTransitionAndScheduleObjs represents a set of start/end times for 1 day. Duplicate this pattern for all 7 days.
-      //     _.each(emaTransitionAndScheduleObjs, function(schedObj) { self.setAllWeeklyEMAPrompts(schedObj, emaTransitionAndScheduleObjs, schedulingFrequencyAsICal); });
-      //   }
-      // },
+      /**
+       * Generates an EMA ID string.
+       * @param  {[type]} namespace [description]
+       * @param  {[type]} name      [description]
+       * @param  {[type]} time      [description]
+       * @return {[type]}           [description]
+       */
+      getEMAIDStr: function(namespace, name, time) {
+        return namespace + name + time;
+      },
 
 
       /**
@@ -1277,6 +1279,11 @@ self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].s
 
         // for each scheduling frequency we handle...
         _.each(['DAILY', 'WEEKLY'], function(schedulingFrequencyAsICal) {
+
+          // Skip the WEEKLY scheduling unless the current day is the specified day of the week.
+          if(schedulingFrequencyAsICal == 'WEEKLY' && !self.isDayToRunWeeklyScheduling()) {
+            return;
+          }
 
           // get the scheduled and unscheduled EMAs
           var scheduledAndUnscheduledEMAs = self.getScheduledAndUnscheduledEMAs(medPromptTriggerDateTimes, schedulingFrequencyAsICal);
@@ -1304,9 +1311,10 @@ self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].s
               _.map(scheduledEMAs, function(o) {
                 // shallow-copy the object; this is OK because it's only 1-level deep anyway.
                 var sched2 = _.clone(o);
-                sched2.time       = sched2.time.clone().addMinutes(30);
+                sched2.time       = sched2.time.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
                 sched2.parentId   = o.id;
-                sched2.id         = sched2.name + sched2.time;
+                // sched2.id         = self.appCfg.staticOrDefault.namespace + sched2.name + sched2.time;
+                sched2.id         = self.getEMAIDStr(self.appCfg.staticOrDefault.namespace, sched2.name, sched2.time);
                 sched2.triggerId  = null;
                 o.childId         = sched2.id;
                 return sched2;
@@ -2038,6 +2046,38 @@ self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].s
 
 
       /**
+       * Returns a list of assessment types by their frequency.
+       * @param  {[type]} schedulingFrequencyAsICal) {            var fn = "getEMATypeByPeriodicity"; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}                            [description]
+       */
+      getEMATypesForSchedulingFrequencyAsICal: function(schedulingFrequencyAsICal) { var fn = "getEMATypeByPeriodicity"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered; schedulingFrequencyAsICal = ' + schedulingFrequencyAsICal, fn);
+        self.getAppCfg();
+
+        return _.filter(
+            _.keys(self.appCfg.staticOrDefault.showNativeDialog.assessment.frequencyAsICal),
+            function(k) {
+              return self.appCfg.staticOrDefault.showNativeDialog.assessment.frequencyAsICal[k] == schedulingFrequencyAsICal;
+            }
+          );
+      },
+
+
+      /**
+       * Determines whether a trigger is a weekly trigger, based on the ID. (Is wholly-dependent on the construction of the trigger ID! This is more efficient than fetching the trigger and inspecting a particular property on it.)
+       * @param  {[type]}  triggerId [description]
+       * @return {Boolean}           [description]
+       */
+      isWeeklyTrigger: function(triggerId) { var fn = "isWeeklyTrigger"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered; triggerId = ' + triggerId, fn);
+        self.getAppCfg();
+
+        var weeklyAssessmentTypes = self.getEMATypesForSchedulingFrequencyAsICal('WEEKLY');
+        return _.any(weeklyAssessmentTypes, function(t) { return triggerId.indexOf(t) != -1; });
+      },
+
+
+      /**
        * Deletes all triggers except the PRNM trigger.
        * @return {[type]} [description]
        */
@@ -2045,7 +2085,34 @@ self.debug('_.isDate(openTimeRanges[0].start) = ' + _.isDate(openTimeRanges[0].s
         self.debug('entered', fn);
         var allTriggerIds = self.fetchTriggerIds();
         self.debug('allTriggerIds = ' + _.map(allTriggerIds, function(id) { return '' + id; }), fn);
-        var triggersToDelete = _.filter(allTriggerIds, function(triggerId) { return (triggerId != self.triggerIdPrefixes.self);});
+        // delete all triggers, except...
+        var triggersToDelete = _.filter(allTriggerIds, function(triggerId) {
+          
+          // the PRNM trigger (self)
+          var isSelf              = triggerId == self.triggerIdPrefixes.self;
+          // the weekly triggers, unless today is the day to generate them
+          var isWeekly = self.isWeeklyTrigger(triggerId);
+          var isDay = self.isDayToRunWeeklyScheduling();
+          
+          self.debug('isSelf = ' + isSelf, fn);
+          self.debug('isWeekly = ' + isWeekly, fn);
+          self.debug('isDay = ' + isDay, fn);
+
+          // for a true result in this table, delete the trigger:
+          //   SELF                   ==> false
+          //   ~SELF ^ ~WEEKLY        ==> true
+          //   ~SELF ^ WEEKLY ^ ~DAY  ==> false
+          //   ~SELF ^ WEEKLY ^ DAY   ==> true
+          var deleteTrigger = 
+            (
+                 (!isSelf && !isWeekly)
+              || (!isSelf && isWeekly && isDay)
+            )
+          ;
+
+          self.debug('deleteTrigger (' + triggerId + ') = ' + deleteTrigger, fn);
+          return deleteTrigger;
+        });
         self.debug('triggersToDelete = ' + _.map(triggersToDelete, function(id) { return '' + id; }), fn);
 
         // TODO: Looks like we need to *not* delete 'unidentified-trigger' here to prevent the PRNM trigger from being deleted. But why? Why is PRNM 'unidentified' at this point?
