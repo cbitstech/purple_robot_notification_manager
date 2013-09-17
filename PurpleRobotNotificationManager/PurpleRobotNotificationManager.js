@@ -90,24 +90,24 @@ Date.prototype.toICal = function() { var fn = 'Date.prototype.toICal';
 // Following Caolan's pattern for Node.js/Browser cross-compatibility: http://caolanmcmahon.com/posts/writing_for_node_and_the_browser/
 var PRNM = (function(exports) {
 
-    exports.test = function(){
-    return 'hello world from exports';
-  };
+    exports.test = function() {
+      return 'hello world from exports';
+    };
 
 
     // ctor
     // var ctor = function(d) {
     var ctor = function(d) { var fn = 'prnm:ctor';
 
-    ctor.prototype.data = d;
-    self = this;
+      ctor.prototype.data = d;
+      self = this;
 
-    ctor.prototype.setFunctionsAndLibraryRefsForEnv(d.env);
+      ctor.prototype.setFunctionsAndLibraryRefsForEnv(d.env);
 
       // set the self.appCfg instance variable
       self.getAppCfg();
 
-    ctor.prototype.debug('current date using date.js: ' + Date.today(),fn);
+      ctor.prototype.debug('current date using date.js: ' + Date.today(),fn);
 
       ctor.prototype.log('exiting...', fn);
       return ctor.prototype;
@@ -202,6 +202,15 @@ var PRNM = (function(exports) {
             self.fetchString = function(namespace, key) { return PurpleRobot.fetchString(namespace,key); };
             self.scheduleScript = function(id, date, action) { return PurpleRobot.scheduleScript(id, date, action); };
             self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { return PurpleRobot.showNativeDialog(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript); };
+            self.updatePurpleRobotConfiguration = function(jsonPrConfig) { var fn = "updatePurpleRobotConfiguration"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+              self.debug('entered',fn);
+              if(!self.isNullOrUndefined(jsonPrConfig)) {
+                self.debug('Updating PR config using jsonPrConfig = ' + JSON.stringify(jsonPrConfig), fn);
+                PurpleRobot.updateConfig(jsonPrConfig);
+              }
+              else { self.warn('Purple Robot configuration not updated; jsonPrConfig was null or undefined.', fn); }
+              self.debug('exiting',fn);
+            },
             self.updateWidget = function(params) { return PurpleRobot.updateWidget(params); };
             self.updateTrigger = function(triggerId, triggerObj) { return PurpleRobot.updateTrigger(triggerId, triggerObj) };
             self.fetchTriggerIds = function() { return PurpleRobot.fetchTriggerIds(); };
@@ -287,6 +296,14 @@ var PRNM = (function(exports) {
             self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
             self.scheduleScript = function(id, date, action) { var fn = 'scheduleScript'; self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr([id, date, action],','), fn); };
             self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript], ','), fn); };
+            self.updatePurpleRobotConfiguration = function(jsonPrConfig) { var fn = "updatePurpleRobotConfiguration"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+              self.debug('entered',fn);
+              if(!self.isNullOrUndefined(jsonPrConfig)) {
+                self.log('Would update PR config using the following config structure:\r\n' + JSON.stringify(jsonPrConfig), fn);
+              }
+              else { self.warn('Purple Robot configuration not updated; jsonPrConfig was null or undefined.', fn); }
+              self.debug('exiting',fn);
+            },
             self.updateWidget = function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); };
             self.updateTrigger = function(triggerId, triggerObj) { var fn = 'updateTrigger'; 
               // self.log('NOEXEC: updateTrigger: ' + self.getQuotedAndDelimitedStr([triggerId, JSON.stringify(triggerObj)],','), fn);
@@ -395,6 +412,14 @@ var PRNM = (function(exports) {
             self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
             self.scheduleScript = function(id, date, action) { var fn = 'scheduleScript'; self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr([id, date, action],','), fn); };
             self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript],','), fn); };
+            self.updatePurpleRobotConfiguration = function(jsonPrConfig) { var fn = "updatePurpleRobotConfiguration"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+              self.debug('entered',fn);
+              if(!self.isNullOrUndefined(jsonPrConfig)) {
+                self.log('Would update PR config using the following config structure:\r\n' + JSON.stringify(jsonPrConfig), fn);
+              }
+              else { self.warn('Purple Robot configuration not updated; jsonPrConfig was null or undefined.', fn); }
+              self.debug('exiting',fn);
+            },
             self.updateWidget = function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); };
             self.updateTrigger = function(triggerId, triggerObj) { var fn = 'updateTrigger'; self.log('NOEXEC: updateTrigger: ' + triggerId, JSON.stringify(triggerObj), fn); };
             self.fetchTriggerIds = function() { var fn = 'fetchTriggerIds'; self.log('NOEXEC: fetchTriggerIds', fn); return []; };
@@ -514,37 +539,11 @@ var PRNM = (function(exports) {
       // ==============================
 
 
-      // /**
-      //  * Returns all the dose times in a user config.
-      //  * @return {[type]} [description]
-      //  */
-      // getAllDoseTimes: function() { var fn = 'getAllDoseTimes'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-      //   self.debug('entered',fn);
-      //   self.getUserCfg();
-      //   // self.debug('self.userCfg = ' + JSON.stringify(self.userCfg),fn);
-      //   // self.debug('_.keys(self.userCfg) = ' + _.keys(self.userCfg),fn);
-      //   // self.debug('self.userCfg.doses = ' + self.userCfg.doses,fn);
-      //   var allDoseTimes = _.pluck(self.userCfg.doses, 'time');
-      //   self.debug('allDoseTimes = ' + allDoseTimes,fn);
-
-      //   self.debug('exiting',fn);
-      //   return allDoseTimes;
-      // },
-
-
       /**
        * Gets a Date object representing a randomly-selected time within a range. Useful for randomizing when a prompt must load.
        * @return {[type]} [description]
        */
       getRandomDateTimeWithinRange: function(startDateTime, endDateTime) { var fn = 'getRandomDateTimeWithinRange'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        // // apparently doing a date-diff in terms of milliseconds is way-simpler than I thought: http://stackoverflow.com/questions/327429/whats-the-best-way-to-calculate-date-difference-in-javascript
-        // var msInTimeSpan = endDateTime - startDateTime;
-        // // randomly-select an offset between 0 and msInTimeSpan, inclusive.
-        // var randVal = Math.random();
-        // var randOffsetInMs = (Math.floor(randVal * msInTimeSpan) + 1);
-        // var randDateTime = startDateTime.clone().addMilliseconds(randOffsetInMs);
-        // self.debug('randVal = ' + randVal + '; randDateTime = ' + randDateTime,fn);
-        // return randDateTime;
         // apparently doing a date-diff in terms of milliseconds is way-simpler than I thought: http://stackoverflow.com/questions/327429/whats-the-best-way-to-calculate-date-difference-in-javascript
         var msInTimeSpan = endDateTime - startDateTime;
         // randomly-select an offset between 0 and msInTimeSpan, inclusive.
@@ -643,15 +642,6 @@ var PRNM = (function(exports) {
        */
       // appConfig: {
         appConfigSampleTrigger: function() {
-            // 'onLoad': {
-            //  'actionItems': [
-            //    {
-            //      'name': 'example action item for use & reference in PhoneGap app',
-            //      'url': 'your-router-path-here',
-            //      'triggerId': 'MedPrompt: medA at 09:00:00'
-            //    }
-            //  ]
-            // },
           return {
             'createdOn': '20130523T150900',
             'createdInFn': '',
@@ -668,6 +658,7 @@ var PRNM = (function(exports) {
             }
           };
         },
+
 
         /**
          * A convenience function to get a trigger-state object for storing in the triggerState variable.
@@ -2092,11 +2083,7 @@ var PRNM = (function(exports) {
           var isSelf              = triggerId == self.triggerIdPrefixes.self;
           // the weekly triggers, unless today is the day to generate them
           var isWeekly = self.isWeeklyTrigger(triggerId);
-          var isDay = self.isDayToRunWeeklyScheduling();
-          
-          self.debug('isSelf = ' + isSelf, fn);
-          self.debug('isWeekly = ' + isWeekly, fn);
-          self.debug('isDay = ' + isDay, fn);
+          var isDayToRun = self.isDayToRunWeeklyScheduling();
 
           // for a true result in this table, delete the trigger:
           //   SELF                   ==> false
@@ -2106,11 +2093,11 @@ var PRNM = (function(exports) {
           var deleteTrigger = 
             (
                  (!isSelf && !isWeekly)
-              || (!isSelf && isWeekly && isDay)
+              || (!isSelf && isWeekly && isDayToRun)
             )
           ;
 
-          self.debug('deleteTrigger (' + triggerId + ') = ' + deleteTrigger, fn);
+          self.debug('deleteTrigger (' + triggerId + ') = ' + deleteTrigger + ' given: ' + [isSelf,isWeekly,isDayToRun], fn);
           return deleteTrigger;
         });
         self.debug('triggersToDelete = ' + _.map(triggersToDelete, function(id) { return '' + id; }), fn);
@@ -2150,15 +2137,22 @@ var PRNM = (function(exports) {
         self.log('entered: args: ' + args, fn);
         self.log('execution context: ' + self.execCtx, fn);
 
-        // reset the available set of triggers
-        self.log('Clearing all non-PRNM triggers...', fn);
-        self.clearAllNonPRNMTriggers();
-  
         // create the app config repo in PR, if not already created.
         self.log('Creating the appCfg...', fn);
         self.appConfigCreate(self.envConsts.appCfg.namespace, self.envConsts.appCfg.key);
 
-        // // set MedPrompt triggers
+        // updating PR configuration values
+        self.log('Updating Purple Robot configuration...', fn);
+        self.debug('self.appCfg = ' + self.appCfg, fn);
+        self.debug('JSON.stringify(self.appCfg) = ' + JSON.stringify(self.appCfg), fn);
+        self.debug('self.appCfg.staticOrDefault.PurpleRobotConfigurationUpdateConfig = ' + self.appCfg.staticOrDefault.PurpleRobotConfigurationUpdateConfig, fn);
+        self.updatePurpleRobotConfiguration(self.appCfg.staticOrDefault.PurpleRobotConfigurationUpdateConfig);
+
+        // reset the available set of triggers
+        self.log('Clearing all non-PRNM triggers...', fn);
+        self.clearAllNonPRNMTriggers();
+  
+        // set MedPrompt triggers
         self.log('Setting all MedPrompts...', fn);
         var createdMedPromptTriggerIds = self.setAllMedPrompts();
 

@@ -595,6 +595,18 @@ Date.today().setTimeToNow();
     );
 
 
+    test('updatePurpleRobotConfiguration', cases(
+      [
+         [null]
+        ,[{ "config_data_server_uri":"http://app2.cbits.northwestern.edu/" }]
+      ],
+      function(configuration) {
+        var actual = self.updatePurpleRobotConfiguration(configuration);
+        console.log('Ran without blowing-up.');
+      })
+    );
+
+
     test('isNullOrUndefined', cases([
        [ '"', false ]
       ,[ null, true ]

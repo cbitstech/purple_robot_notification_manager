@@ -4,6 +4,10 @@
 		"namespace": "H2H",
 		"appPackageName": "edu.northwestern.cbits.umb.h2h",
 
+		"PurpleRobotConfigurationUpdateConfig": { 
+			"config_data_server_uri": "https://app2.cbits.northwestern.edu/prImporter"
+		},
+
 		"medPrompt": {
 			"wisePillLastSeenUrl": "http://mohrlab.northwestern.edu/umb/integrations/?user_id=%USER&device=wisepill&key=lastSeen"
 		},
