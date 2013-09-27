@@ -102,6 +102,7 @@ var PRNM = (function(exports) {
       ctor.prototype.data = d;
       self = this;
 
+      // this sets-up a function-reusability layer across Node.js, Purple Robot, and web browsers.
       ctor.prototype.setFunctionsAndLibraryRefsForEnv(d.env);
 
       // set the self.appCfg instance variable
