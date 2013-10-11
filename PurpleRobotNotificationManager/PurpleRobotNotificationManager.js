@@ -1485,10 +1485,12 @@ var PRNM = (function(exports) {
             // if the user has opened the pillbox in the last 5 minutes, then do not notify them to take their pill; else, do notify them.
             + '  if(wisePillLastSeenDateTime > currDateMinus5Min) {'
             // + '    PurpleRobot.log(\'[getMedPromptActionText] 6\');'
+            + '    PurpleRobot.persistString(\'' + self.envConsts.appCfg.namespace + '\', \'pillboxOpened\',\'true\');'
             + '    PurpleRobot.deleteTrigger(\'' + triggerId + '\');'
             + '  }'
             + '  else {'
             // + '    PurpleRobot.log(\'[getMedPromptActionText] 7\');'
+            + '    PurpleRobot.persistString(\'' + self.envConsts.appCfg.namespace + '\', \'pillboxOpened\',\'false\');'
             + '    PurpleRobot.vibrate(\''+ (self.getAppCfg()).staticOrDefault.vibratePattern +'\');'
             + '    PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');'
             + '  }'
