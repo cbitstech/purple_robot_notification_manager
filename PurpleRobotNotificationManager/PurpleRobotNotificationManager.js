@@ -1509,6 +1509,36 @@ var PRNM = (function(exports) {
 
 
       /**
+       * Returns the set of doses, sorted by start datetime.
+       * @return {[type]} [description]
+       */
+      getSortedDoses: function() { var fn = 'getSortedDoses'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered',fn);
+        self.getUserCfg();
+        return self.userCfg.doses.sort(function(a,b) {
+          return self.genDateFromTime(a.time) - self.genDateFromTime(b.time);
+        });
+      },
+
+
+      /**
+       * Gets the next dose's date-time from a sorted set of doses.
+       * @param  {[type]} sortedDoses [description]
+       * @return {[type]}             [description]
+       */
+      getNextDoseDateTime: function(sortedDoses) { var fn = 'getNextDoseDateTime'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        var doses = !self.isNullOrUndefined(sortedDoses) ? sortedDoses : self.getSortedDoses();
+        var currTime = new Date();
+        for(var i = 0; i < doses.length; i++) {
+          if(self.genDateFromTime(doses[i].time) >= currTime) {
+            return self.genDateFromTime(doses[i].time);
+          }
+        }
+        return (self.genDateFromTime(doses[0].time)).addDays(1);
+      },
+
+
+      /**
        * Sets all the MedPrompts for the following 24 hours.
        * @param  {[type]} ) {            var fn = 'setAllMedPrompts'; if(!this.CURRENTLY_IN_TRIGGER [description]
        * @return {[type]}   [description]
@@ -1520,16 +1550,20 @@ var PRNM = (function(exports) {
 
         // keep a list of the triggers we create here
         var createdTriggerIds = [];
+        var type = 'datetime'
 
-        _.each(self.userCfg.doses, function(d, i) {
+        // get the doses, sorted.
+        var sortedDoses = self.getSortedDoses();
+
+        //*** Create the MedPrompt triggers ***
+        self.log('Generating MedPropmts...', fn);
+        _.each(sortedDoses, function(d, i) {
           var doseStr = JSON.stringify(d);
           self.debug('*** ADDING DOSE ***: d = ' + doseStr, fn);
           
           var sdt = self.genDateFromTime(d.time);
           self.debug('sdt = ' + sdt, fn);
-          var  type = 'datetime'
-              // ,name = self.triggerIdPrefixes.medPrompt + d.medication + ' at ' + d.time
-              ,triggerId = self.genMedPromptTriggerId(d)
+          var  triggerId = self.genMedPromptTriggerId(d)
               ,actionScriptText = null
               ,startDateTime = sdt
               ,endDateTime = sdt.clone().addMinutes(1)
@@ -1564,6 +1598,23 @@ var PRNM = (function(exports) {
           name = name + ' +' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min'
           self.setDateTimeTrigger(triggerIdPlusTTL, type, name, actionScriptText, startDateTime.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), endDateTime.addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), repeatStr);
 
+        });
+
+        // now that the MedPrompt triggers are created, get the created triggers, and get their times, so we can schedule random EMA prompts around them, and widget-timing.
+        // TODO: refactor. Fetching each of the triggers when we just created them is needlessly-inefficient.
+        self.log('Getting all MedPrompt datetimes...', fn);
+        var medPromptTriggerDateTimes = self.getAllMedPromptDateTimes(createdTriggerIds);
+
+        // sort the MP trigger datetime array
+        medPromptTriggerDateTimes.sort(function(a,b){ return a-b; });
+
+
+        //*** Create the widget-management triggers, dependent-upon the MedPrompts. ***
+        self.log('Generating MedPrompt widget-management triggers...', fn);
+        _.each(sortedDoses, function(d, i) {
+
+          var sdt = self.genDateFromTime(d.time);
+
 
           /***
             Create countdown triggers
@@ -1588,7 +1639,8 @@ var PRNM = (function(exports) {
           	sdt, 
           	self.appCfg.staticOrDefault.updateWidget.widgetState.active.message,
           	[
-							{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
+							 { "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
+              ,{ "badge": '' }
           	]
           );
           self.debug('actionScriptTextFirstPrior = ' + actionScriptTextFirstPrior, fn);
@@ -1619,7 +1671,8 @@ var PRNM = (function(exports) {
             	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
             	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
 							,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
-          	]
+              ,{ "badge": '' }
+         	]
         	);
           // do the 5-min-before haptic and auditory alerts...
           actionScriptTextSecondPrior += ''
@@ -1652,12 +1705,14 @@ var PRNM = (function(exports) {
           self.debug(self.getQuotedAndDelimitedStr([triggerIdNonResponsive, sdt.clone(), startDateTimeNonResponsive, endDateTimeNonResponsive, untilDateTimeNonResponsive, repeatStrNonResponsive], ',', "'"), fn);
 
           var actionScriptTextNonResponsive = self.getWidgetReminderTriggerActionText(
-            sdt, 
+            // sdt, 
+            self.getNextDoseDateTime(),
             self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.message,
             [
             	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
             	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
             	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.imageUrl }
+              ,{ "badge": '' }
             ]
           );
 
@@ -1665,11 +1720,10 @@ var PRNM = (function(exports) {
           var nameNonResponsive = triggerIdNonResponsive;
           self.setDateTimeTrigger(triggerIdNonResponsive, type, nameNonResponsive, actionScriptTextNonResponsive, startDateTimeNonResponsive, endDateTimeNonResponsive, repeatStrNonResponsive);
           
+
           // * Generate automatic-return-to-Neutral-state trigger *
           self.log('Generating Neutral state trigger starting at the prompt time (' + sdt + ').', fn);
-          // var triggerIdNeutral     = triggerId + '-retToNeutral+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
           d.timeOffsetStr = '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min:W';
-          // var triggerIdNeutral     = triggerId + d.timeOffsetStr + ':W' + '-retToNeutral+';
           var triggerIdNeutral     = self.genMedPromptTriggerId(d);
           var startDateTimeNeutral = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
           var endDateTimeNeutral   = startDateTimeNeutral.clone().addMinutes(1);
@@ -1678,12 +1732,14 @@ var PRNM = (function(exports) {
           self.debug(self.getQuotedAndDelimitedStr([triggerIdNeutral, sdt.clone(), startDateTimeNeutral, endDateTimeNeutral, untilDateTimeNeutral, repeatStrNeutral], ',', "'"), fn);
  
           var actionScriptTextNeutral = self.getWidgetReminderTriggerActionText(
-            sdt, 
+            // sdt, 
+            self.getNextDoseDateTime(),
             self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
             [
             	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
             	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
             	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
+              ,{ "badge": self.getPoints() }
             ]
           );
           self.debug('actionScriptTextNeutral = ' + actionScriptTextNeutral, fn);
@@ -1694,7 +1750,8 @@ var PRNM = (function(exports) {
         });
 
         self.debug('exiting',fn);
-        return createdTriggerIds;
+        // return createdTriggerIds;
+        return medPromptTriggerDateTimes;
       },
 
 
@@ -1762,25 +1819,25 @@ var PRNM = (function(exports) {
       },
 
 
-      getNextDateTime: function(sortedAscendingDateTimeArray, comparisonDateTime) { var fn = "getNextDateTime"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered; comparisonDateTime = ' + comparisonDateTime + '; sortedAscendingDateTimeArray = ' + sortedAscendingDateTimeArray,fn);
+      // getNextDateTime: function(sortedAscendingDateTimeArray, comparisonDateTime) { var fn = "getNextDateTime"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      //   self.debug('entered; comparisonDateTime = ' + comparisonDateTime + '; sortedAscendingDateTimeArray = ' + sortedAscendingDateTimeArray,fn);
 
-        if(!sortedAscendingDateTimeArray || !_.isArray(sortedAscendingDateTimeArray)) { throw "sortedAscendingDateTimeArray is null, undefined, or not an array."; }
-        var ret = null;
+      //   if(!sortedAscendingDateTimeArray || !_.isArray(sortedAscendingDateTimeArray)) { throw "sortedAscendingDateTimeArray is null, undefined, or not an array."; }
+      //   var ret = null;
 
-        self.debug('sortedAscendingDateTimeArray.length = ' + sortedAscendingDateTimeArray.length, fn);
-        for (var i = 0; i < sortedAscendingDateTimeArray.length; i++) {
-          var d = sortedAscendingDateTimeArray[i];
-          var dateCmpRslt = comparisonDateTime.compareTo(d);
-          self.debug('dateCmpRslt = ' + dateCmpRslt + ' given dates: ' + comparisonDateTime + ' and ' + d, fn);
-          if (dateCmpRslt == 0 || dateCmpRslt == -1) {
-            ret = sortedAscendingDateTimeArray[i];
-            break;
-          }
-        }
-        self.debug('exiting; ret = ' + ret,fn);
-        return ret;
-      },
+      //   self.debug('sortedAscendingDateTimeArray.length = ' + sortedAscendingDateTimeArray.length, fn);
+      //   for (var i = 0; i < sortedAscendingDateTimeArray.length; i++) {
+      //     var d = sortedAscendingDateTimeArray[i];
+      //     var dateCmpRslt = comparisonDateTime.compareTo(d);
+      //     self.debug('dateCmpRslt = ' + dateCmpRslt + ' given dates: ' + comparisonDateTime + ' and ' + d, fn);
+      //     if (dateCmpRslt == 0 || dateCmpRslt == -1) {
+      //       ret = sortedAscendingDateTimeArray[i];
+      //       break;
+      //     }
+      //   }
+      //   self.debug('exiting; ret = ' + ret,fn);
+      //   return ret;
+      // },
 
 
       /**
@@ -1801,6 +1858,31 @@ var PRNM = (function(exports) {
 
 
       /**
+       * Returns the user's current points value.
+       * @return {[type]} [description]
+       */
+      getPoints: function() {  var fn = "getPoints"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        // get the total # points and display them in the widget
+        var pointsFromPr = self.fetchString(self.envConsts.appCfg.namespace, 'points');
+        self.debug('pointsFromPr = ' + pointsFromPr, fn);
+        
+        var ret = 'None.';
+        if(!self.isNullOrUndefined(pointsFromPr)) {
+          var points = JSON.parse(pointsFromPr);
+          if(!self.isNullOrUndefined(points.total)) {
+            self.debug('points.total = ' + points.total, fn);
+            ret = points.total;
+          }
+        }
+        else {
+          self.debug('No points path...', fn);
+        }
+
+        return ret;
+      },
+
+
+      /**
        * Sets a widget with a medication-adherence message dependent on a set of medication-consumption ("dosing") times and a period of time prior to each at which the widget's message must change.
        * @param  {[type]} widgetId                   [description]
        * @param  {[type]} medPromptTriggerDateTimes) {            var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER [description]
@@ -1817,7 +1899,8 @@ var PRNM = (function(exports) {
           return;
         }
         var currDateTime = new Date();
-        var nextDoseDateTime = self.getNextDateTime(medPromptTriggerDateTimes, currDateTime);
+        // var nextDoseDateTime = self.getNextDateTime(medPromptTriggerDateTimes, currDateTime);
+        var nextDoseDateTime = self.getNextDoseDateTime();
         self.debug('nextDoseDateTime = ' + nextDoseDateTime, fn);
         var inNeutralState = nextDoseDateTime > currDateTime.addMinutes(parseInt(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first));
         var msg = inNeutralState
@@ -1844,21 +1927,9 @@ var PRNM = (function(exports) {
             + ');'
             // '/* INTENTIONALLY BLANK */'
         };
-
-        // get & display the total # points and display them in the widget
-        var pointsFromPr = self.fetchString(self.envConsts.appCfg.namespace, 'points');
-        self.debug('pointsFromPr = ' + pointsFromPr, fn);
-        if(!self.isNullOrUndefined(pointsFromPr)) {
-          var points = JSON.parse(pointsFromPr);
-          if(!self.isNullOrUndefined(points.total)) {
-            self.debug('points.total = ' + points.total, fn);
-            updateWidgetParams['badge'] = points.total;
-          }
-        }
-        else {
-          self.debug('No points path...', fn);
-          updateWidgetParams['badge'] = 'None.';
-        }
+        
+        // set the points display
+        updateWidgetParams['badge'] = inNeutralState ? self.getPoints() : '';
 
         // add an optional image URL, if it exists
         var selectedImageUrl = inNeutralState ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl : self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl;
@@ -1961,6 +2032,7 @@ var PRNM = (function(exports) {
           var s = 'self.genMedPromptTriggerId = ' + self.genMedPromptTriggerId.toString() + ';'
                 + 'self.replaceTokensForMedPrompt = ' + self.replaceTokensForMedPrompt.toString() + ';'
                 + 'self.genDateFromTime = ' + self.genDateFromTime.toString() + ';'
+                + 'self.getPoints = ' + self.getPoints.toString() + ';'
             ; 
           // self.debug(fn + ' = ' + s, fn);
           return s;
@@ -2157,14 +2229,15 @@ var PRNM = (function(exports) {
   
         // set MedPrompt triggers
         self.log('Setting all MedPrompts...', fn);
-        var createdMedPromptTriggerIds = self.setAllMedPrompts();
+        // var createdMedPromptTriggerIds = self.setAllMedPrompts();
+        var medPromptTriggerDateTimes = self.setAllMedPrompts();
 
-        // now that the MedPrompt triggers are created, get the created triggers, and get their times, so we can schedule random EMA prompts around them, and widget-timing.
-        self.log('Getting all MedPropmt datetimes...', fn);
-        var medPromptTriggerDateTimes = self.getAllMedPromptDateTimes(createdMedPromptTriggerIds);
+        // // now that the MedPrompt triggers are created, get the created triggers, and get their times, so we can schedule random EMA prompts around them, and widget-timing.
+        // self.log('Getting all MedPropmt datetimes...', fn);
+        // var medPromptTriggerDateTimes = self.getAllMedPromptDateTimes(createdMedPromptTriggerIds);
 
-        // sort the MP trigger datetime array
-        medPromptTriggerDateTimes.sort(function(a,b){ return a-b; });
+        // // sort the MP trigger datetime array
+        // medPromptTriggerDateTimes.sort(function(a,b){ return a-b; });
 
         // set assessment / EMA triggers
         self.log('Setting all EMA prompts...', fn);

@@ -84,7 +84,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var updateWidgetParams = {
 					'identifier': self.appCfg.staticOrDefault.namespace,
 					'message': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
-					'color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor
+					'color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,
+					'badge': self.getPoints()
 				};
 				self.debug('Setting widget to Neutral state using: ' + JSON.stringify(updateWidgetParams), fn);
 				self.updateWidget(updateWidgetParams);
@@ -150,7 +151,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var updateWidgetParams = {
 					'identifier': self.appCfg.staticOrDefault.namespace,
 					'message': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
-					'color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor
+					'color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,
+					'badge': self.getPoints()
 				};
 				self.debug('Setting widget to Neutral state using: ' + JSON.stringify(updateWidgetParams), fn);
 				self.updateWidget(updateWidgetParams);

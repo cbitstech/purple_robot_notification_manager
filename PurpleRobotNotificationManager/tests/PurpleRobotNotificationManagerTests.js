@@ -311,15 +311,21 @@ suite('PurpleRobotNotificationManager', function() {
         // third and finally, set the prompts.
         var actual = prnm.setAllEMAPrompts(
           // second, fetch the MedPrompt triggers by their IDs and return an array of their starting datetimes
-          self.getAllMedPromptDateTimes(
+          // self.getAllMedPromptDateTimes(
             // first, set all MedPrompts.
             prnm.setAllMedPrompts()
-            )
+            // )
           );
         // setAllEMAPrompts does not return anything, which JS takes to mean the value is undefined (equivalent of void in C++)
         assert.equal(actual, undefined);
       })
     );
+
+    test('setWidget', function() {
+      var actual = prnm.setWidget('H2H', prnm.setAllMedPrompts());
+      assert.equal(actual, undefined);
+    });
+
 
     test('getAllMedPromptDateTimes', cases([
       ['Heart2HAART, EMA: Mood@21:39:22', (new Date(2013, 7, 20)).set({ hour: 21, minute: 39, second: 22}) ]
@@ -505,28 +511,28 @@ suite('PurpleRobotNotificationManager', function() {
     );
 
 
-    test('getNextDateTime', cases([
-       [[[9,0,0],[10,0,0],[11,0,0]], [8,55,0], 0]
-      ,[[[8,0,0],[12,0,0],[16,0,0]], [9,55,0], 1]
-      ,[[[8,0,0],[12,0,0],[16,0,0]], [13,55,0], 2]
-      ,[[[8,0,0],[12,0,0],[16,0,0]], [17,55,0], null]
-      ], function(sortedAscTimeArr, comparisonTimeArr, expected) {
-        var medDateTime1 = Date.today().set({ hour: sortedAscTimeArr[0][0], minute: sortedAscTimeArr[0][1], second: sortedAscTimeArr[0][2]});
-        var medDateTime2 = Date.today().set({ hour: sortedAscTimeArr[1][0], minute: sortedAscTimeArr[1][1], second: sortedAscTimeArr[1][2]});
-        var medDateTime3 = Date.today().set({ hour: sortedAscTimeArr[2][0], minute: sortedAscTimeArr[2][1], second: sortedAscTimeArr[2][2]});
-        var triggerDateTimes = [medDateTime1,medDateTime2,medDateTime3];
+//     test('getNextDateTime', cases([
+//        [[[9,0,0],[10,0,0],[11,0,0]], [8,55,0], 0]
+//       ,[[[8,0,0],[12,0,0],[16,0,0]], [9,55,0], 1]
+//       ,[[[8,0,0],[12,0,0],[16,0,0]], [13,55,0], 2]
+//       ,[[[8,0,0],[12,0,0],[16,0,0]], [17,55,0], null]
+//       ], function(sortedAscTimeArr, comparisonTimeArr, expected) {
+//         var medDateTime1 = Date.today().set({ hour: sortedAscTimeArr[0][0], minute: sortedAscTimeArr[0][1], second: sortedAscTimeArr[0][2]});
+//         var medDateTime2 = Date.today().set({ hour: sortedAscTimeArr[1][0], minute: sortedAscTimeArr[1][1], second: sortedAscTimeArr[1][2]});
+//         var medDateTime3 = Date.today().set({ hour: sortedAscTimeArr[2][0], minute: sortedAscTimeArr[2][1], second: sortedAscTimeArr[2][2]});
+//         var triggerDateTimes = [medDateTime1,medDateTime2,medDateTime3];
 
-        var comparisonDateTime = Date.today().set({hour:comparisonTimeArr[0],minute:comparisonTimeArr[1],second:comparisonTimeArr[2]});
-        var actualDateTime = prnm.getNextDateTime(triggerDateTimes, comparisonDateTime);
-Date.today().setTimeToNow();
-        if(expected != null) {
-          assert.equal(Date.compare(actualDateTime, triggerDateTimes[expected]) == 0, true);
-        }
-        else {
-          assert.equal(actualDateTime, null);
-        }
-      })
-    );
+//         var comparisonDateTime = Date.today().set({hour:comparisonTimeArr[0],minute:comparisonTimeArr[1],second:comparisonTimeArr[2]});
+//         var actualDateTime = prnm.getNextDateTime(triggerDateTimes, comparisonDateTime);
+// Date.today().setTimeToNow();
+//         if(expected != null) {
+//           assert.equal(Date.compare(actualDateTime, triggerDateTimes[expected]) == 0, true);
+//         }
+//         else {
+//           assert.equal(actualDateTime, null);
+//         }
+//       })
+//     );
 
 
     test('replaceTokensForUser', cases([
@@ -605,6 +611,12 @@ Date.today().setTimeToNow();
         console.log('Ran without blowing-up.');
       })
     );
+
+
+    // TODO: refactor into an actual test, rather than a dumb "driver" function for library code.
+    test('getSortedDoses', function() {
+      console.log(JSON.stringify(self.getSortedDoses()));
+    });
 
 
     test('isNullOrUndefined', cases([
