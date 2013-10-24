@@ -1416,6 +1416,7 @@ var PRNM = (function(exports) {
             + self.actionFns.getTriggerFns() 
             + self.actionFns.getMedPromptFns()
             + self.actionFns.getAppCfgFns()
+            + self.actionFns.getUserCfg()
             + self.actionFns.getWidgetFns()
             + 'var dose = ' + doseStr + ';'
             + 'var triggerId = "' + triggerId + '";'
@@ -1425,6 +1426,7 @@ var PRNM = (function(exports) {
             + self.actionFns.getTriggerFns()
             + self.actionFns.getMedPromptFns()
             + self.actionFns.getAppCfgFns()
+            + self.actionFns.getUserCfg()
             + self.actionFns.getWidgetFns()
             + 'var dose = ' + doseStr + ';'
             + 'var triggerId = "' + triggerId + '";'
@@ -1514,7 +1516,7 @@ var PRNM = (function(exports) {
        */
       getSortedDoses: function() { var fn = 'getSortedDoses'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.debug('entered',fn);
-        self.getUserCfg();
+        // self.getUserCfg();
         return self.userCfg.doses.sort(function(a,b) {
           return self.genDateFromTime(a.time) - self.genDateFromTime(b.time);
         });
@@ -1672,7 +1674,7 @@ var PRNM = (function(exports) {
             	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
 							,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
               ,{ "badge": '' }
-         	]
+         	  ]
         	);
           // do the 5-min-before haptic and auditory alerts...
           actionScriptTextSecondPrior += ''
@@ -1764,6 +1766,7 @@ var PRNM = (function(exports) {
        */
       getWidgetReminderTriggerActionText: function(nextDoseDateTime, dispStr, addlUpdateWidgetParams) { var fn = 'getWidgetReminderTriggerActionText'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.getAppCfg();
+        self.debug('returning', fn);
         return ''
             + 'PurpleRobot.loadLibrary(\'date.js\');'
             + 'var dispStr = \'' + dispStr + '\';'
@@ -1777,9 +1780,73 @@ var PRNM = (function(exports) {
             + '}'
             + 'var updateWidgetParams = {'
             + '    \'identifier\': \'' + self.envConsts.appCfg.namespace + '\','
-            + '    \'message\': dispStr,'
-            + '    \'action\': \'PurpleRobot.log("Widget tapped; launching app: ' + self.appCfg.staticOrDefault.appPackageName + '"); PurpleRobot.launchApplication("' + self.appCfg.staticOrDefault.appPackageName + '");\''
+            // + '    \'message\': dispStr,'
+            + '    \'message\': dispStr'
+
+            // V1
+            // + '    \'action\': \'PurpleRobot.log("Widget tapped; launching app: ' + self.appCfg.staticOrDefault.appPackageName + '"); PurpleRobot.launchApplication("' + self.appCfg.staticOrDefault.appPackageName + '");\''
+            
+            // V2: attempt to quote existing onWidgetPress
+            // + '    \'action\': \'eval(\\\''
+            //   + self.getQuotedAndDelimitedStr(
+            //         [
+            //           self.convertFnToString(
+            //             self.actions.onWidgetPress,
+            //             [ 
+            //                 self.actionFns.getCommonFnSetForActions()
+            //               + self.actionFns.getUserCfg()
+            //               + self.actionFns.getWidgetFns()
+            //             ],
+            //             false
+            //           )
+            //         ]
+            //       )
+            // + '\\\');\''
+            
+            // V3: attempt multi-level string-quoting
+            // + '   \'action\': \'\' +'
+            //           '\'var l = 0;\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'self.getUserCfg();\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'var nextDoseDateTime = self.getNextDoseDateTime();\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'PurpleRobot.loadLibrary(\\\'date.js\\\');\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'var dispStr = '' + self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message + '';\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'var timeFormat = '' + self.appCfg.staticOrDefault.timeFormat + '';\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'var nextDoseDateTime = new Date(nextDoseDateTime.getFullYear(), nextDoseDateTime.getMonth(), nextDoseDateTime.getDate(), nextDoseDateTime.getHours(), nextDoseDateTime.getMinutes(), nextDoseDateTime.getSeconds());\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'var minutesBeforeDose = Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60);\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'var tokenArr = [\\\'%T\\\', \\\'%ETAMIN\\\'];\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'for (var i = 0; i < tokenArr.length; i++) {\' + '
+            //             '\'if(i==0) { dispStr = dispStr.replace(tokenArr[i], nextDoseDateTime.toString(timeFormat)); }\' + '
+            //             '\'if(i==1) { dispStr = dispStr.replace(tokenArr[i], minutesBeforeDose); }\' + '
+            //           '\'}\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'var updateWidgetParams = {\' + '
+            //               '\'\\\'identifier\\\': \\\'\\\' + self.envConsts.appCfg.namespace + \\\'\\\',\' + '
+            //               '\'\\\'message\\\': dispStr,\' + '
+            //               '\'\\\'message_color\\\': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,\' + '
+            //               '\'\\\'title_color\\\': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,\' + '
+            //               '\'\\\'image\\\': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl,\' + '
+            //               '\'\\\'badge\\\': self.getPoints()\' + '
+            //             '\'};\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'PurpleRobot.log(\\\'[DBG][\\\' + fn + \\\'] Updating widget; updateWidgetParams = \\\' + JSON.stringify(updateWidgetParams));\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'PurpleRobot.updateWidget(updateWidgetParams);\' + '
+            //           '\'self.debug(++l, fn);\' + '
+            //           '\'\' + '
+
+            // V4: realize that no action is needed, thanks to the way Purple Robot updates the widget (no key-value pair specified => no change to the value), and the point at which the action for the widget is assigned. :-)
+
             + '  };'
+            
             // generate code to represent inserting additional params in the updateWidgetParams obj.
             + (self.isNullOrUndefined(addlUpdateWidgetParams)
               ? ''
@@ -1801,6 +1868,56 @@ var PRNM = (function(exports) {
       },
 
 
+      /**
+       * Sets the widget to its neutral state.
+       * @param {[type]} ) { var fn = 'setWidgetToNeutralState'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       */
+      setWidgetToNeutralState: function() { var fn = 'setWidgetToNeutralState'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        // var l = 0;
+        // self.debug(++l, fn);
+        self.getUserCfg();
+        // self.debug(++l, fn);
+        var nextDoseDateTime = self.getNextDoseDateTime();
+        // self.debug(++l, fn);
+        PurpleRobot.loadLibrary('date.js');
+        // self.debug(++l, fn);
+        var dispStr = '' + self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message + '';
+        // self.debug(++l, fn);
+        var timeFormat = '' + self.appCfg.staticOrDefault.timeFormat + '';
+        // self.debug(++l, fn);
+        var nextDoseDateTime = new Date(nextDoseDateTime.getFullYear(), nextDoseDateTime.getMonth(), nextDoseDateTime.getDate(), nextDoseDateTime.getHours(), nextDoseDateTime.getMinutes(), nextDoseDateTime.getSeconds());
+        // self.debug(++l, fn);
+        var minutesBeforeDose = Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60);
+        // self.debug(++l, fn);
+        var tokenArr = ['%T', '%ETAMIN'];
+        // self.debug(++l, fn);
+        for (var i = 0; i < tokenArr.length; i++) {
+          if(i==0) { dispStr = dispStr.replace(tokenArr[i], nextDoseDateTime.toString(timeFormat)); }
+          if(i==1) { dispStr = dispStr.replace(tokenArr[i], minutesBeforeDose); }
+        }
+        // self.debug(++l, fn);
+        var updateWidgetParams = {
+            'identifier': '' + self.envConsts.appCfg.namespace + '',
+            'message': dispStr,
+            'message_color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,
+            'title_color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,
+            'image': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl,
+            'badge': self.getPoints()
+          };
+        // self.debug(++l, fn);
+        PurpleRobot.log('[DBG][' + fn + '] Updating widget; updateWidgetParams = ' + JSON.stringify(updateWidgetParams));
+        // self.debug(++l, fn);
+        PurpleRobot.updateWidget(updateWidgetParams);
+        // self.debug(++l, fn);
+      },
+
+
+      /**
+       * Replaces tokens in a widget message.
+       * @param  {[type]} inStr         [description]
+       * @param  {[type]} nextDoseTime) {            var fn = 'replaceTokensForWidget'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}               [description]
+       */
       replaceTokensForWidget: function(inStr, nextDoseTime) { var fn = 'replaceTokensForWidget'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         var outStr = inStr;
         var timeFormat = (self.getAppCfg()).staticOrDefault.timeFormat;
@@ -1891,6 +2008,7 @@ var PRNM = (function(exports) {
       setWidget: function(widgetId, medPromptTriggerDateTimes) { var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.debug('entered; widgetId = ' + widgetId + '; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
         self.getAppCfg();
+        self.getUserCfg();
 
         // determine next dose time
         var nextDoseDateTimes = _.sortBy(medPromptTriggerDateTimes, function(dt) { return dt; });
@@ -1919,7 +2037,11 @@ var PRNM = (function(exports) {
                 [
                   self.convertFnToString(
                     self.actions.onWidgetPress,
-                    [ self.actionFns.getCommonFnSetForActions() ],
+                    [ 
+                        self.actionFns.getCommonFnSetForActions()
+                      + self.actionFns.getUserCfg()
+                      + self.actionFns.getWidgetFns()
+                    ],
                     false
                   )
                 ]
@@ -1980,6 +2102,8 @@ var PRNM = (function(exports) {
             + 'self.envConsts = ' + JSON.stringify(self.envConsts) + ';'
             + 'self.triggerIdPrefixes = ' + JSON.stringify(self.triggerIdPrefixes) + ';'
 
+            + 'self.fetchString = ' + self.fetchString.toString() + ';'
+            + 'self.persistString = ' + self.persistString.toString() + ';'
             + 'self.fetchEncryptedString = ' + self.fetchEncryptedString.toString() + ';'
             + 'self.persistEncryptedString = ' + self.persistEncryptedString.toString() + ';'
 
@@ -2014,6 +2138,7 @@ var PRNM = (function(exports) {
         getUserCfg: function() { var fn = 'getUserCfg'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
           var s = 'var userCfgStr = self.fetchEncryptedString("' + self.envConsts.userCfg.namespace + '", "' + self.envConsts.userCfg.key + '");'
                 + 'self.userCfg = JSON.parse(userCfgStr);'
+                + 'self.getUserCfg = ' + self.getUserCfg.toString() + ';'
           ;
           // self.debug(fn + ' = ' + s, fn);
           return s;
@@ -2033,6 +2158,10 @@ var PRNM = (function(exports) {
                 + 'self.replaceTokensForMedPrompt = ' + self.replaceTokensForMedPrompt.toString() + ';'
                 + 'self.genDateFromTime = ' + self.genDateFromTime.toString() + ';'
                 + 'self.getPoints = ' + self.getPoints.toString() + ';'
+                + 'self.replaceTokensForWidget = ' + self.replaceTokensForWidget.toString() + ';'
+                + 'self.getNextDoseDateTime = ' + self.getNextDoseDateTime.toString() + ';'
+                + 'self.getSortedDoses = ' + self.getSortedDoses.toString() + ';'
+                + 'self.setWidgetToNeutralState = ' + self.setWidgetToNeutralState.toString() + ';'
             ; 
           // self.debug(fn + ' = ' + s, fn);
           return s;
@@ -2049,6 +2178,11 @@ var PRNM = (function(exports) {
         getWidgetFns: function() { var fn = 'getWidgetFns'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
           var s = 'self.replaceTokensForWidget = ' + self.replaceTokensForWidget.toString() + ';'
                 + 'self.updateWidget = ' + self.updateWidget.toString() + ';'
+                + 'self.genDateFromTime = ' + self.genDateFromTime.toString() + ';'
+                + 'self.getPoints = ' + self.getPoints.toString() + ';'
+                + 'self.getNextDoseDateTime = ' + self.getNextDoseDateTime.toString() + ';'
+                + 'self.getSortedDoses = ' + self.getSortedDoses.toString() + ';'
+                + 'self.setWidgetToNeutralState = ' + self.setWidgetToNeutralState.toString() + ';'
             ;
             return s;
         },

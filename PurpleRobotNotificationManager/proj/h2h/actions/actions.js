@@ -80,15 +80,16 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.deleteTrigger(triggerIdToDelete);
 
 
-				var updateWidgetParams = {
-					'identifier': self.appCfg.staticOrDefault.namespace,
-					'message': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
-					'color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,
-					'badge': self.getPoints()
 
-				};
-				self.debug('Setting widget to Neutral state using: ' + JSON.stringify(updateWidgetParams), fn);
-				self.updateWidget(updateWidgetParams);
+
+
+
+
+
+
+
+
+				self.setWidgetToNeutralState();
 			},
 
 
@@ -147,14 +148,16 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.deleteTrigger(triggerIdToDelete);
 
 
-				var updateWidgetParams = {
-					'identifier': self.appCfg.staticOrDefault.namespace,
-					'message': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
-					'color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,
-					'badge': self.getPoints()
-				};
-				self.debug('Setting widget to Neutral state using: ' + JSON.stringify(updateWidgetParams), fn);
-				self.updateWidget(updateWidgetParams);
+
+
+
+
+
+
+
+
+
+				self.setWidgetToNeutralState();
 			},
 
 
@@ -242,6 +245,9 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				PurpleRobot.log('Launching application = ' + applicationFullName);
 				PurpleRobot.launchApplication(applicationFullName);
+
+
+				self.setWidgetToNeutralState();
 			}
 
 		};
