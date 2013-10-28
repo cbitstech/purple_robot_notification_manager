@@ -1984,12 +1984,17 @@ var PRNM = (function(exports) {
         self.debug('pointsFromPr = ' + pointsFromPr, fn);
         
         var ret = 'None.';
-        if(!self.isNullOrUndefined(pointsFromPr)) {
-          var points = JSON.parse(pointsFromPr);
-          if(!self.isNullOrUndefined(points.total)) {
-            self.debug('points.total = ' + points.total, fn);
-            ret = points.total;
-          }
+        // if(!self.isNullOrUndefined(pointsFromPr)) {
+        //   var points = JSON.parse(pointsFromPr);
+        //   // if(!self.isNullOrUndefined(points.total)) {
+        //   if(isNaN(points)) {
+        //     self.debug('points = ' + points, fn);
+        //     ret = points;
+        //   }
+        // }
+        if(!self.isNullOrUndefined(pointsFromPr) && !isNaN(pointsFromPr)) {
+          self.debug('pointsFromPr = ' + pointsFromPr, fn);
+          ret = pointsFromPr;
         }
         else {
           self.debug('No points path...', fn);
