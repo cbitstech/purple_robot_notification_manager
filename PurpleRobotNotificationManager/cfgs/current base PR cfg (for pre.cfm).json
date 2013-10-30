@@ -15,10 +15,16 @@
 		},
 		"actions": "",
 		"appCfg": {
+			
 			"logLevel": 4,
 			"staticOrDefault": {
 				"namespace": "H2H",
 				"appPackageName": "edu.northwestern.cbits.umb.h2h",
+
+				// a PR configuration script that updates PR's configuration - hence "configuration update config".
+				"PurpleRobotConfigurationUpdateConfig": { 
+					"config_data_server_uri": "https://app2.cbits.northwestern.edu/prImporter"
+				},
 
 				"medPrompt": {
 					"wisePillLastSeenUrl": "http://mohrlab.northwestern.edu/umb/integrations/?user_id=%USER&device=wisepill&key=lastSeen" 
@@ -39,12 +45,12 @@
 				"showNativeDialog": {
 					"medPrompt": {
 						"identifier": "Heart2HAART, MP%O: %M@%T, %S%U",
-						"title": "Heart2HAART",
-						"message": "Did you take your %S %U of %M today?"
+						"title": "",
+						"message": "Did you take your %T dose of %M today?"
 					},
 					"assessment": {
 						"identifier": "Heart2HAART, EMA: %N@%T",
-						"title": "Heart2HAART",
+						"title": "",
 						"message": "Its time to answer a few questions.",
 						"minTimeFromMedPromptMins": 30,
 						"frequencyAsICal": {
@@ -73,13 +79,13 @@
 							"TTLinMins": 30
 						},
 						"neutral": {
-							"message": "No upcoming dose.",
+							"message": "Next dose at %T.",
 							"imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/coin.png?foo=bar",
 							"textColor": "#FFFFFF"
 						}
 					}
 				},
-				"weeklyScheduleRunDay": "Thurs",
+				"weeklyScheduleRunDay": "Fri",
 				"vibratePattern": "buzz",
 				"timeFormat": "h:mmtt"
 			},
@@ -101,102 +107,107 @@
 
 
 	"MedActive": {
-		"cfgVersion": "2.0",
-		"projName": "MA",
-		"prCfg": {
-			"userId": "some_user_id",
-			"init_script": "",
-			"features": "",
-			"triggers": ""
-		},
-		"PurpleRobotNotificationManager": {
-			"datetime_start": "20130515T000000",
-			"datetime_end": "20130515T000100",
-			"datetime_repeat": "FREQ=DAILY;INTERVAL=1;UNTIL=201300610T145200"
-		},
-		"actions": "",
-		"appCfg": {
-			"logLevel": 4,
-			"staticOrDefault": {
-				"namespace": "MA",
-				"appPackageName": "edu.northwestern.cbits.umb.ma",
+    "cfgVersion": "2.0",
+    "projName": "MA",
+    "prCfg": {
+      "userId": "some_user_id",
+      "init_script": "",
+      "features": "",
+      "triggers": ""
+    },
+    "PurpleRobotNotificationManager": {
+      "datetime_start": "20130515T000000",
+      "datetime_end": "20130515T000100",
+      "datetime_repeat": "FREQ=DAILY;INTERVAL=1;UNTIL=201300610T145200"
+    },
+    "actions": "",
+    "appCfg": {
+      "logLevel": 4,
+      "staticOrDefault": {
+        "namespace": "MA",
+        "appPackageName": "edu.northwestern.cbits.umb.ma",
 
-				"medPrompt": {
-					"wisePillLastSeenUrl": "http://mohrlab.northwestern.edu/umb/integrations/?user_id=%USER&device=wisepill&key=lastSeen" 
-				},
+        // a PR configuration script that updates PR's configuration - hence "configuration update config".
+        "PurpleRobotConfigurationUpdateConfig": { 
+          "config_data_server_uri": "https://app2.cbits.northwestern.edu/prImporter"
+        },
 
-				"transition": {
-					"onMedPromptYes": "http://mohrlab.northwestern.edu/ma/medprompt/2.html",
-					"onMedPromptNo": "http://mohrlab.northwestern.edu/ma/medprompt/6.html",
-					"onEMAYes": {
-						"SideEffect": "http://mohrlab.northwestern.edu/ma/surveys/sideeffect_exists.html",
-						"Symptoms": "http://mohrlab.northwestern.edu/ma/surveys/symptom_exists.html"
-					},
-					"onEMANo": null,
-					"onWidgetPress": "http://mohrlab.northwestern.edu/ma"
-				},
-				
-				"showNativeDialog": {
-					"medPrompt": {
-						"identifier": "MedActive, MP%O: %M@%T, %S%U",
-						"title": "MedActive, MP: %M@%T, %S%U",
-						"message": "Did you take your %S %U of %M today?"
-					},
-					"assessment": {
-						"identifier": "MedActive, MP: %M@%T, %S%U",
-						"title": "MedActive, EMA: %N@%T",
-						"message": "Its time to answer a few questions.",
-						"minTimeFromMedPromptMins": 30,
-						"frequencyAsICal": {
-							"SideEffect": "DAILY",
-							"Symptoms": "DAILY"
-						}
-					}
-				},
-				"updateWidget": {
-					"title": "MedActive",
-					"widgetState": {
-						"active": {
-							"message": "Next dose in %ETAMIN minutes (%T).",
-							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/icon.png?foo=bar",
-							"textColor": "#FFFFFF",
-							"reminderMinutesBeforeDose": {
-								"first": 60,
-								"second": 5
-							}
-						},
-						"nonResponsive": {
-							"message": "Press here to begin.",
-							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/icon.png?foo=bar",
-							"textColor": "#FF0000",
-							"TTLinMins": 30
-						},
-						"neutral": {
-							"message": "No upcoming dose.",
-							"imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/coin.png?foo=bar",
-							"textColor": "#FFFFFF"
-						}
-					}
-				},
-				"weeklyScheduleRunDay": "Thurs",
-				"vibratePattern": "buzz",
-				"timeFormat": "h:mmtt"
-			},
-			"dynamicOrModified": {
-				"transition": {
-					"onMedPromptYes": null,
-					"onMedPromptNo": null,
-					"onEMAYes": {
-						"Craving": null,
-						"SideEffect": null,
-						"Mood": null
-					},
-					"onEMANo": null,
-					"onWidgetPress": null
-				}
-			}
-		}
-	},
+        "medPrompt": {
+          "wisePillLastSeenUrl": "http://mohrlab.northwestern.edu/umb/integrations/?user_id=%USER&device=wisepill&key=lastSeen" 
+        },
+
+        "transition": {
+          "onMedPromptYes": "http://mohrlab.northwestern.edu/ma/medprompt/2.html",
+          "onMedPromptNo": "http://mohrlab.northwestern.edu/ma/medprompt/6.html",
+          "onEMAYes": {
+            "SideEffect": "http://mohrlab.northwestern.edu/ma/surveys/sideeffect_exists.html",
+            "Symptoms": "http://mohrlab.northwestern.edu/ma/surveys/symptom_exists.html"
+          },
+          "onEMANo": null,
+          "onWidgetPress": "http://mohrlab.northwestern.edu/ma"
+        },
+        
+        "showNativeDialog": {
+          "medPrompt": {
+            "identifier": "MedActive, MP%O: %M@%T, %S%U",
+            "title": "",
+            "message": "Did you take your %T dose of %M today?"
+          },
+          "assessment": {
+            "identifier": "MedActive, EMA: %M@%T, %S%U",
+            "title": "",
+            "message": "Its time to answer a few questions.",
+            "minTimeFromMedPromptMins": 30,
+            "frequencyAsICal": {
+              "SideEffect": "DAILY",
+              "Symptoms": "DAILY"
+            }
+          }
+        },
+        "updateWidget": {
+          "title": "MedActive",
+          "widgetState": {
+            "active": {
+              "message": "Next dose in %ETAMIN minutes (%T).",
+              "imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/icon.png?foo=bar",
+              "textColor": "#FFFFFF",
+              "reminderMinutesBeforeDose": {
+                "first": 60,
+                "second": 5
+              }
+            },
+            "nonResponsive": {
+              "message": "Press here to begin.",
+              "imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/icon.png?foo=bar",
+              "textColor": "#FF0000",
+              "TTLinMins": 30
+            },
+            "neutral": {
+              "message": "Next dose at %T.",
+              "imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/coin.png?foo=bar",
+              "textColor": "#FFFFFF"
+            }
+          }
+        },
+        "weeklyScheduleRunDay": "Fri",
+        "vibratePattern": "buzz",
+        "timeFormat": "h:mmtt"
+      },
+      "dynamicOrModified": {
+        "transition": {
+          "onMedPromptYes": null,
+          "onMedPromptNo": null,
+          "onEMAYes": {
+            "Craving": null,
+            "SideEffect": null,
+            "Mood": null
+          },
+          "onEMANo": null,
+          "onWidgetPress": null
+        }
+      }
+    }
+  },
 
 	"HepC": {
 

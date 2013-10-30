@@ -27,7 +27,7 @@
 			"medPrompt": {
 				"identifier": "Heart2HAART, MP%O: %M@%T, %S%U",
 				"title": "Heart2HAART, MP: %M@%T, %S%U",
-				"message": "Did you take your %S %U of %M today?"
+				"message": "Did you take your %T dose of %M today?"
 			},
 			"assessment": {
 				"identifier": "Heart2HAART, EMA: %N@%T",
