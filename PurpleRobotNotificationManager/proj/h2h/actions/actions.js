@@ -45,16 +45,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
 
 
-
-
-
-
-
-
-
-
-				
-
 				var currentAction = {
 					'triggerId': triggerId,
 					'actionDstType': 'MedPromptYes',
@@ -63,8 +53,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				};
 				self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
 				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
-
-
 
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
@@ -78,15 +66,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				);
 				self.log('Deleting reminder trigger; ID = ' + triggerIdToDelete, fn);
 				self.deleteTrigger(triggerIdToDelete);
-
-
-
-
-
-
-
-
-
 
 
 				self.setWidgetToNeutralState();
@@ -112,16 +91,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					+ '&medDispensationUnit_1=' + dose.dispensationUnit;
 
 
-
-
-
-
-
-
-
-
-
-
 				var currentAction = {
 					'triggerId': triggerId,
 					'actionDstType': 'MedPromptNo',
@@ -130,8 +99,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				};
 				self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
 				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
-
-
 
 
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
@@ -146,15 +113,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				);
 				self.log('Deleting reminder trigger; ID = ' + triggerIdToDelete, fn);
 				self.deleteTrigger(triggerIdToDelete);
-
-
-
-
-
-
-
-
-
 
 
 				self.setWidgetToNeutralState();
@@ -184,18 +142,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var url = baseUrl;
 
 
-
-
-
-
-
-
-
-
-
-
-				
-
 				self.debug('childTriggerId = ' + childTriggerId + 'childTriggerId == null = ' + (childTriggerId == null), fn);
 				if(childTriggerId != null) {
 					self.debug('in parent trigger: ' + triggerId + '; childTriggerId = ' + childTriggerId, fn);
@@ -224,8 +170,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
 				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
 
-
-
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
@@ -238,9 +182,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 			 * @return {[type]}               [description]
 			 */
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-
-
-
 
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				PurpleRobot.log('Launching application = ' + applicationFullName);

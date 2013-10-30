@@ -1343,12 +1343,12 @@ var PRNM = (function(exports) {
         //    %U = the dispensation unit
         //    %O = a time offset string for the name string in Purple Robot
         _.each([
-           {'%M': dose.medication}
+           { '%M': dose.medication }
            // {'%M': (function() { self.debug('dose = ' + JSON.stringify(dose)); return dose.medication; })()}
-          ,{'%T': (self.genDateFromTime(dose.time)).toString(timeFormat) }
-          ,{'%S': dose.strength}
-          ,{'%U': dose.dispensationUnit}
-          ,{'%O': dose.timeOffsetStr ? dose.timeOffsetStr : ''}
+          ,{ '%T': (self.genDateFromTime(dose.time)).toString(timeFormat) }
+          ,{ '%S': dose.strength }
+          ,{ '%U': dose.dispensationUnit }
+          ,{ '%O': dose.timeOffsetStr ? dose.timeOffsetStr : '' }
           ], function(replacementPair) {
             // self.debug('replacementPair = ' + replacementPair, fn);
             // self.debug('dose = ' + JSON.stringify(dose), fn);
@@ -1642,7 +1642,7 @@ var PRNM = (function(exports) {
           	self.appCfg.staticOrDefault.updateWidget.widgetState.active.message,
           	[
 							 { "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
-              ,{ "badge": '' }
+              // ,{ "badge": '' }
           	]
           );
           self.debug('actionScriptTextFirstPrior = ' + actionScriptTextFirstPrior, fn);
@@ -1673,7 +1673,7 @@ var PRNM = (function(exports) {
             	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
             	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
 							,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
-              ,{ "badge": '' }
+              // ,{ "badge": '' }
          	  ]
         	);
           // do the 5-min-before haptic and auditory alerts...
@@ -1714,7 +1714,7 @@ var PRNM = (function(exports) {
             	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
             	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
             	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.imageUrl }
-              ,{ "badge": '' }
+              // ,{ "badge": '' }
             ]
           );
 
@@ -1741,7 +1741,7 @@ var PRNM = (function(exports) {
             	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
             	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
             	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
-              ,{ "badge": self.getPoints() }
+              // ,{ "badge": self.getPoints() }
             ]
           );
           self.debug('actionScriptTextNeutral = ' + actionScriptTextNeutral, fn);
@@ -1768,80 +1768,46 @@ var PRNM = (function(exports) {
         self.getAppCfg();
         self.debug('returning', fn);
         return ''
+
+            // + 'PurpleRobot.log(\'ENTERED: \' + fn + \'; codeFromPrnm = \' + codeFromPrnm); eval(\'\' + codeFromPrnm);'
+            // + self.getQuotedAndDelimitedStr([
+            //     self.actionFns.getCommonFnSetForActions()
+            //   + self.actionFns.getWidgetFns()
+            //   ]
+            //   ,',', "'", [null])
+
+            // + '; '
+
+            + 'var self = this;'
+
+            + 'self.appCfg = {};'
+            + 'self.appCfg.logLevel = ' + self.appCfg.logLevel + ';'
+
+            + 'self.debug = function(s, fn) { if(self.appCfg.logLevel >= 4) { PurpleRobot.log(\'[DBG]\' + (!(fn == null || fn == undefined || fn == \'null\') ? \'[\' + fn + \'] \' : \' \') + s); } };'
+            
+            + 'self.fetchString = function(namespace, key) { return PurpleRobot.fetchString(namespace,key); };'
+
+            + 'self.isNullOrUndefined = function(v) { var fn = \'isNullOrUndefined\';  return (v == null || v == undefined || v == \'null\'); };'
+
+            + 'self.getPoints = function() {  var fn = "getPoints";   var pointsFromPr = self.fetchString(\'' + self.envConsts.appCfg.namespace + '\', \'points\');  self.debug(\'pointsFromPr = \' + pointsFromPr, fn);  var ret = \'zero\';  if(!self.isNullOrUndefined(pointsFromPr) && !isNaN(pointsFromPr)) {    self.debug(\'pointsFromPr = \' + pointsFromPr, fn);    ret = pointsFromPr;  }  else {    self.debug(\'No points path...\', fn);  }  return ret; };'                        
+
+
             + 'PurpleRobot.loadLibrary(\'date.js\');'
             + 'var dispStr = \'' + dispStr + '\';'
             + 'var timeFormat = \'' + self.appCfg.staticOrDefault.timeFormat + '\';'
             + 'var nextDoseDateTime = new Date(' + nextDoseDateTime.getFullYear() + ',' + nextDoseDateTime.getMonth() + ',' + nextDoseDateTime.getDate() + ',' + nextDoseDateTime.getHours() + ',' + nextDoseDateTime.getMinutes() + ',' + nextDoseDateTime.getSeconds() + ');'
             + 'var minutesBeforeDose = Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60);'
-            + 'var tokenArr = [\'%T\', \'%ETAMIN\'];'
+            + 'var points = self.getPoints();'
+            + 'var tokenArr = [ \'%T\', \'%ETAMIN\', \'%P\' ];'
             + 'for (var i = 0; i < tokenArr.length; i++) {'
             + '  if(i==0) { dispStr = dispStr.replace(tokenArr[i], nextDoseDateTime.toString(timeFormat)); }'
             + '  if(i==1) { dispStr = dispStr.replace(tokenArr[i], minutesBeforeDose); }'
+            + '  if(i==2) { dispStr = dispStr.replace(tokenArr[i], points); }'
             + '}'
             + 'var updateWidgetParams = {'
             + '    \'identifier\': \'' + self.envConsts.appCfg.namespace + '\','
             // + '    \'message\': dispStr,'
             + '    \'message\': dispStr'
-
-            // V1
-            // + '    \'action\': \'PurpleRobot.log("Widget tapped; launching app: ' + self.appCfg.staticOrDefault.appPackageName + '"); PurpleRobot.launchApplication("' + self.appCfg.staticOrDefault.appPackageName + '");\''
-            
-            // V2: attempt to quote existing onWidgetPress
-            // + '    \'action\': \'eval(\\\''
-            //   + self.getQuotedAndDelimitedStr(
-            //         [
-            //           self.convertFnToString(
-            //             self.actions.onWidgetPress,
-            //             [ 
-            //                 self.actionFns.getCommonFnSetForActions()
-            //               + self.actionFns.getUserCfg()
-            //               + self.actionFns.getWidgetFns()
-            //             ],
-            //             false
-            //           )
-            //         ]
-            //       )
-            // + '\\\');\''
-            
-            // V3: attempt multi-level string-quoting
-            // + '   \'action\': \'\' +'
-            //           '\'var l = 0;\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'self.getUserCfg();\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'var nextDoseDateTime = self.getNextDoseDateTime();\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'PurpleRobot.loadLibrary(\\\'date.js\\\');\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'var dispStr = '' + self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message + '';\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'var timeFormat = '' + self.appCfg.staticOrDefault.timeFormat + '';\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'var nextDoseDateTime = new Date(nextDoseDateTime.getFullYear(), nextDoseDateTime.getMonth(), nextDoseDateTime.getDate(), nextDoseDateTime.getHours(), nextDoseDateTime.getMinutes(), nextDoseDateTime.getSeconds());\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'var minutesBeforeDose = Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60);\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'var tokenArr = [\\\'%T\\\', \\\'%ETAMIN\\\'];\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'for (var i = 0; i < tokenArr.length; i++) {\' + '
-            //             '\'if(i==0) { dispStr = dispStr.replace(tokenArr[i], nextDoseDateTime.toString(timeFormat)); }\' + '
-            //             '\'if(i==1) { dispStr = dispStr.replace(tokenArr[i], minutesBeforeDose); }\' + '
-            //           '\'}\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'var updateWidgetParams = {\' + '
-            //               '\'\\\'identifier\\\': \\\'\\\' + self.envConsts.appCfg.namespace + \\\'\\\',\' + '
-            //               '\'\\\'message\\\': dispStr,\' + '
-            //               '\'\\\'message_color\\\': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,\' + '
-            //               '\'\\\'title_color\\\': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,\' + '
-            //               '\'\\\'image\\\': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl,\' + '
-            //               '\'\\\'badge\\\': self.getPoints()\' + '
-            //             '\'};\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'PurpleRobot.log(\\\'[DBG][\\\' + fn + \\\'] Updating widget; updateWidgetParams = \\\' + JSON.stringify(updateWidgetParams));\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'PurpleRobot.updateWidget(updateWidgetParams);\' + '
-            //           '\'self.debug(++l, fn);\' + '
-            //           '\'\' + '
 
             // V4: realize that no action is needed, thanks to the way Purple Robot updates the widget (no key-value pair specified => no change to the value), and the point at which the action for the widget is assigned. :-)
 
@@ -1889,20 +1855,22 @@ var PRNM = (function(exports) {
         // self.debug(++l, fn);
         var minutesBeforeDose = Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60);
         // self.debug(++l, fn);
-        var tokenArr = ['%T', '%ETAMIN'];
+        var points = self.getPoints();
+        var tokenArr = ['%T', '%ETAMIN', '%P'];
         // self.debug(++l, fn);
         for (var i = 0; i < tokenArr.length; i++) {
           if(i==0) { dispStr = dispStr.replace(tokenArr[i], nextDoseDateTime.toString(timeFormat)); }
           if(i==1) { dispStr = dispStr.replace(tokenArr[i], minutesBeforeDose); }
+          if(i==2) { dispStr = dispStr.replace(tokenArr[i], points); }
         }
         // self.debug(++l, fn);
         var updateWidgetParams = {
-            'identifier': '' + self.envConsts.appCfg.namespace + '',
-            'message': dispStr,
-            'message_color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,
-            'title_color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor,
-            'image': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl,
-            'badge': self.getPoints()
+             'identifier': '' + self.envConsts.appCfg.namespace + ''
+            ,'message': dispStr
+            ,'message_color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor
+            ,'title_color': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor
+            ,'image': self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl
+            // ,'badge': self.getPoints()
           };
         // self.debug(++l, fn);
         PurpleRobot.log('[DBG][' + fn + '] Updating widget; updateWidgetParams = ' + JSON.stringify(updateWidgetParams));
@@ -1924,9 +1892,11 @@ var PRNM = (function(exports) {
         // self.debug('outStr = ' + outStr, fn);
         // provide some nice tokenizing string-replacement
         //    %T = the next dose time
+        //    %P = user's current points total
         _.each([
-            {'%T': nextDoseTime.toString(timeFormat) }
-          , {'%ETAMIN': Math.round((Math.abs(nextDoseTime.getTime() - (new Date()).getTime())) / 1000 / 60) }
+           { '%T': nextDoseTime.toString(timeFormat) }
+          ,{ '%ETAMIN': Math.round((Math.abs(nextDoseTime.getTime() - (new Date()).getTime())) / 1000 / 60) }
+          ,{ '%P': self.getPoints() }
           ], function(replacementPair) {
             var key = _.keys(replacementPair)[0];
             outStr = outStr.replace(key, replacementPair[key]);
@@ -1934,27 +1904,6 @@ var PRNM = (function(exports) {
         // self.debug('exiting; outStr = ' + outStr,fn);
         return outStr;
       },
-
-
-      // getNextDateTime: function(sortedAscendingDateTimeArray, comparisonDateTime) { var fn = "getNextDateTime"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-      //   self.debug('entered; comparisonDateTime = ' + comparisonDateTime + '; sortedAscendingDateTimeArray = ' + sortedAscendingDateTimeArray,fn);
-
-      //   if(!sortedAscendingDateTimeArray || !_.isArray(sortedAscendingDateTimeArray)) { throw "sortedAscendingDateTimeArray is null, undefined, or not an array."; }
-      //   var ret = null;
-
-      //   self.debug('sortedAscendingDateTimeArray.length = ' + sortedAscendingDateTimeArray.length, fn);
-      //   for (var i = 0; i < sortedAscendingDateTimeArray.length; i++) {
-      //     var d = sortedAscendingDateTimeArray[i];
-      //     var dateCmpRslt = comparisonDateTime.compareTo(d);
-      //     self.debug('dateCmpRslt = ' + dateCmpRslt + ' given dates: ' + comparisonDateTime + ' and ' + d, fn);
-      //     if (dateCmpRslt == 0 || dateCmpRslt == -1) {
-      //       ret = sortedAscendingDateTimeArray[i];
-      //       break;
-      //     }
-      //   }
-      //   self.debug('exiting; ret = ' + ret,fn);
-      //   return ret;
-      // },
 
 
       /**
@@ -1983,15 +1932,9 @@ var PRNM = (function(exports) {
         var pointsFromPr = self.fetchString(self.envConsts.appCfg.namespace, 'points');
         self.debug('pointsFromPr = ' + pointsFromPr, fn);
         
-        var ret = 'None.';
-        // if(!self.isNullOrUndefined(pointsFromPr)) {
-        //   var points = JSON.parse(pointsFromPr);
-        //   // if(!self.isNullOrUndefined(points.total)) {
-        //   if(isNaN(points)) {
-        //     self.debug('points = ' + points, fn);
-        //     ret = points;
-        //   }
-        // }
+        // var ret = 'None.';
+        var ret = 'zero';
+
         if(!self.isNullOrUndefined(pointsFromPr) && !isNaN(pointsFromPr)) {
           self.debug('pointsFromPr = ' + pointsFromPr, fn);
           ret = pointsFromPr;
@@ -2056,7 +1999,7 @@ var PRNM = (function(exports) {
         };
         
         // set the points display
-        updateWidgetParams['badge'] = inNeutralState ? self.getPoints() : '';
+        // updateWidgetParams['badge'] = inNeutralState ? self.getPoints() : '';
 
         // add an optional image URL, if it exists
         var selectedImageUrl = inNeutralState ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl : self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl;
