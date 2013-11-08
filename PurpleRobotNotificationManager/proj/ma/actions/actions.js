@@ -179,14 +179,26 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-
-
+				self.debug('ENTERED', fn);
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
-				PurpleRobot.log('Launching application = ' + applicationFullName);
-				PurpleRobot.launchApplication(applicationFullName);
 
 
+				self.debug('Launching application = ' + applicationFullName);
+				self.launchApplication(applicationFullName);
+
+
+				self.debug('Setting the widget to the neutral state', fn);
 				self.setWidgetToNeutralState();
+
+
+				self.debug('Getting next dose...', fn);
+				var nextDose = self.getNextDose(self.getSortedDoses());
+				self.debug('Getting delayed MedPrompt trigger ID for next dose datetime', fn);
+				var triggerIdOfTriggerToDelete = self.getMedPromptTriggerIdDelayed(nextDose.dose);
+				self.debug('Deleting trigger: ' + triggerIdOfTriggerToDelete, fn);
+				self.deleteTrigger(triggerIdOfTriggerToDelete);
+				
+				self.debug('EXITING', fn);
 			}
 
 		};

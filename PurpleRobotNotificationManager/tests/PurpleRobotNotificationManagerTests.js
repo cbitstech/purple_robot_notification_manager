@@ -328,7 +328,7 @@ suite('PurpleRobotNotificationManager', function() {
 
 
     test('getAllMedPromptDateTimes', cases([
-      ['Heart2HAART, EMA: Mood@21:39:22', (new Date(2013, 7, 20)).set({ hour: 21, minute: 39, second: 22}) ]
+      ['Heart2HAART, EMA: SideEffect@10:05:42', (new Date(2013, 10, 08)).set({ hour: 10, minute: 05, second: 42}) ]
       ],
       function(id, expected) {
         console.log('id = ', id, 'expected = ', expected);

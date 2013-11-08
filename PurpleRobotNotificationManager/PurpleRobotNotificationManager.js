@@ -310,7 +310,9 @@ var PRNM = (function(exports) {
               // self.log('NOEXEC: updateTrigger: ' + self.getQuotedAndDelimitedStr([triggerId, JSON.stringify(triggerObj)],','), fn);
               self.log('updateTrigger: ' + self.getQuotedAndDelimitedStr([triggerId, JSON.stringify(triggerObj)],','), fn);
               var fs = require('fs');
-              var triggerArray = fs.existsSync(self.envConsts.appCfg.triggerPath) ? JSON.parse(fs.readFileSync(self.envConsts.appCfg.triggerPath)) : null;
+              // var triggerArray = fs.existsSync(self.envConsts.appCfg.triggerPath) ? JSON.parse(fs.readFileSync(self.envConsts.appCfg.triggerPath)) : null;
+              var triggerFileText = fs.existsSync(self.envConsts.appCfg.triggerPath) ? fs.readFileSync(self.envConsts.appCfg.triggerPath) : null;
+              var triggerArray = !self.isNullOrUndefined(triggerFileText) && triggerFileText.length > 0 ? JSON.parse(triggerFileText) : null;
               if (triggerArray == null) { fs.writeFileSync(self.envConsts.appCfg.triggerPath, JSON.stringify([triggerObj])); }
               else {
                 var existingTrigger = _.find(triggerArray, function(t) { return t.identifier == triggerId; });
@@ -330,7 +332,8 @@ var PRNM = (function(exports) {
             self.fetchTriggerIds = function() { var fn = 'fetchTriggerIds';
               //self.log('NOEXEC: fetchTriggerIds', fn);
               var fs = require('fs');
-              var triggerArray = fs.existsSync(self.envConsts.appCfg.triggerPath) ? JSON.parse(fs.readFileSync(self.envConsts.appCfg.triggerPath)) : null;
+              var triggerFileText = fs.existsSync(self.envConsts.appCfg.triggerPath) ? fs.readFileSync(self.envConsts.appCfg.triggerPath) : null;
+              var triggerArray = !self.isNullOrUndefined(triggerFileText) && triggerFileText.length > 0 ? JSON.parse(triggerFileText) : null;
               // self.debug('triggerArray = ' + triggerArray, fn);
               var triggerIds = null;
               if (triggerArray != null) {
@@ -486,12 +489,14 @@ var PRNM = (function(exports) {
        * @return {[type]}         [description]
        */
       genDateFromTime: function(timeStr) { var fn = 'genDateFromTime'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered',fn);
         var tarr = timeStr.split(':');
         var th = parseInt(tarr[0], 10),
             tm = parseInt(tarr[1], 10),
             ts = parseInt(tarr[2], 10);
         var date = Date.today().set({ hour: th, minute: tm, second: ts});
         // self.debug(self.getQuotedAndDelimitedStr([timeStr,th,tm,ts,date],','),fn);
+        self.debug('exiting',fn);
         return date;
       },
 
@@ -574,16 +579,17 @@ var PRNM = (function(exports) {
           // PR and Node.js paths
           case 0:
           case 1:
-            // self.log('PR path',fn);
+            self.log('PR path',fn);
 
             var dsical = startDateTime.toICal();
             var deical = endDateTime.toICal();
             
             // deletes the trigger if it already exists
+            self.debug('Fetching all trigger IDs',fn);
             if(_.contains(self.fetchTriggerIds(), id)) { self.log('Deleting trigger: ' + id, fn); self.deleteTrigger(id); }
 
             // sets a trigger
-            // self.debug('Trigger params: ' + self.getQuotedAndDelimitedStr([name,actionScriptText,startDateTime,dsical,endDateTime,deical], ','));
+            self.debug('Trigger params: ' + self.getQuotedAndDelimitedStr([name,actionScriptText,startDateTime,dsical,endDateTime,deical], ','));
             
             var action = 
                 'PurpleRobot.log(\'***** TRIGGER START! *****\'); '
@@ -594,7 +600,7 @@ var PRNM = (function(exports) {
             var actionKey = id + '-actionScriptText';
 
             self.persistString(self.envConsts.appCfg.namespace, actionKey, action);
-            // self.debug('Stored action string at [' + self.envConsts.appCfg.namespace + ',' + actionKey + '] of: ' + self.fetchString(self.envConsts.appCfg.namespace, actionKey) ,fn);
+            self.debug('Stored action string at [' + self.envConsts.appCfg.namespace + ',' + actionKey + '] of: ' + self.fetchString(self.envConsts.appCfg.namespace, actionKey) ,fn);
             var actionCharsToDisplay = 150 > action.length ? (action.length / 2) : 150;
             self.debug('Stored action string at [' + self.envConsts.appCfg.namespace + ',' + actionKey + '] of (displaying first and last ' + actionCharsToDisplay + ' chars): ' + action.substr(0,actionCharsToDisplay) + ' ... ' + action.substr(action.length - actionCharsToDisplay,actionCharsToDisplay),fn);
 
@@ -1336,6 +1342,8 @@ var PRNM = (function(exports) {
         var timeFormat = (self.getAppCfg()).staticOrDefault.timeFormat;
 
         // self.debug('replacing tokens in: ' + outStr, fn);
+        // self.debug('timeFormat = ' + timeFormat, fn);
+
         // provide some nice tokenizing string-replacement for ID-setting
         //    %M = the dose medication
         //    %T = the dose time
@@ -1529,14 +1537,62 @@ var PRNM = (function(exports) {
        * @return {[type]}             [description]
        */
       getNextDoseDateTime: function(sortedDoses) { var fn = 'getNextDoseDateTime'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered',fn);
+        // self.getUserCfg();
+        // var doses = !self.isNullOrUndefined(sortedDoses) ? sortedDoses : self.getSortedDoses();
+        // self.debug('doses.length = ' + (!self.isNullOrUndefined(doses) ? doses.length : 0),fn);
+        // var currTime = new Date();
+        // self.debug('currTime = ' + currTime,fn);
+        // for(var i = 0; i < doses.length; i++) {
+        //   self.debug('self.genDateFromTime(doses[i].time) >= currTime = ' + self.genDateFromTime(doses[i].time) >= currTime, fn);
+        //   if(self.genDateFromTime(doses[i].time) >= currTime) {
+        //     self.debug('exiting (doses[' + i + '].time)',fn);
+        //     return self.genDateFromTime(doses[i].time);
+        //   }
+        // }
+        // self.debug('exiting (doses[0].time)',fn);
+        // return (self.genDateFromTime(doses[0].time)).addDays(1);
+        
+        var nextDose = self.getNextDose(sortedDoses);
+        self.debug('JSON.stringify(nextDose) = ' + JSON.stringify(nextDose), fn);
+        var nextDoseDateTime = (self.genDateFromTime(nextDose.dose.time)).addDays(nextDose.offsetFromNowInDays);
+        self.debug('exiting; nextDoseDateTime = ' + nextDoseDateTime,fn);
+        return nextDoseDateTime;
+      },
+
+
+      /**
+       * Determines the next dose to be consumed.
+       * @param  {[type]} sortedDoses) {            var fn = 'getNextDose'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}              [description]
+       */
+      getNextDose: function(sortedDoses) { var fn = 'getNextDose'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered',fn);
+        self.getUserCfg();
         var doses = !self.isNullOrUndefined(sortedDoses) ? sortedDoses : self.getSortedDoses();
+        self.debug('doses.length = ' + (!self.isNullOrUndefined(doses) ? doses.length : 0),fn);
         var currTime = new Date();
+        // self.debug('currTime = ' + currTime,fn);
         for(var i = 0; i < doses.length; i++) {
-          if(self.genDateFromTime(doses[i].time) >= currTime) {
-            return self.genDateFromTime(doses[i].time);
+          var doseTimeNewerThanCurrTime = self.genDateFromTime(doses[i].time) >= currTime;
+          self.debug('doseTimeNewerThanCurrTime = ' + doseTimeNewerThanCurrTime, fn);
+          if(doseTimeNewerThanCurrTime) {
+            self.debug('exiting (doses[' + i + '])',fn);
+            return { 'offsetFromNowInDays': 0, 'dose': doses[i] };
           }
         }
-        return (self.genDateFromTime(doses[0].time)).addDays(1);
+        self.debug('exiting (doses[0])',fn);
+        return { 'offsetFromNowInDays': 1, 'dose': doses[0] };
+      },
+
+
+      getMedPromptTriggerIdDelayed: function(dose) { var fn = 'getMedPromptTriggerIdDelayed'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered',fn);
+        var medPromptTriggerId = self.genMedPromptTriggerId(dose);
+        self.debug('medPromptTriggerId = ' + medPromptTriggerId,fn);
+        var medPromptTriggerIdDelayed =  medPromptTriggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+        self.debug('exiting; medPromptTriggerIdDelayed = ' + medPromptTriggerIdDelayed,fn);
+        return medPromptTriggerIdDelayed;
       },
 
 
@@ -1591,10 +1647,11 @@ var PRNM = (function(exports) {
 
 
           // * generate the +TTL (UMB says 30) minutes reminder instance of this trigger. *
-          var triggerIdPlusTTL = triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+          // var triggerIdPlusTTL = triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+          var triggerIdPlusTTL = self.getMedPromptTriggerIdDelayed(d);
           // var showNativeDialogParamsPlusTTL = self.genMedPromptShowNativeDialogParams(triggerIdPlusTTL, doseStr, d);
           // actionScriptText = 
-          //     'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
+          //     'PurpleRobot.vibrate("'+ self.appCfg.vibratePattern.staticOrDefault +'");'
           //   + 'PurpleRobot.showNativeDialog(' + showNativeDialogParamsPlusTTL + ');';
           actionScriptText = self.getMedPromptActionText(triggerIdPlusTTL, doseStr, d);
           name = name + ' +' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min'
@@ -1839,6 +1896,7 @@ var PRNM = (function(exports) {
        * @param {[type]} ) { var fn = 'setWidgetToNeutralState'; if(!this.CURRENTLY_IN_TRIGGER [description]
        */
       setWidgetToNeutralState: function() { var fn = 'setWidgetToNeutralState'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered', fn);
         // var l = 0;
         // self.debug(++l, fn);
         self.getUserCfg();
@@ -1877,6 +1935,8 @@ var PRNM = (function(exports) {
         // self.debug(++l, fn);
         PurpleRobot.updateWidget(updateWidgetParams);
         // self.debug(++l, fn);
+        self.debug('exiting', fn);
+        // return nextDoseDateTime;
       },
 
 
@@ -2129,8 +2189,13 @@ var PRNM = (function(exports) {
                 + 'self.genDateFromTime = ' + self.genDateFromTime.toString() + ';'
                 + 'self.getPoints = ' + self.getPoints.toString() + ';'
                 + 'self.getNextDoseDateTime = ' + self.getNextDoseDateTime.toString() + ';'
+                + 'self.getNextDose = ' + self.getNextDose.toString() + ';'
                 + 'self.getSortedDoses = ' + self.getSortedDoses.toString() + ';'
                 + 'self.setWidgetToNeutralState = ' + self.setWidgetToNeutralState.toString() + ';'
+                + 'self.replaceTokensForMedPrompt = ' + self.replaceTokensForMedPrompt.toString() + ';'
+                + 'self.genMedPromptTriggerId = ' + self.genMedPromptTriggerId.toString() + ';'
+                + 'self.getMedPromptTriggerIdDelayed = ' + self.getMedPromptTriggerIdDelayed.toString() + ';'
+                + 'self.deleteTrigger = ' + self.deleteTrigger.toString() + ';'
             ;
             return s;
         },
