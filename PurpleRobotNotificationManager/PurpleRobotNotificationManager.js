@@ -953,98 +953,23 @@ var PRNM = (function(exports) {
         self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
         return openTimeRanges;
 
+      },
 
 
-
-
-
-        // // V2: ABORT THIS; looked initially like a good idea, but let's rewrite...
-        // self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes + '; rangeBoundsBufferMinutes = ' + rangeBoundsBufferMinutes,fn);
-
-        // var openTimeRanges = [];
-
-        // var medPromptsDefined = !self.isNullOrUndefined(medPromptTriggerDateTimes) && medPromptTriggerDateTimes.length > 0;
-
-        // /* append a range between the wake time and the first MedPrompt boundary */
-        // var startTime = self.genDateFromTime(wakeTime);
-        // var initEndDateTime = self.genDateFromTime(wakeTime);
-        // var firstEndTimeIsMedPromptNotSleepTime = medPromptsDefined ? initEndDateTime > medPromptTriggerDateTimes[0] : false;
-        // var endTime = medPromptsDefined
-        //   ? (
-        //       firstEndTimeIsMedPromptNotSleepTime
-        //       ? medPromptTriggerDateTimes[0].clone().addMinutes(-(rangeBoundsBufferMinutes))
-        //       : initEndDateTime
-        //     )
-        //   : initEndDateTime;
-        // if (startTime < endTime) {
-        //   openTimeRanges.push({ "start": startTime, "end": endTime });
-        // }
-
-        // // If no MedPrompts are defined, then our only range is the wake time to the sleep time -- so return here.
-        // // Else, process the MedPrompt times and append the range after the last MedPrompt.
-        // if(medPromptsDefined) {
-
-        //   /* append the MedPrompt-based time ranges, with time boundaries, EXCLUSIVE of wake/sleep times */
-        //   for(var i = 0; i < medPromptTriggerDateTimes.length; i++) {
-        //     if(i < medPromptTriggerDateTimes.length - 1) {
-        //       // compute the start and end time boundaries.
-        //       startTime = medPromptTriggerDateTimes[i].clone().addMinutes(rangeBoundsBufferMinutes);
-        //       endTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
-        //       // if a valid time range is found, then include it for return
-        //       if(endTime > startTime) {
-        //         openTimeRanges.push({ "start": startTime, "end": endTime });
-        //       }
-        //     }
-        //   }
-
-        //   /* append a range between the last MedPrompt boundary and the sleep time */
-        //   startTime = medPromptTriggerDateTimes[medPromptTriggerDateTimes.length - 1].clone().addMinutes(rangeBoundsBufferMinutes),
-        //   endTime = self.genDateFromTime(sleepTime);
-        //   if (startTime < endTime) {
-        //     openTimeRanges.push({ "start": startTime, "end": endTime });
-        //   }
-        // }
-
-        // self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
-        // return openTimeRanges;
-        
-
-        // // V3: rewrite the algo to loop-over the set of MPs, and for each, 
-        // // compare the appropriate start/end times before assigning (slightly more computationally-expensive than above, 
-        // // but more-elegant and probably more easily-provable)
-        // // // wakeTime, sleepTime, medPromptTriggerDateTimes, rangeBoundsBufferMinutes
-        // var openTimeRanges = [];
-
-        // var currDateTime = new Date();
-        // var currentWakeDateTime = self.genDateFromTime(wakeTime);
-        // var currentSleepDateTime = self.genDateFromTime(sleepTime);
-
-        // // compute next wake-sleep period for cases in which the if we are currently beyond a wake-time start, then wake-time analysis should be for next day, not today.
-        // // same goes for sleep time.
-        // var nextWakeDateTime = currentWakeDateTime.clone().addDays(1);
-        // var nextSleepDateTime = currentSleepDateTime.clone().addDays(1);
-
-        // var medPromptsDefined = !self.isNullOrUndefined(medPromptTriggerDateTimes) && medPromptTriggerDateTimes.length > 0;
-
-        // if(medPromptsDefined) {
-        // 	++
-
-        //   for(var i = 0; i < medPromptTriggerDateTimes.length ; i++) {
-        //     var mptStartTime = medPromptTriggerDateTimes[i].clone().addMinutes(rangeBoundsBufferMinutes);
-        //     var mptEndTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
-
-        //     if(mptStartTime)
-        //   }
-
-        // }
-        // // no MedPrompts => set 1 range = wake:sleep
-        // else {
-        //   openTimeRanges.push({ "start": currentWakeDateTime, "end": currentSleepDateTime })
-        // }
-
-        // for(var i = 0; i < )
-
-        // return openTimeRanges;
+      getRandomDateTime: function(openTimeRanges) { var fn = 'getRandomDateTime'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+          var randomlySelectedDateTime = null;
+          
+          var randIdx = Math.floor((Math.random()*openTimeRanges.length));
+          // self.debug('randIdx = ' + randIdx, fn);
+          var startTime = openTimeRanges[randIdx].start;
+          var endTime = openTimeRanges[randIdx].end;
+          self.debug('startTime = ' + startTime + '; endTime = ' + endTime, fn);
+          randomlySelectedDateTime = self.getRandomDateTimeWithinRange(
+            startTime,
+            endTime
+            );
+          
+          return randomlySelectedDateTime;
       },
 
 
@@ -1053,22 +978,22 @@ var PRNM = (function(exports) {
        * @param  {[type]} openTimeRanges) {            var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER [description]
        * @return {[type]}                 [description]
        */
-      getRandomDateTimeAcrossAllOpenRanges: function(openTimeRanges) { var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      getRandomDateTimeAcrossAllOpenRanges: function(openTimeRanges, scheduledEMAs) { var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.debug('entered; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
         var randomlySelectedDateTime = null;
 
         if(openTimeRanges.length > 0) {
-          var randIdx = Math.floor((Math.random()*openTimeRanges.length));
-          // self.debug('randIdx = ' + randIdx, fn);
-          var startTime = openTimeRanges[randIdx].start;
-          var endTime = openTimeRanges[randIdx].end;
-          self.debug('startTime = ' + startTime + '; endTime = ' + endTime, fn);
-          randomlySelectedDateTime = self.getRandomDateTimeWithinRange(
-            // openTimeRanges[randIdx].start,
-            // openTimeRanges[randIdx].end
-            startTime,
-            endTime
-            );
+
+          var emaScheduleConflictsWithExistingEMAs = true;
+          while(randomlySelectedDateTime == null || emaScheduleConflictsWithExistingEMAs) {
+
+            var a = 12345678901234567890;
+            
+            randomlySelectedDateTime = new Date();
+            emaScheduleConflictsWithExistingEMAs = false;
+
+          }
+
         }
 
         self.debug('exiting; randomlySelectedDateTime = ' + randomlySelectedDateTime, fn);
@@ -1145,7 +1070,7 @@ var PRNM = (function(exports) {
         var scheduledEMAs = _.map(emaTransitionObjs, function(key) {
           var survSched = {
             'name': key,
-            'time': self.getRandomDateTimeAcrossAllOpenRanges(openTimeRanges),
+            'time': self.getRandomDateTimeAcrossAllOpenRanges(openTimeRanges,scheduledEMAs),
             'parentId': null,
             'childId': null,
             'triggerId': null
