@@ -952,6 +952,7 @@ var PRNM = (function(exports) {
 
         self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
         return openTimeRanges;
+<<<<<<< HEAD
 
       },
 
@@ -970,6 +971,8 @@ var PRNM = (function(exports) {
             );
           
           return randomlySelectedDateTime;
+=======
+>>>>>>> no_EMA_windowing
       },
 
 
