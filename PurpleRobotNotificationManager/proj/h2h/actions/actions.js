@@ -194,9 +194,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.setWidgetToNeutralState();
 
 
-
-
-				
 				self.debug('Getting next dose...', fn);
 				var nextDose = self.getNextDose(self.getSortedDoses());
 				self.debug('Getting delayed MedPrompt trigger ID for next dose datetime', fn);
