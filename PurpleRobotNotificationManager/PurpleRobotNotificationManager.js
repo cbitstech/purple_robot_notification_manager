@@ -991,6 +991,9 @@ var PRNM = (function(exports) {
             
             randomlySelectedDateTime = new Date();
             emaScheduleConflictsWithExistingEMAs = false;
+            for(var i = 0; i < 1; i++) {
+              self.debug('in the stupid for loop', fn);
+            }
 
           }
 
