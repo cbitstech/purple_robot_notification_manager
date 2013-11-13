@@ -177,8 +177,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 			/**
-			 * Widget is pressed.
-			 * @param  {[type]} codeFromPrnm) {            var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm [description]
+			 * Widget is pressed for H2H.
+			 * @param  {[type]} 							[description]
 			 * @return {[type]}               [description]
 			 */
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
