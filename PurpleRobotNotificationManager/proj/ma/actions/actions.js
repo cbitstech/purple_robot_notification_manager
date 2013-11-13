@@ -180,9 +180,22 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
 				self.debug('ENTERED', fn);
+
+				self.debug('Getting next dose...', fn);
+				var nextDose = self.getNextDose(self.getSortedDoses());
+
+
+				var currentAction = {
+					'triggerId': null,
+					'actionDstType': 'onWidgetPress',
+					'actionTime': nextDose.dose.time,
+					'actionName': nextDose.dose.medication
+				};
+				self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
+
+
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
-
-
 				self.debug('Launching application = ' + applicationFullName);
 				self.launchApplication(applicationFullName);
 
@@ -191,8 +204,6 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.setWidgetToNeutralState();
 
 
-				self.debug('Getting next dose...', fn);
-				var nextDose = self.getNextDose(self.getSortedDoses());
 				self.debug('Getting delayed MedPrompt trigger ID for next dose datetime', fn);
 				var triggerIdOfTriggerToDelete = self.getMedPromptTriggerIdDelayed(nextDose.dose);
 				self.debug('Deleting trigger: ' + triggerIdOfTriggerToDelete, fn);

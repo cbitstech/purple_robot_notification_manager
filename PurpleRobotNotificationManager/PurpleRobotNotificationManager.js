@@ -154,6 +154,7 @@ var PRNM = (function(exports) {
       fetchString: null,
       scheduleScript: null,
       showNativeDialog: null,
+      fetchWidget: null,
       updateWidget: null,
       updateTrigger: null,
       fetchTriggerIds: null,
@@ -212,6 +213,7 @@ var PRNM = (function(exports) {
               else { self.warn('Purple Robot configuration not updated; jsonPrConfig was null or undefined.', fn); }
               self.debug('exiting',fn);
             },
+            self.fetchWidget = function(widgetId) { return PurpleRobot.fetchWidget(widgetId); };
             self.updateWidget = function(params) { return PurpleRobot.updateWidget(params); };
             self.updateTrigger = function(triggerId, triggerObj) { return PurpleRobot.updateTrigger(triggerId, triggerObj) };
             self.fetchTriggerIds = function() { return PurpleRobot.fetchTriggerIds(); };
@@ -305,6 +307,7 @@ var PRNM = (function(exports) {
               else { self.warn('Purple Robot configuration not updated; jsonPrConfig was null or undefined.', fn); }
               self.debug('exiting',fn);
             },
+            self.fetchWidget = function(widgetId) { var fn = 'fetchWidget'; self.log('NOEXEC: would fetchWidget: ' + widgetId, fn); };
             self.updateWidget = function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); };
             self.updateTrigger = function(triggerId, triggerObj) { var fn = 'updateTrigger'; 
               // self.log('NOEXEC: updateTrigger: ' + self.getQuotedAndDelimitedStr([triggerId, JSON.stringify(triggerObj)],','), fn);
@@ -424,6 +427,7 @@ var PRNM = (function(exports) {
               else { self.warn('Purple Robot configuration not updated; jsonPrConfig was null or undefined.', fn); }
               self.debug('exiting',fn);
             },
+            self.fetchWidget = function(widgetId) { var fn = 'fetchWidget'; self.log('NOEXEC: would fetchWidget: ' + widgetId, fn); };
             self.updateWidget = function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); };
             self.updateTrigger = function(triggerId, triggerObj) { var fn = 'updateTrigger'; self.log('NOEXEC: updateTrigger: ' + triggerId, JSON.stringify(triggerObj), fn); };
             self.fetchTriggerIds = function() { var fn = 'fetchTriggerIds'; self.log('NOEXEC: fetchTriggerIds', fn); return []; };
@@ -489,14 +493,14 @@ var PRNM = (function(exports) {
        * @return {[type]}         [description]
        */
       genDateFromTime: function(timeStr) { var fn = 'genDateFromTime'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered',fn);
+        // self.debug('entered',fn);
         var tarr = timeStr.split(':');
         var th = parseInt(tarr[0], 10),
             tm = parseInt(tarr[1], 10),
             ts = parseInt(tarr[2], 10);
         var date = Date.today().set({ hour: th, minute: tm, second: ts});
         // self.debug(self.getQuotedAndDelimitedStr([timeStr,th,tm,ts,date],','),fn);
-        self.debug('exiting',fn);
+        // self.debug('exiting',fn);
         return date;
       },
 
@@ -2112,6 +2116,7 @@ var PRNM = (function(exports) {
 
         getWidgetFns: function() { var fn = 'getWidgetFns'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
           var s = 'self.replaceTokensForWidget = ' + self.replaceTokensForWidget.toString() + ';'
+                + 'self.fetchWidget = ' + self.fetchWidget.toString() + ';'
                 + 'self.updateWidget = ' + self.updateWidget.toString() + ';'
                 + 'self.genDateFromTime = ' + self.genDateFromTime.toString() + ';'
                 + 'self.getPoints = ' + self.getPoints.toString() + ';'
@@ -2123,6 +2128,7 @@ var PRNM = (function(exports) {
                 + 'self.genMedPromptTriggerId = ' + self.genMedPromptTriggerId.toString() + ';'
                 + 'self.getMedPromptTriggerIdDelayed = ' + self.getMedPromptTriggerIdDelayed.toString() + ';'
                 + 'self.deleteTrigger = ' + self.deleteTrigger.toString() + ';'
+                + 'self.appConfigUpsert = ' + self.appConfigUpsert.toString() + ';'
             ;
             return s;
         },
