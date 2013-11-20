@@ -177,12 +177,14 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 			/**
-			 * Widget is pressed for H2H.
+			 * Widget is pressed.
 			 * @param  {[type]} 							[description]
 			 * @return {[type]}               [description]
 			 */
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
 				self.debug('ENTERED', fn);
+
+				self.debug('Enumerated members of self: ' + _.keys(self), fn);
 
 				self.debug('Getting next dose...', fn);
 				var nextDose = self.getNextDose(self.getSortedDoses());

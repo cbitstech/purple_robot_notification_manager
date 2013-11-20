@@ -179,7 +179,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 			/**
-			 * Widget is pressed for MA.
+			 * Widget is pressed.
 			 * @param  {[type]} 							[description]
 			 * @return {[type]}               [description]
 			 */
