@@ -959,6 +959,11 @@ var PRNM = (function(exports) {
       },
 
 
+      /**
+       * Gets a datetime within a set of time ranges.
+       * @param  {[type]} openTimeRanges) {            var fn = 'getRandomDateTime'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}                 [description]
+       */
       getRandomDateTime: function(openTimeRanges) { var fn = 'getRandomDateTime'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
           var randomlySelectedDateTime = null;
           
@@ -976,35 +981,35 @@ var PRNM = (function(exports) {
       },
 
 
-      /**
-       * Returns a randomly-selected datetime in the set of open/available time ranges.
-       * @param  {[type]} openTimeRanges) {            var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER [description]
-       * @return {[type]}                 [description]
-       */
-      getRandomDateTimeAcrossAllOpenRanges: function(openTimeRanges, scheduledEMAs) { var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
-        var randomlySelectedDateTime = null;
+      // /**
+      //  * Returns a randomly-selected datetime in the set of open/available time ranges.
+      //  * @param  {[type]} openTimeRanges) {            var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER [description]
+      //  * @return {[type]}                 [description]
+      //  */
+      // getRandomDateTimeAcrossAllOpenRanges: function(openTimeRanges, scheduledEMAs) { var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      //   self.debug('entered; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
+      //   var randomlySelectedDateTime = null;
 
-        if(openTimeRanges.length > 0) {
+      //   if(openTimeRanges.length > 0) {
 
-          var emaScheduleConflictsWithExistingEMAs = true;
-          while(randomlySelectedDateTime == null || emaScheduleConflictsWithExistingEMAs) {
+      //     var emaScheduleConflictsWithExistingEMAs = true;
+      //     while(randomlySelectedDateTime == null || emaScheduleConflictsWithExistingEMAs) {
 
-            var a = 12345678901234567890;
+      //       var a = 12345678901234567890;
             
-            randomlySelectedDateTime = new Date();
-            emaScheduleConflictsWithExistingEMAs = false;
-            for(var i = 0; i < 1; i++) {
-              self.debug('in the stupid for loop', fn);
-            }
+      //       randomlySelectedDateTime = new Date();
+      //       emaScheduleConflictsWithExistingEMAs = false;
+      //       for(var i = 0; i < 1; i++) {
+      //         self.debug('in the stupid for loop', fn);
+      //       }
 
-          }
+      //     }
 
-        }
+      //   }
 
-        self.debug('exiting; randomlySelectedDateTime = ' + randomlySelectedDateTime, fn);
-        return randomlySelectedDateTime;
-      },
+      //   self.debug('exiting; randomlySelectedDateTime = ' + randomlySelectedDateTime, fn);
+      //   return randomlySelectedDateTime;
+      // },
 
 
 
@@ -1076,7 +1081,8 @@ var PRNM = (function(exports) {
         var scheduledEMAs = _.map(emaTransitionObjs, function(key) {
           var survSched = {
             'name': key,
-            'time': self.getRandomDateTimeAcrossAllOpenRanges(openTimeRanges,scheduledEMAs),
+            // 'time': self.getRandomDateTimeAcrossAllOpenRanges(openTimeRanges,scheduledEMAs),
+            'time': self.getRandomDateTime(openTimeRanges),
             'parentId': null,
             'childId': null,
             'triggerId': null

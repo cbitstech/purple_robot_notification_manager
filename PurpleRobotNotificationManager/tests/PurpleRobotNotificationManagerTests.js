@@ -262,6 +262,11 @@ suite('PurpleRobotNotificationManager', function() {
         var actual2 = prnm.getRandomDateTimeWithinRange(startDate, endDate);        
         // must be true to whatever degree of certainty the JS interpreter's PRNG provides...
         assert.notEqual(actual1, actual2);
+
+        // test that values are within the range
+        assert.equal(actual1.between(startDate, endDate), expected)
+        assert.equal(actual2.between(startDate, endDate), expected)
+        console.log([startDate,endDate,actual1,actual2]);
       })
     );
 
@@ -376,29 +381,111 @@ suite('PurpleRobotNotificationManager', function() {
     );
 
 
-    test('getRandomDateTimeAcrossAllOpenRanges',cases([
-       //  ['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 45, false]
-       // ,['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 30, false]
-       // ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 30, true]
-       // ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 60, true]
-       // ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, true]
-       ['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, true]
-      ], function(wakeTime, sleepTime, arr, rangeBoundsBufferMinutes, expectNotNullOrUndefined) {
-
+          // [ { start: Fri Nov 22 2013 10:00:00 GMT-0600 (CST), end: Fri Nov 22 2013 11:00:00 GMT-0600 (CST) }, { start: Fri Nov 22 2013 13:00:00 GMT-0600 (CST), end: Fri Nov 22 2013 14:00:00 GMT-0600 (CST) }, { start: Fri Nov 22 2013 16:00:00 GMT-0600 (CST), end: Fri Nov 22 2013 21:00:00 GMT-0600 (CST) }
+          // [ { start: Fri Nov 22 2013 10:00:00 GMT-0600 (CST), end: Fri Nov 22 2013 11:00:00 GMT-0600 (CST) }, { start: Fri Nov 22 2013 13:00:00 GMT-0600 (CST), end: Fri Nov 22 2013 14:00:00 GMT-0600 (CST) }, { start: Fri Nov 22 2013 16:00:00 GMT-0600 (CST), end: Fri Nov 22 2013 21:00:00 GMT-0600 (CST) }
+    test('getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal', cases(
+      [
+        [
+          ['08:00:00', '21:00:00', [[9,0,0],[12,0,0],[15,0,0]], 60], 'DAILY', 
+            [ { start: Date.today().set({hour:10,minute:0,second:0}), end: Date.today().set({hour:11,minute:0,second:0}) },{ start: Date.today().set({hour:13,minute:0,second:0}), end: Date.today().set({hour:14,minute:0,second:0}) },{ start: Date.today().set({hour:16,minute:0,second:0}), end: Date.today().set({hour:21,minute:0,second:0}) }]
+        ]
+        ,[
+          ['08:00:00', '21:00:00', [[9,0,0],[12,0,0],[15,0,0]], 60], 'WEEKLY', 
+          // (function() {
+          //         console.log("WTFOFSDFAGJLHBDB");
+            // return 
+              // _.reduce(
+                _.map(_.range(0,6,1), function(dayOffset){
+                  console.log(dayOffset);
+                  return [
+                           { start: Date.today().addDays(dayOffset).set({hour:10,minute:0,second:0}), end: Date.today().addDays(dayOffset).set({hour:11,minute:0,second:0}) },
+                           { start: Date.today().addDays(dayOffset).set({hour:13,minute:0,second:0}), end: Date.today().addDays(dayOffset).set({hour:14,minute:0,second:0}) },
+                           { start: Date.today().addDays(dayOffset).set({hour:16,minute:0,second:0}), end: Date.today().addDays(dayOffset).set({hour:21,minute:0,second:0}) }
+                         ];
+                })
+                // ,function(memo, dayArray, i, fullList) {
+                //   console.log(memo);
+                //   console.log(dayArray);
+                //   console.log(i);
+                //   console.log(fullList);
+                //   return  prnm.isNullOrUndefined(memo) || memo.length == 0 
+                //     ? dayArray
+                //     : memo.concat(dayArray);
+                // })
+          //       ;
+          // }) ()
+        ]
+      // ]
+      // ,[, 'DAILY']
+      // ,[, 'DAILY']
+      // ,[, 'WEEKLY']
+      // ,[, 'WEEKLY']
+      // ,[, 'WEEKLY']
+      ,], function(getOpenTimeRangesParams, schedulingFrequencyAsICal, expected) {
         console.log('-------------------------------------');
-        var medDateTime1 = Date.today().set({hour:arr[0][0],minute:arr[0][1],second:arr[0][2]});
-        var medDateTime2 = Date.today().set({hour:arr[1][0],minute:arr[1][1],second:arr[1][2]});
-        var medDateTime3 = Date.today().set({hour:arr[2][0],minute:arr[2][1],second:arr[2][2]});
+        console.log("TEST PARAMS: " + [getOpenTimeRangesParams, schedulingFrequencyAsICal, expected]);
+        var medDateTime1 = Date.today().set({hour:getOpenTimeRangesParams[2][0][0],minute:getOpenTimeRangesParams[2][0][1],second:getOpenTimeRangesParams[2][0][2]});
+        var medDateTime2 = Date.today().set({hour:getOpenTimeRangesParams[2][1][0],minute:getOpenTimeRangesParams[2][1][1],second:getOpenTimeRangesParams[2][1][2]});
+        var medDateTime3 = Date.today().set({hour:getOpenTimeRangesParams[2][2][0],minute:getOpenTimeRangesParams[2][2][1],second:getOpenTimeRangesParams[2][2][2]});
         var triggerDateTimes = [medDateTime1,medDateTime2,medDateTime3];
-        if(arr.length>3){triggerDateTimes.push(Date.today().set({hour:arr[3][0],minute:arr[3][1],second:arr[3][2]}))}
-        
-        var openRanges = prnm.getOpenTimeRanges(wakeTime, sleepTime, triggerDateTimes, rangeBoundsBufferMinutes);
-        var randTime = prnm.getRandomDateTimeAcrossAllOpenRanges(openRanges);
+        if(getOpenTimeRangesParams[2].length>3){triggerDateTimes.push(Date.today().set({hour:getOpenTimeRangesParams[2][3][0],minute:getOpenTimeRangesParams[2][3][1],second:getOpenTimeRangesParams[2][3][2]}))}
+        var openTimeRanges = prnm.getOpenTimeRanges(getOpenTimeRangesParams[0], getOpenTimeRangesParams[1], triggerDateTimes, getOpenTimeRangesParams[3]);
 
-        assert.notEqual(prnm.isNullOrUndefined(randTime), expectNotNullOrUndefined);
-        assert.notEqual(randTime, '');
+        var actual = prnm.getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal(openTimeRanges, schedulingFrequencyAsICal);
+        // console.log(expected);
+
+        // test equal length
+        var r = [];
+        for(var i = 0; i < expected.length; i++) {
+          // console.log(_.isArray(expected[i]));
+          r = r.concat(expected[i]);
+        }
+        assert.equal(actual.length, r.length);
+
+        // test starting time equality
+        var startActual = _.map(_.pluck(actual, "start"), function(st) { if(!_.isDate(st)) { console.log("A: " + st); } return st.toString(); });
+        var startExpected = _.map(_.pluck(r, "start"), function(st) { if(!_.isDate(st)) { console.log("B: " + st); return st; } return st.toString(); });
+        var diffs = _.difference(startActual, startExpected);
+        // console.log("startActual   = " + startActual);
+        // console.log("startExpected = " + startExpected);
+        // console.log("diffs = " + diffs);
+        assert.equal(diffs.length, 0);
+
+        // test end time equality
+        var startActual = _.map(_.pluck(actual, "end"), function(st) { if(!_.isDate(st)) { console.log("A: " + st); } return st.toString(); });
+        var startExpected = _.map(_.pluck(r, "end"), function(st) { if(!_.isDate(st)) { console.log("B: " + st); return st; } return st.toString(); });
+        var diffs = _.difference(startActual, startExpected);
+        // console.log("startActual   = " + startActual);
+        // console.log("startExpected = " + startExpected);
+        // console.log("diffs = " + diffs);
+        assert.equal(diffs.length, 0);
       })
     );
+
+
+    // test('getRandomDateTimeAcrossAllOpenRanges',cases([
+    //    //  ['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 45, false]
+    //    // ,['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 30, false]
+    //    // ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 30, true]
+    //    // ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0]], 60, true]
+    //    // ,['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, true]
+    //    ['08:30:00', '11:30:00', [[9,0,0],[12,0,0],[15,0,0],[18,0,0]], 20, true]
+    //   ], function(wakeTime, sleepTime, arr, rangeBoundsBufferMinutes, expectNotNullOrUndefined) {
+
+    //     console.log('-------------------------------------');
+    //     var medDateTime1 = Date.today().set({hour:arr[0][0],minute:arr[0][1],second:arr[0][2]});
+    //     var medDateTime2 = Date.today().set({hour:arr[1][0],minute:arr[1][1],second:arr[1][2]});
+    //     var medDateTime3 = Date.today().set({hour:arr[2][0],minute:arr[2][1],second:arr[2][2]});
+    //     var triggerDateTimes = [medDateTime1,medDateTime2,medDateTime3];
+    //     if(arr.length>3){triggerDateTimes.push(Date.today().set({hour:arr[3][0],minute:arr[3][1],second:arr[3][2]}))}
+        
+    //     var openRanges = prnm.getOpenTimeRanges(wakeTime, sleepTime, triggerDateTimes, rangeBoundsBufferMinutes);
+    //     var randTime = prnm.getRandomDateTimeAcrossAllOpenRanges(openRanges);
+
+    //     assert.notEqual(prnm.isNullOrUndefined(randTime), expectNotNullOrUndefined);
+    //     assert.notEqual(randTime, '');
+    //   })
+    // );
 
 // // ['08:00:00', '21:00:00', ]
 
