@@ -67,7 +67,8 @@ switch(currentExecutionContext) {
  */
 Date.prototype.toICal = function() { var fn = 'Date.prototype.toICal';
   var  yy = this.getFullYear()
-      ,MM = this.clone().addMonths(1).getMonth()
+      // ,MM = this.clone().addMonths(1).getMonth()
+      ,MM = this.getMonth() + 1
       ,dd = this.getDate()
       ,hh = this.getHours()
       ,mm = this.getMinutes()
@@ -762,19 +763,6 @@ var PRNM = (function(exports) {
           }
           else {
             self.warn('appCfg already exists in PR database; not creating.', fn);
-
-            // // ensure triggerState exists
-            // if(self.isNullOrUndefined(appCfg.triggerState)) {
-            //   self.log('Updating and persisting appCfg for: ("' + namespace + '", "' + keyInPR + '"); reason: no triggerState array.');
-            //     // clone the appCfg, update, then persist: http://heyjavascript.com/4-creative-ways-to-clone-objects/
-            //     appCfg.triggerState = [];
-            //     self.appConfigUpsert(namespace, keyInPR, appCfg);
-            //   // self.persistEncryptedString(namespace, keyInPR, JSON.stringify(appCfg));
-            //   self.appCfg = appCfg;
-            //   // self.debug('self.appCfg = ' + JSON.stringify(self.appCfg), fn);
-            //   var storedAppCfg = self.fetchEncryptedString(namespace, keyInPR);
-            //   self.debug('storedAppCfg = ' + storedAppCfg, fn);
-            // }
           }
 
           self.debug('CREATE(' + [namespace,keyInPR] + ')');
@@ -980,36 +968,6 @@ var PRNM = (function(exports) {
           return randomlySelectedDateTime;
       },
 
-
-      // /**
-      //  * Returns a randomly-selected datetime in the set of open/available time ranges.
-      //  * @param  {[type]} openTimeRanges) {            var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER [description]
-      //  * @return {[type]}                 [description]
-      //  */
-      // getRandomDateTimeAcrossAllOpenRanges: function(openTimeRanges, scheduledEMAs) { var fn = 'getRandomDateTimeAcrossAllOpenRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-      //   self.debug('entered; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
-      //   var randomlySelectedDateTime = null;
-
-      //   if(openTimeRanges.length > 0) {
-
-      //     var emaScheduleConflictsWithExistingEMAs = true;
-      //     while(randomlySelectedDateTime == null || emaScheduleConflictsWithExistingEMAs) {
-
-      //       var a = 12345678901234567890;
-            
-      //       randomlySelectedDateTime = new Date();
-      //       emaScheduleConflictsWithExistingEMAs = false;
-      //       for(var i = 0; i < 1; i++) {
-      //         self.debug('in the stupid for loop', fn);
-      //       }
-
-      //     }
-
-      //   }
-
-      //   self.debug('exiting; randomlySelectedDateTime = ' + randomlySelectedDateTime, fn);
-      //   return randomlySelectedDateTime;
-      // },
 
 
 
