@@ -1367,17 +1367,23 @@ var PRNM = (function(exports) {
             + 'PurpleRobot.log(\'url = \' + url);'
 
             + 'var wisePillIntegrationResponse = PurpleRobot.readUrl(url);'
-            + 'var wisePillLastSeenDateTimeStr = wisePillIntegrationResponse.indexOf("error") > -1 ? null : wisePillIntegrationResponse.trim();'
-            + 'PurpleRobot.log(\'[' + fn + '] "\' + wisePillLastSeenDateTimeStr + \'"\');'
+            + 'var wisePillLastSeenDateTimeStr = (wisePillIntegrationResponse == null || wisePillIntegrationResponse == undefined || wisePillIntegrationResponse.indexOf("error")) > -1 ? null : wisePillIntegrationResponse.trim();'
+            + 'PurpleRobot.log(\'[' + fn + '] wisePillLastSeenDateTimeStr = "\' + wisePillLastSeenDateTimeStr + \'"\');'
             
             + 'if (wisePillLastSeenDateTimeStr != null && wisePillLastSeenDateTimeStr != undefined) {'
 
-            + '  var wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTimeStr);'
-            + '  PurpleRobot.log(\'[' + fn + '] \' + wisePillLastSeenDateTime);'
-
             + '  var now = new Date();'
+            + '  PurpleRobot.log(\'[' + fn + '] now = \' + now);'
+
+            + '  var wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTimeStr);'
+            + '  wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTime.getTime() + (wisePillLastSeenDateTime.getTimezoneOffset() * 60000));'
+            + '  PurpleRobot.log(\'[' + fn + '] wisePillLastSeenDateTime = \' + wisePillLastSeenDateTime);'
+
             + '  var currDateMinusNMin = now.addMinutes(-5);'
             + '  PurpleRobot.log(\'[' + fn + '] currDateMinusNMin = \' + new Date(currDateMinusNMin));'
+
+            + '  PurpleRobot.log(\'[' + fn + '] (wisePillLastSeenDateTime >= currDateMinusNMin) = \' + (wisePillLastSeenDateTime >= currDateMinusNMin));'
+            + '  PurpleRobot.log(\'[' + fn + '] (wisePillLastSeenDateTime - currDateMinusNMin) = \' + (wisePillLastSeenDateTime - currDateMinusNMin));'
 
             // if the user has opened the pillbox in the last 5 minutes, then do not notify them to take their pill; else, do notify them.
             + '  if(wisePillLastSeenDateTime >= currDateMinusNMin) {'
@@ -1643,7 +1649,8 @@ var PRNM = (function(exports) {
           // var triggerIdNonResponsive     = self.genMedPromptTriggerId(d) + '-nonResponsive+0min';
           d.timeOffsetStr = '+0min:W';
           var triggerIdNonResponsive     = self.genMedPromptTriggerId(d);
-          var startDateTimeNonResponsive = sdt.clone();
+          // 20140131: timing hack: add 30 sec to prevent N-R state from displaying prior to the MedPrompt
+          var startDateTimeNonResponsive = sdt.clone().addSeconds(30);
           var endDateTimeNonResponsive   = startDateTimeNonResponsive.clone().addMinutes(1);
           var untilDateTimeNonResponsive = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
           var repeatStrNonResponsive     = 'FREQ=MINUTELY;COUNT=1';
@@ -1732,20 +1739,21 @@ var PRNM = (function(exports) {
 
           + 'var url = "' + self.replaceTokensForUser(self.appCfg.staticOrDefault.medPrompt.wisePillLastSeenUrl) + '";'
           + 'PurpleRobot.log(\'[DBG][' + fn + '] url = \' + url);'
-          + '  var wisePillIntegrationResponse = PurpleRobot.readUrl(url);'
-          + '  var wisePillLastSeenDateTimeStr = wisePillIntegrationResponse.indexOf("error") > -1 ? null : wisePillIntegrationResponse.trim();'
+          + 'var wisePillIntegrationResponse = PurpleRobot.readUrl(url);'
+          + 'var wisePillLastSeenDateTimeStr = (self.isNullOrUndefined(wisePillIntegrationResponse) || wisePillIntegrationResponse.indexOf("error")) > -1 ? null : wisePillIntegrationResponse.trim();'
 
           + 'PurpleRobot.log(\'[DBG][' + fn + '] wisePillLastSeenDateTimeStr = \' + wisePillLastSeenDateTimeStr + \'; wisePillLastSeenDateTimeStr === null = \' + (wisePillLastSeenDateTimeStr === null));'
 
-          + '    var timeFormat = \'' + self.appCfg.staticOrDefault.timeFormat + '\';'
-          + '    var nextDoseDateTime = new Date(\'' + nextDoseDateTime.toISOString() + '\');'
-          + '    var minutesBeforeDose = Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60);'
-          + '    var points = self.getPoints();'
-          + '    var tokenArr = [ \'%T\', \'%ETAMIN\', \'%P\' ];'
+          + 'var timeFormat = \'' + self.appCfg.staticOrDefault.timeFormat + '\';'
+          + 'var nextDoseDateTime = new Date(\'' + nextDoseDateTime.toISOString() + '\');'
+          + 'var minutesBeforeDose = Math.round((Math.abs(nextDoseDateTime.getTime() - (new Date()).getTime())) / 1000 / 60);'
+          + 'var points = self.getPoints();'
+          + 'var tokenArr = [ \'%T\', \'%ETAMIN\', \'%P\' ];'
           
           + 'var doDefaultWidgetUpdate = true;'
           + 'if(!self.isNullOrUndefined(wisePillLastSeenDateTimeStr)) {'
           + '  var wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTimeStr);'
+          + '  wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTime.getTime() + (wisePillLastSeenDateTime.getTimezoneOffset() * 60000));'
           + '  PurpleRobot.log(\'[DBG][' + fn + '] wisePillLastSeenDateTime = \' + wisePillLastSeenDateTime);'
           + '  var now = new Date();'
 

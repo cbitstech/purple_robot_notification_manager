@@ -59,7 +59,13 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.launchApplication(applicationFullName);
 
 
-				var triggerIdToDelete = (
+				dose.timeOffsetStr = '+0min:W';
+				var triggerIdToDelete = self.genMedPromptTriggerId(dose);
+				self.log('Deleting Non-Responsive widget trigger; ID = ' + triggerIdToDelete, fn);
+				self.deleteTrigger(triggerIdToDelete);
+
+
+				triggerIdToDelete = (
 					triggerId.indexOf('+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min') != -1
 					? triggerId 
 					: triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min'
@@ -104,6 +110,12 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
+
+
+				dose.timeOffsetStr = '+0min:W';
+				var triggerIdToDelete = self.genMedPromptTriggerId(dose);
+				self.log('Deleting Non-Responsive widget trigger; ID = ' + triggerIdToDelete, fn);
+				self.deleteTrigger(triggerIdToDelete);
 
 
 				var triggerIdToDelete = (
