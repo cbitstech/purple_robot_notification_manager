@@ -890,9 +890,9 @@ var PRNM = (function(exports) {
       
       /**
        * Returns the set of time ranges that are open/available for scheduling events, constrained by:
-       * 		1) A wake time (inclusive).
-       * 		2) A sleep time (exclusive.
-       * 		3) A "buffer zone" of time (in minutes) around specified other datetimes during which scheduling is not permitted.
+       *    1) A wake time (inclusive).
+       *    2) A sleep time (exclusive.
+       *    3) A "buffer zone" of time (in minutes) around specified other datetimes during which scheduling is not permitted.
        *
        * Ranges must be defined according to this constraint hierarchy, with each higher (shallower) level taking precedence over its succeeding lower (deeper) level:
        *   wake/sleep times
@@ -912,36 +912,36 @@ var PRNM = (function(exports) {
         /* append a range between the wake time and the first MedPrompt boundary */
         var startTime = self.genDateFromTime(wakeTime);
         var endTime = medPromptsDefined
-        	? medPromptTriggerDateTimes[0].clone().addMinutes(-(rangeBoundsBufferMinutes))
-        	: self.genDateFromTime(sleepTime);
+          ? medPromptTriggerDateTimes[0].clone().addMinutes(-(rangeBoundsBufferMinutes))
+          : self.genDateFromTime(sleepTime);
         if (startTime < endTime) {
-	        openTimeRanges.push({ 'start': startTime, 'end': endTime });
-	      }
+          openTimeRanges.push({ 'start': startTime, 'end': endTime });
+        }
 
-	      // If no MedPrompts are defined, then our only range is the wake time to the sleep time -- so return here.
-	      // Else, process the MedPrompt times and append the range after the last MedPrompt.
-	      if(medPromptsDefined) {
+        // If no MedPrompts are defined, then our only range is the wake time to the sleep time -- so return here.
+        // Else, process the MedPrompt times and append the range after the last MedPrompt.
+        if(medPromptsDefined) {
 
-	        /* append the MedPrompt-based time ranges, with time boundaries, EXCLUSIVE of wake/sleep times */
-	        for(var i = 0; i < medPromptTriggerDateTimes.length; i++) {
-	          if(i < medPromptTriggerDateTimes.length - 1) {
-	            // compute the start and end time boundaries.
-	            startTime = medPromptTriggerDateTimes[i].clone().addMinutes(rangeBoundsBufferMinutes);
-	            endTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
-	            // if a valid time range is found, then include it for return
-	            if(endTime > startTime) {
-	              openTimeRanges.push({ 'start': startTime, 'end': endTime });
-	            }
-	          }
-	        }
+          /* append the MedPrompt-based time ranges, with time boundaries, EXCLUSIVE of wake/sleep times */
+          for(var i = 0; i < medPromptTriggerDateTimes.length; i++) {
+            if(i < medPromptTriggerDateTimes.length - 1) {
+              // compute the start and end time boundaries.
+              startTime = medPromptTriggerDateTimes[i].clone().addMinutes(rangeBoundsBufferMinutes);
+              endTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
+              // if a valid time range is found, then include it for return
+              if(endTime > startTime) {
+                openTimeRanges.push({ 'start': startTime, 'end': endTime });
+              }
+            }
+          }
 
-	        /* append a range between the last MedPrompt boundary and the sleep time */
-	        startTime = medPromptTriggerDateTimes[medPromptTriggerDateTimes.length - 1].clone().addMinutes(rangeBoundsBufferMinutes),
-	        endTime = self.genDateFromTime(sleepTime);
-	        if (startTime < endTime) {
-		        openTimeRanges.push({ 'start': startTime, 'end': endTime });
-	        }
-				}
+          /* append a range between the last MedPrompt boundary and the sleep time */
+          startTime = medPromptTriggerDateTimes[medPromptTriggerDateTimes.length - 1].clone().addMinutes(rangeBoundsBufferMinutes),
+          endTime = self.genDateFromTime(sleepTime);
+          if (startTime < endTime) {
+            openTimeRanges.push({ 'start': startTime, 'end': endTime });
+          }
+        }
 
         self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
         return openTimeRanges;
@@ -1122,6 +1122,7 @@ var PRNM = (function(exports) {
         // the generated action to execute in a trigger
         actionScriptText = 
             'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
+          + 'PurpleRobot.playDefaultTone();'
           + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
         
         // self.debug('actionScriptText = ' + actionScriptText,fn);
@@ -1395,6 +1396,7 @@ var PRNM = (function(exports) {
             + '    PurpleRobot.log(\'[' + fn + '] 7\');'
             + '    PurpleRobot.persistString(\'' + self.envConsts.appCfg.namespace + '\', \'pillboxOpened\',\'false\');'
             + '    PurpleRobot.vibrate(\''+ (self.getAppCfg()).staticOrDefault.vibratePattern +'\');'
+            + '    PurpleRobot.playDefaultTone();'
             + '    PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');'
             + '  }'
             + '}'
@@ -1402,6 +1404,7 @@ var PRNM = (function(exports) {
             // if some tech glitch prevented the string from coming-through, then notify the user
             + 'else {'
             + '  PurpleRobot.vibrate(\''+ (self.getAppCfg()).staticOrDefault.vibratePattern +'\');'
+            + '  PurpleRobot.playDefaultTone();'
             + '  PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');'
             + '}'
             ;
@@ -1587,12 +1590,12 @@ var PRNM = (function(exports) {
           
           self.debug(self.getQuotedAndDelimitedStr([triggerIdFirstPrior, sdt.clone(), startDateTimeFirstPrior, endDateTimeFirstPrior, untilDateTimeFirstPrior, repeatStrFirstPrior], ',', "'"), fn);
           var actionScriptTextFirstPrior = self.getWidgetReminderTriggerActionText(
-          	sdt, 
-          	self.appCfg.staticOrDefault.updateWidget.widgetState.active.message,
-          	[
-							 { "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
+            sdt, 
+            self.appCfg.staticOrDefault.updateWidget.widgetState.active.message,
+            [
+               { "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
               // ,{ "badge": '' }
-          	]
+            ]
           );
           self.debug('actionScriptTextFirstPrior = ' + actionScriptTextFirstPrior, fn);
 
@@ -1616,15 +1619,15 @@ var PRNM = (function(exports) {
 
           self.debug(self.getQuotedAndDelimitedStr([triggerIdSecondPrior, sdt.clone(), startDateTimeSecondPrior, endDateTimeSecondPrior, untilDateTimeSecondPrior, repeatStrSecondPrior], ',', "'"), fn);
           var actionScriptTextSecondPrior = self.getWidgetReminderTriggerActionText(
-          	sdt, 
-          	self.appCfg.staticOrDefault.updateWidget.widgetState.active.message,
-          	[
-            	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
-            	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
-							,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
+            sdt, 
+            self.appCfg.staticOrDefault.updateWidget.widgetState.active.message,
+            [
+               { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
+              ,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
+              ,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
               // ,{ "badge": '' }
-         	  ]
-        	);
+            ]
+          );
           // do the 5-min-before haptic and auditory alerts...
           actionScriptTextSecondPrior += ''
             + 'if(minutesBeforeDose == ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + ') { PurpleRobot.vibrate(\'' + self.appCfg.staticOrDefault.vibratePattern + '\'); PurpleRobot.playDefaultTone(); }'
@@ -1661,9 +1664,9 @@ var PRNM = (function(exports) {
             self.getNextDoseDateTime(),
             self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.message,
             [
-            	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
-            	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
-            	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.imageUrl }
+               { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
+              ,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.textColor }
+              ,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.imageUrl }
               // ,{ "badge": '' }
             ]
           );
@@ -1688,9 +1691,9 @@ var PRNM = (function(exports) {
             self.getNextDoseDateTime(),
             self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
             [
-            	 { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
-            	,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
-            	,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
+               { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
+              ,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
+              ,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
               // ,{ "badge": self.getPoints() }
             ]
           );

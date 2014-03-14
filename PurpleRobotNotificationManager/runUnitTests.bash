@@ -12,26 +12,28 @@ ACTIONS="actions"
 
 
 
-# COPY ACTIONS CODE (to put them within proj scope for Github commit)
-# TODO: replace this copy-paste nastiness with function and array
-echo "***** For each known project: Copying actions code..."
-PROJ="h2h"
-mkdir -p "$PROJBASE/$PROJ/$ACTIONS"
-cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp"
-# remove '//' comment lines from actions code 
-cat "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js"
+## COPY ACTIONS CODE (to put them within proj scope for Github commit)
+## TODO: replace this copy-paste nastiness with function and array
+#echo "***** For each known project: Copying actions code..."
+#PROJ="h2h"
+#mkdir -p "$PROJBASE/$PROJ/$ACTIONS"
+#cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp"
+## remove '//' comment lines from actions code 
+#cat "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js"
+#
+#PROJ="ma"
+#mkdir -p "$PROJBASE/$PROJ/$ACTIONS"
+#cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp"
+## remove '//' comment lines from actions code 
+#cat "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js"
+#
+#PROJ="hepc"
+#mkdir -p "$PROJBASE/$PROJ/$ACTIONS"
+#cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp"
+## remove '//' comment lines from actions code 
+#cat "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js"
 
-PROJ="ma"
-mkdir -p "$PROJBASE/$PROJ/$ACTIONS"
-cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp"
-# remove '//' comment lines from actions code 
-cat "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js"
-
-PROJ="hepc"
-mkdir -p "$PROJBASE/$PROJ/$ACTIONS"
-cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp"
-# remove '//' comment lines from actions code 
-cat "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js"
+echo "20140307, ES: FILE-COPY FROM mohrlab.northwestern.edu DISABLED DUE TO FIREWALL SETTINGS BY EUGENE. NOT COPYING actions.js FILES!!!!"
 
 
 

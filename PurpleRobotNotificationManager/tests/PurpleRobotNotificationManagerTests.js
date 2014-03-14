@@ -52,6 +52,41 @@ var PurpleRobotMock = {
 };
 
 
+/**
+ * Tests whether a dose is the next dose within a set of sorted doses.
+ * @param  {[type]} doseOrDoseDateTime [description]
+ * @return {[type]}                    [description]
+ */
+var nextDoseTest = function(doseOrDoseDateTime, sortedDoses) {
+  console.log("doseOrDoseDateTime = " + JSON.stringify(doseOrDoseDateTime));
+  var nDDT = _.isDate(doseOrDoseDateTime) ? doseOrDoseDateTime : prnm.genDateFromTime(doseOrDoseDateTime.dose.time);
+  var nh = nDDT.getHours().toString(), nm = nDDT.getMinutes().toString(), ns = nDDT.getSeconds().toString();
+
+  var correctDose = null;
+  var dh = null, dm = null, ds = null;
+  // for(var d in sortedDoses) {
+  var found = false;
+  _.each(sortedDoses, function(d) {
+    if(!found) {
+      var t = d.time;
+      console.log(d);
+      dh = parseInt(t.split(':')[0]), dm = parseInt(t.split(':')[1]), ds = parseInt(t.split(':')[2]);
+      if(dh >= nh) {
+        if(dm >= nm) {
+          if(ds >= ns) {
+            correctDose = d;
+            found = true;
+            console.log('correctDose = ' + JSON.stringify(correctDose));
+          }
+        }
+      }
+    }
+  });
+
+  assert.equal(dh, nh);
+  assert.equal(dm,nm);
+  assert.equal(ds,ns);
+};
 
 
 
@@ -704,6 +739,100 @@ suite('PurpleRobotNotificationManager', function() {
     test('getSortedDoses', function() {
       console.log(JSON.stringify(self.getSortedDoses()));
     });
+
+
+    test('getNextDoseDateTime: sorted', cases([
+       [[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"08:10:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"08:11:00","medication":"14","strength":"15","dispensationUnit":"mg"}]]
+      ,[[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"16:05:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"23:13:00","medication":"14","strength":"15","dispensationUnit":"mg"}]]
+      ,[[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"}]]
+      ,[[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"16:05:00","medication":"6","strength":"7","dispensationUnit":"mg"}]]
+      ,[[{"time":"09:00:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"21:00:00","medication":"6","strength":"7","dispensationUnit":"mg"}]]
+      ],
+      function(sortedDoses) {
+        console.log('----------');
+        console.log("sortedDoses = " + JSON.stringify(sortedDoses));
+        // console.log(JSON.stringify(self.getNextDoseDateTime(sortedDoses)));
+        var td = new Date(); var h = parseInt(td.getHours().toString()), m = parseInt(td.getMinutes().toString()), s = parseInt(td.getSeconds().toString());
+        var nDDT = self.getNextDoseDateTime(sortedDoses);
+        // var nh = nDDT.getHours().toString(), nm = nDDT.getMinutes().toString(), ns = nDDT.getSeconds().toString();
+
+        // var correctDose = null;
+        // var dh = null, dm = null, ds = null;
+        // // for(var d in sortedDoses) {
+        // var found = false;
+        // _.each(sortedDoses, function(d) {
+        //   if(!found) {
+        //     var t = d.time;
+        //     console.log(d);
+        //     dh = parseInt(t.split(':')[0]), dm = parseInt(t.split(':')[1]), ds = parseInt(t.split(':')[2]);
+        //     if(dh >= nh) {
+        //       if(dm >= nm) {
+        //         if(ds >= ns) {
+        //           correctDose = d;
+        //           found = true;
+        //           console.log('correctDose = ' + JSON.stringify(correctDose));
+        //         }
+        //       }
+        //     }
+        //   }
+        // });
+
+        // assert.equal(dh, nh);
+        // assert.equal(dm,nm);
+        // assert.equal(ds,ns);
+        nextDoseTest(nDDT, sortedDoses);
+      })
+    );
+
+
+    // test('getNextDoseDateTime: unsorted', cases([
+    //    [[{"time":"08:10:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"08:11:00","medication":"14","strength":"15","dispensationUnit":"mg"}]]
+    //   ,[[{"time":"23:13:00","medication":"14","strength":"15","dispensationUnit":"mg"},{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"16:05:00","medication":"6","strength":"7","dispensationUnit":"mg"}]]
+    //   ,[[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"}]]
+    //   ,[[{"time":"16:05:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"}]]
+    //   ,[[{"time":"21:00:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"09:00:00","medication":"10","strength":"11","dispensationUnit":"dose"}]]
+    //   ],
+    //   function(unsortedDoses) {
+    //     console.log('----------');
+    //     console.log("unsortedDoses = " + JSON.stringify(unsortedDoses));
+    //     console.log(JSON.stringify(self.getNextDoseDateTime(unsortedDoses)));
+    //   })
+    // );
+
+
+    test('getNextDose: sorted', cases([
+       [[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"08:10:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"08:11:00","medication":"14","strength":"15","dispensationUnit":"mg"}]]
+      ,[[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"16:05:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"23:13:00","medication":"14","strength":"15","dispensationUnit":"mg"}]]
+      ,[[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"}]]
+      ,[[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"16:05:00","medication":"6","strength":"7","dispensationUnit":"mg"}]]
+      ,[[{"time":"09:00:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"21:00:00","medication":"6","strength":"7","dispensationUnit":"mg"}]]
+      ],
+      function(sortedDoses) {
+        console.log('----------');
+        console.log("sortedDoses = " + JSON.stringify(sortedDoses));
+        // console.log(JSON.stringify(self.getNextDose(sortedDoses)));
+        var nextDose = self.getNextDose(sortedDoses);
+        nextDoseTest(nextDose, sortedDoses);
+      })
+    );
+
+
+    
+
+
+    // test('getNextDose: unsorted', cases([
+    //    [[{"time":"08:10:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"08:11:00","medication":"14","strength":"15","dispensationUnit":"mg"}]]
+    //   ,[[{"time":"23:13:00","medication":"14","strength":"15","dispensationUnit":"mg"},{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"},{"time":"16:05:00","medication":"6","strength":"7","dispensationUnit":"mg"}]]
+    //   ,[[{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"}]]
+    //   ,[[{"time":"16:05:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"08:09:00","medication":"10","strength":"11","dispensationUnit":"dose"}]]
+    //   ,[[{"time":"21:00:00","medication":"6","strength":"7","dispensationUnit":"mg"},{"time":"09:00:00","medication":"10","strength":"11","dispensationUnit":"dose"}]]
+    //   ],
+    //   function(unsortedDoses) {
+    //     console.log('----------');
+    //     console.log("unsortedDoses = " + JSON.stringify(unsortedDoses));
+    //     console.log(JSON.stringify(self.getNextDose(unsortedDoses)));
+    //   })
+    // );
 
 
     test('isNullOrUndefined', cases([
