@@ -33,6 +33,7 @@ ACTIONS="actions"
 ## remove '//' comment lines from actions code 
 #cat "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js"
 
+
 echo "20140307, ES: FILE-COPY FROM mohrlab.northwestern.edu DISABLED DUE TO FIREWALL SETTINGS BY EUGENE. NOT COPYING actions.js FILES!!!!"
 
 

@@ -51,7 +51,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					'actionTime': dose.time,
 					'actionName': dose.medication
 				};
-				self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
+				self.log('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
 				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
 
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
@@ -65,7 +65,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.deleteTrigger(triggerIdToDelete);
 
 
-				var triggerIdToDelete = (
+				triggerIdToDelete = (
 					triggerId.indexOf('+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min') != -1
 					? triggerId 
 					: triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min'
@@ -103,7 +103,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 					'actionTime': dose.time,
 					'actionName': dose.medication
 				};
-				self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
+				self.log('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
 				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);
 
 
@@ -154,24 +154,24 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var url = baseUrl;
 
 
-				self.debug('childTriggerId = ' + childTriggerId + 'childTriggerId == null = ' + (childTriggerId == null), fn);
+				self.log('childTriggerId = ' + childTriggerId + 'childTriggerId == null = ' + (childTriggerId == null), fn);
 				if(childTriggerId != null) {
 					self.debug('in parent trigger: ' + triggerId + '; childTriggerId = ' + childTriggerId, fn);
 
 
-					self.debug('Getting the child trigger to delete; childTriggerId = ' + childTriggerId, fn);
+					self.log('Getting the child trigger to delete; childTriggerId = ' + childTriggerId, fn);
 					var trgDel = self.fetchTrigger(childTriggerId);
 					var trgWithStateDel = self.appCfgGetTriggerState(fn, (self.appConfigCompletionStates()).CanceledByTrigger, url, trgDel);
 					self.appCfg.triggerState = self.appCfg.triggerState != null ? self.appCfg.triggerState : [];
 					self.appCfg.triggerState.push(trgWithStateDel);
 
-					self.debug('Deleting followup trigger with ID: ' + childTriggerId, fn);
+					self.log('Deleting followup trigger with ID: ' + childTriggerId, fn);
 					self.deleteTrigger(childTriggerId);
 					self.log('Deleted followup trigger with ID: ' + childTriggerId, fn);
 				}
 
-				self.debug('Saving trigger state...', fn);
-				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, self.appCfg.key, self.appCfg);
+				self.log('Saving trigger state...', fn);
+				self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, self.appCfg.key, appCfg);
 
 
 				var currentAction = {
@@ -194,20 +194,20 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 			 * @return {[type]}               [description]
 			 */
 			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-				self.debug('ENTERED', fn);
+				self.log('ENTERED', fn);
 
 				self.debug('Enumerated members of self: ' + _.keys(self), fn);
 
-				self.debug('Getting next dose...', fn);
+				self.log('Getting next dose...', fn);
 				var nextDose = self.getNextDose(self.getSortedDoses());
 
 
-				self.debug('Detecting current widget state...', fn);
+				self.log('Detecting current widget state...', fn);
 				var widgetValues = self.fetchWidget(self.appCfg.staticOrDefault.namespace);
 				var isInNonResponsiveState = widgetValues.message == self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.message;
 
 				if(isInNonResponsiveState) {
-					self.debug('Widget is in non-responsive state; setting currentAction for redirect within H2H/MA...', fn);
+					self.log('Widget is in non-responsive state; setting currentAction for redirect within H2H/MA...', fn);
 
 					var currentAction = {
 						'triggerId': null,
@@ -215,29 +215,29 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 						'actionTime': nextDose.dose.time,
 						'actionName': nextDose.dose.medication
 					};
-					self.debug('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
+					self.log('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
 					self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);				
 				}
 				else {
-					self.debug('Widget not in non-responsive state; H2H/MA will not redirect.', fn);
+					self.log('Widget not in non-responsive state; H2H/MA will not redirect.', fn);
 				}
 
 
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
-				self.debug('Launching application = ' + applicationFullName);
+				self.log('Launching application = ' + applicationFullName);
 				self.launchApplication(applicationFullName);
 
 
-				self.debug('Setting the widget to the neutral state', fn);
+				self.log('Setting the widget to the neutral state', fn);
 				self.setWidgetToNeutralState();
 
 
-				self.debug('Getting delayed MedPrompt trigger ID for next dose datetime', fn);
+				self.log('Getting delayed MedPrompt trigger ID for next dose datetime', fn);
 				var triggerIdOfTriggerToDelete = self.getMedPromptTriggerIdDelayed(nextDose.dose);
-				self.debug('Deleting trigger: ' + triggerIdOfTriggerToDelete, fn);
+				self.log('Deleting trigger: ' + triggerIdOfTriggerToDelete, fn);
 				self.deleteTrigger(triggerIdOfTriggerToDelete);
 				
-				self.debug('EXITING', fn);
+				self.log('EXITING', fn);
 			}
 
 		};

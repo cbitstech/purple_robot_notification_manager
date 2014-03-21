@@ -208,7 +208,7 @@ var PRNM = (function(exports) {
             self.updatePurpleRobotConfiguration = function(jsonPrConfig) { var fn = 'updatePurpleRobotConfiguration'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
               self.debug('entered',fn);
               if(!self.isNullOrUndefined(jsonPrConfig)) {
-                self.debug('Updating PR config using jsonPrConfig = ' + JSON.stringify(jsonPrConfig), fn);
+                self.log('Updating PR config using jsonPrConfig = ' + JSON.stringify(jsonPrConfig), fn);
                 self.debug('zip = ' + _.zip(_.keys(jsonPrConfig),_.values(jsonPrConfig)), fn);
                 PurpleRobot.updateConfig(jsonPrConfig);
               }
@@ -585,7 +585,7 @@ var PRNM = (function(exports) {
           // PR and Node.js paths
           case 0:
           case 1:
-            self.log('PR path',fn);
+            self.debug('PR path',fn);
 
             var dsical = startDateTime.toICal();
             var deical = endDateTime.toICal();
@@ -625,6 +625,7 @@ var PRNM = (function(exports) {
                 'datetime_repeat': repeatStr
               };
               self.debug('triggerObj = ' + JSON.stringify(triggerObj), fn);
+              self.log('updateTrigger for id = ' + id + '; name = ' + name + '; datetime_start = ' + dsical + '; datetime_repeat = ' + repeatStr, fn);
               self.updateTrigger(id, triggerObj);
 
               // // store trigger history
@@ -1166,7 +1167,7 @@ var PRNM = (function(exports) {
       // setAllEMAPrompts: function(createdMedPromptTriggerIds) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
       //  self.debug('entered; createdMedPromptTriggerIds = ' + createdMedPromptTriggerIds,fn);
       setAllEMAPrompts: function(medPromptTriggerDateTimes) { var fn = 'setAllEMAPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
+        self.log('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
 
         // get the configs necessary to run, if not done already.
         self.getUserCfg();
@@ -1227,7 +1228,7 @@ var PRNM = (function(exports) {
 
         });
 
-        self.debug('exiting',fn);
+        self.log('exiting',fn);
       },
 
 
@@ -1359,45 +1360,47 @@ var PRNM = (function(exports) {
             //   If the user opened it within the last 5 minutes, then do not display the MedPrompt.
             //   Else, display the MedPrompt.
             
-              'PurpleRobot.log(\'[' + fn + '] ENTERED: triggerId = "' + triggerId + '"; doseStr = "' + doseStr + '"; dose = "' + dose + '"\');'
+              'PurpleRobot.log(\'[INF][' + fn + '] ENTERED: triggerId = "' + triggerId + '"; doseStr = "' + doseStr + '"; dose = "' + dose + '"\');'
 
             + 'PurpleRobot.loadLibrary(\'date.js\');'
             + 'PurpleRobot.loadLibrary(\'underscore.js\');'
             
             + 'var url = "' + self.replaceTokensForUser(self.appCfg.staticOrDefault.medPrompt.wisePillLastSeenUrl) + '";'
-            + 'PurpleRobot.log(\'url = \' + url);'
+            + 'PurpleRobot.log(\'[INF][' + fn + '] url = \' + url);'
 
             + 'var wisePillIntegrationResponse = PurpleRobot.readUrl(url);'
             + 'var wisePillLastSeenDateTimeStr = (wisePillIntegrationResponse == null || wisePillIntegrationResponse == undefined || wisePillIntegrationResponse.indexOf("error")) > -1 ? null : wisePillIntegrationResponse.trim();'
-            + 'PurpleRobot.log(\'[' + fn + '] wisePillLastSeenDateTimeStr = "\' + wisePillLastSeenDateTimeStr + \'"\');'
+            + 'PurpleRobot.log(\'[INF][' + fn + '] wisePillLastSeenDateTimeStr = "\' + wisePillLastSeenDateTimeStr + \'"\');'
             
             + 'if (wisePillLastSeenDateTimeStr != null && wisePillLastSeenDateTimeStr != undefined) {'
 
             + '  var now = new Date();'
-            + '  PurpleRobot.log(\'[' + fn + '] now = \' + now);'
+            + '  PurpleRobot.log(\'[INF][' + fn + '] now = \' + now);'
 
             + '  var wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTimeStr);'
             + '  wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTime.getTime() + (wisePillLastSeenDateTime.getTimezoneOffset() * 60000));'
-            + '  PurpleRobot.log(\'[' + fn + '] wisePillLastSeenDateTime = \' + wisePillLastSeenDateTime);'
+            + '  PurpleRobot.log(\'[INF][' + fn + '] wisePillLastSeenDateTime = \' + wisePillLastSeenDateTime);'
 
             + '  var currDateMinusNMin = now.addMinutes(-5);'
-            + '  PurpleRobot.log(\'[' + fn + '] currDateMinusNMin = \' + new Date(currDateMinusNMin));'
+            + '  PurpleRobot.log(\'[INF][' + fn + '] currDateMinusNMin = \' + new Date(currDateMinusNMin));'
 
-            + '  PurpleRobot.log(\'[' + fn + '] (wisePillLastSeenDateTime >= currDateMinusNMin) = \' + (wisePillLastSeenDateTime >= currDateMinusNMin));'
-            + '  PurpleRobot.log(\'[' + fn + '] (wisePillLastSeenDateTime - currDateMinusNMin) = \' + (wisePillLastSeenDateTime - currDateMinusNMin));'
+            + '  PurpleRobot.log(\'[INF][' + fn + '] (wisePillLastSeenDateTime >= currDateMinusNMin) = \' + (wisePillLastSeenDateTime >= currDateMinusNMin));'
+            + '  PurpleRobot.log(\'[INF][' + fn + '] (wisePillLastSeenDateTime - currDateMinusNMin) = \' + (wisePillLastSeenDateTime - currDateMinusNMin));'
 
             // if the user has opened the pillbox in the last 5 minutes, then do not notify them to take their pill; else, do notify them.
             + '  if(wisePillLastSeenDateTime >= currDateMinusNMin) {'
-            + '    PurpleRobot.log(\'[' + fn + '] 6\');'
+            + '    PurpleRobot.log(\'[INF][' + fn + '] 6\');'
             + '    PurpleRobot.persistString(\'' + self.envConsts.appCfg.namespace + '\', \'pillboxOpened\',\'true\');'
             + '    PurpleRobot.deleteTrigger(\'' + triggerId + '\');'
+            + '    PurpleRobot.log(\'[INF][' + fn + '] (path 1) Wisepill opened; not displaying dialog.\');'
             + '  }'
             + '  else {'
-            + '    PurpleRobot.log(\'[' + fn + '] 7\');'
+            + '    PurpleRobot.log(\'[INF][' + fn + '] 7\');'
             + '    PurpleRobot.persistString(\'' + self.envConsts.appCfg.namespace + '\', \'pillboxOpened\',\'false\');'
             + '    PurpleRobot.vibrate(\''+ (self.getAppCfg()).staticOrDefault.vibratePattern +'\');'
             + '    PurpleRobot.playDefaultTone();'
             + '    PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');'
+            + '    PurpleRobot.log(\'[INF][' + fn + '] (path 2) Wisepill NOT opened; did dialog display?\');'
             + '  }'
             + '}'
 
@@ -1406,7 +1409,10 @@ var PRNM = (function(exports) {
             + '  PurpleRobot.vibrate(\''+ (self.getAppCfg()).staticOrDefault.vibratePattern +'\');'
             + '  PurpleRobot.playDefaultTone();'
             + '  PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');'
+            + '  PurpleRobot.log(\'[INF][' + fn + '] (path 3) Wisepill not used or data otherwise unavailable; did dialog display?\');'
             + '}'
+
+            + 'PurpleRobot.log(\'[INF][' + fn + '] EXITING\');'
             ;
         self.debug('actionScriptText = ' + actionScriptText, fn);
         return actionScriptText;
@@ -1451,7 +1457,7 @@ var PRNM = (function(exports) {
         var nextDose = self.getNextDose(sortedDoses);
         self.debug('JSON.stringify(nextDose) = ' + JSON.stringify(nextDose), fn);
         var nextDoseDateTime = (self.genDateFromTime(nextDose.dose.time)).addDays(nextDose.offsetFromNowInDays);
-        self.debug('exiting; nextDoseDateTime = ' + nextDoseDateTime,fn);
+        self.log('exiting; nextDoseDateTime = ' + nextDoseDateTime,fn);
         return nextDoseDateTime;
       },
 
@@ -1497,7 +1503,7 @@ var PRNM = (function(exports) {
        * @return {[type]}   [description]
        */
       setAllMedPrompts: function() { var fn = 'setAllMedPrompts'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered',fn);
+        self.log('entered',fn);
         self.getUserCfg();
         self.getAppCfg();
 
@@ -1512,7 +1518,7 @@ var PRNM = (function(exports) {
         self.log('Generating MedPropmts...', fn);
         _.each(sortedDoses, function(d, i) {
           var doseStr = JSON.stringify(d);
-          self.debug('*** ADDING DOSE ***: d = ' + doseStr, fn);
+          self.log('*** ADDING DOSE ***: d = ' + doseStr, fn);
           
           var sdt = self.genDateFromTime(d.time);
           self.debug('sdt = ' + sdt, fn);
@@ -1558,6 +1564,7 @@ var PRNM = (function(exports) {
         // TODO: refactor. Fetching each of the triggers when we just created them is needlessly-inefficient.
         self.log('Getting all MedPrompt datetimes...', fn);
         var medPromptTriggerDateTimes = self.getAllMedPromptDateTimes(createdTriggerIds);
+        self.debug('medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes, fn);
 
         // sort the MP trigger datetime array
         medPromptTriggerDateTimes.sort(function(a,b){ return a-b; });
@@ -1579,7 +1586,7 @@ var PRNM = (function(exports) {
           // The “Active” state: This state is activated when the participant has a medication 
           // reminder due in the next 60 minutes. One hour (60 minutes) before the medication is 
           // due a “countdown” timer will begin for that dose.
-          self.log('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + ' from the prompt time.', fn);
+          self.debug('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + ' from the prompt time.', fn);
           // var triggerIdFirstPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + 'min';
           d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first + 'min:W';
           var triggerIdFirstPrior     = self.genMedPromptTriggerId(d);
@@ -1608,7 +1615,7 @@ var PRNM = (function(exports) {
           // will trigger a vibrate and audible alert for the participant. This serves as their 
           // five-minute warning. At the time their dose is due (in this example 12:00pm) 
           // the pop-up will appear (as indicated on the logic diagram).
-          self.log('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + ' from the prompt time.', fn);
+          self.debug('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + ' from the prompt time.', fn);
           // var triggerIdSecondPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + 'min';
           d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second + 'min:W';
           var triggerIdSecondPrior     = self.genMedPromptTriggerId(d);
@@ -1648,7 +1655,7 @@ var PRNM = (function(exports) {
           //    return to the neutral state.
 
           // * Generate NonResponsive state trigger *
-          self.log('Generating Non-Responsive state trigger starting at the prompt time (' + sdt + ').', fn);
+          self.debug('Generating Non-Responsive state trigger starting at the prompt time (' + sdt + ').', fn);
           // var triggerIdNonResponsive     = self.genMedPromptTriggerId(d) + '-nonResponsive+0min';
           d.timeOffsetStr = '+0min:W';
           var triggerIdNonResponsive     = self.genMedPromptTriggerId(d);
@@ -1677,7 +1684,7 @@ var PRNM = (function(exports) {
           
 
           // * Generate automatic-return-to-Neutral-state trigger *
-          self.log('Generating Neutral state trigger starting at the prompt time (' + sdt + ').', fn);
+          self.debug('Generating Neutral state trigger starting at the prompt time (' + sdt + ').', fn);
           d.timeOffsetStr = '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min:W';
           var triggerIdNeutral     = self.genMedPromptTriggerId(d);
           var startDateTimeNeutral = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
@@ -1704,7 +1711,7 @@ var PRNM = (function(exports) {
 
         });
 
-        self.debug('exiting',fn);
+        self.log('exiting',fn);
         // return createdTriggerIds;
         return medPromptTriggerDateTimes;
       },
@@ -1722,6 +1729,7 @@ var PRNM = (function(exports) {
         self.debug('returning', fn);
         return ''
 
+          + 'PurpleRobot.log(\'[INF][' + fn + '] ENTERED\');'
           + 'var self = this;'
           + 'self.appCfg = {};'
           + 'self.appCfg.logLevel = \'' + self.appCfg.logLevel + '\';'
@@ -1729,7 +1737,7 @@ var PRNM = (function(exports) {
           + 'self.genDateFromTime = function(timeStr) { var fn = \'genDateFromTime\';        var tarr = timeStr.split(\':\');        var th = parseInt(tarr[0], 10),            tm = parseInt(tarr[1], 10),            ts = parseInt(tarr[2], 10);        var date = Date.today().set({ hour: th, minute: tm, second: ts});        return date;      };'
           + 'self.getSortedDoses = function() { var fn = \'getSortedDoses\'; self.debug(\'entered\',fn);        return self.userCfg.doses.sort(function(a,b) {          return self.genDateFromTime(a.time) - self.genDateFromTime(b.time);        });      };'
           + 'self.getUserCfg = function() { var fn = \'getUserCfg\';              self.debug(\'entered\',fn);              if(self.userCfg==null) {                 self.debug(\'fetching userCfg on first call...\', fn);                self.userCfg = JSON.parse(PurpleRobot.fetchEncryptedString(self.envConsts.userCfg.namespace, self.envConsts.userCfg.key));                 }              self.debug(\'exiting\',fn);              return self.userCfg;            };'
-          + 'self.debug = function(s, fn) { if(self.appCfg.logLevel >= 4) { PurpleRobot.log(\'[DBG]\' + (!(fn == null || fn == undefined || fn == \'null\') ? \'[\' + fn + \'] \' : \' \') + s); } };'
+          + 'self.debug = function(s, fn) { if(self.appCfg.logLevel >= 4) { PurpleRobot.log(\'[INF]\' + (!(fn == null || fn == undefined || fn == \'null\') ? \'[\' + fn + \'] \' : \' \') + s); } };'
           + 'self.fetchString = function(namespace, key) { return PurpleRobot.fetchString(namespace,key); };'
           + 'self.isNullOrUndefined = function(v) { var fn = \'isNullOrUndefined\';  return (v == null || v == undefined || v == \'null\'); };'
           + 'self.getPoints = function() {  var fn = "getPoints";   var pointsFromPr = self.fetchString(\'' + self.envConsts.appCfg.namespace + '\', \'points\');  self.debug(\'pointsFromPr = \' + pointsFromPr, fn);  var ret = \'zero\';  if(!self.isNullOrUndefined(pointsFromPr) && !isNaN(pointsFromPr)) {    self.debug(\'pointsFromPr = \' + pointsFromPr, fn);    ret = pointsFromPr;  }  else {    self.debug(\'No points path...\', fn);  }  return ret; };'
@@ -1741,11 +1749,11 @@ var PRNM = (function(exports) {
           + 'var nMinsPrio = 5;'
 
           + 'var url = "' + self.replaceTokensForUser(self.appCfg.staticOrDefault.medPrompt.wisePillLastSeenUrl) + '";'
-          + 'PurpleRobot.log(\'[DBG][' + fn + '] url = \' + url);'
+          + 'PurpleRobot.log(\'[INF][' + fn + '] url = \' + url);'
           + 'var wisePillIntegrationResponse = PurpleRobot.readUrl(url);'
           + 'var wisePillLastSeenDateTimeStr = (self.isNullOrUndefined(wisePillIntegrationResponse) || wisePillIntegrationResponse.indexOf("error")) > -1 ? null : wisePillIntegrationResponse.trim();'
 
-          + 'PurpleRobot.log(\'[DBG][' + fn + '] wisePillLastSeenDateTimeStr = \' + wisePillLastSeenDateTimeStr + \'; wisePillLastSeenDateTimeStr === null = \' + (wisePillLastSeenDateTimeStr === null));'
+          + 'PurpleRobot.log(\'[INF][' + fn + '] wisePillLastSeenDateTimeStr = \' + wisePillLastSeenDateTimeStr + \'; wisePillLastSeenDateTimeStr === null = \' + (wisePillLastSeenDateTimeStr === null));'
 
           + 'var timeFormat = \'' + self.appCfg.staticOrDefault.timeFormat + '\';'
           + 'var nextDoseDateTime = new Date(\'' + nextDoseDateTime.toISOString() + '\');'
@@ -1757,14 +1765,14 @@ var PRNM = (function(exports) {
           + 'if(!self.isNullOrUndefined(wisePillLastSeenDateTimeStr)) {'
           + '  var wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTimeStr);'
           + '  wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTime.getTime() + (wisePillLastSeenDateTime.getTimezoneOffset() * 60000));'
-          + '  PurpleRobot.log(\'[DBG][' + fn + '] wisePillLastSeenDateTime = \' + wisePillLastSeenDateTime);'
+          + '  PurpleRobot.log(\'[INF][' + fn + '] wisePillLastSeenDateTime = \' + wisePillLastSeenDateTime);'
           + '  var now = new Date();'
 
           + '  var currDateMinusNMin = new Date(now.addMinutes(-(nMinsPrio)));'
-          + '  PurpleRobot.log(\'[DBG][' + fn + '] minutesBeforeDose = \' + minutesBeforeDose + \'; currDateMinusNMin = \' + currDateMinusNMin);'
+          + '  PurpleRobot.log(\'[INF][' + fn + '] minutesBeforeDose = \' + minutesBeforeDose + \'; currDateMinusNMin = \' + currDateMinusNMin);'
 
           + '  if(minutesBeforeDose <= nMinsPrio && currDateMinusNMin < wisePillLastSeenDateTime) {'
-          + '    PurpleRobot.log(\'[DBG][' + fn + '] currDateMinusNMin < wisePillLastSeenDateTime\');'
+          + '    PurpleRobot.log(\'[INF][' + fn + '] currDateMinusNMin < wisePillLastSeenDateTime\');'
 
           + '    var dispStr = \'' + self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message + '\';'
           + '    for (var i = 0; i < tokenArr.length; i++) {'
@@ -1772,7 +1780,7 @@ var PRNM = (function(exports) {
           + '      if(i==1) { dispStr = dispStr.replace(tokenArr[i], minutesBeforeDose); }'
           + '      if(i==2) { dispStr = dispStr.replace(tokenArr[i], points); }'
           + '    }'
-          + '    PurpleRobot.log(\'[DBG][' + fn + '] dispStr = ' + dispStr + '\');'
+          + '    PurpleRobot.log(\'[INF][' + fn + '] updating widget to Neutral state with dispStr = ' + dispStr + '\');'
           + '    var updateWidgetParams = {'
           + '      \'identifier\': \'' + self.envConsts.appCfg.namespace + '\''
           + '     ,\'message_color\': \'' + self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor + '\''
@@ -1781,6 +1789,7 @@ var PRNM = (function(exports) {
           + '     ,\'message\': dispStr'
           + '    };'
           + '    PurpleRobot.updateWidget(updateWidgetParams);'
+          + '    PurpleRobot.log(\'[INF][' + fn + '] widget updated!\');'
 
           // if Wisepill opened recently and updated widget, then exit here...
           + '    doDefaultWidgetUpdate = false;'
@@ -1815,9 +1824,11 @@ var PRNM = (function(exports) {
               )
             )
           )
-          + '  PurpleRobot.log(\'[DBG][' + fn + '] Updating widget; updateWidgetParams = \' + JSON.stringify(updateWidgetParams));'
+          + '  PurpleRobot.log(\'[INF][' + fn + '] Updating widget; updateWidgetParams = \' + JSON.stringify(updateWidgetParams));'
           + '  PurpleRobot.updateWidget(updateWidgetParams);'
           + '}'
+
+          + 'PurpleRobot.log(\'[INF][' + fn + '] EXITING\');'
           ;
       },
 
@@ -1827,7 +1838,7 @@ var PRNM = (function(exports) {
        * @param {[type]} ) { var fn = 'setWidgetToNeutralState'; if(!this.CURRENTLY_IN_TRIGGER [description]
        */
       setWidgetToNeutralState: function() { var fn = 'setWidgetToNeutralState'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered', fn);
+        self.log('entered', fn);
         // var l = 0;
         // self.debug(++l, fn);
         self.getUserCfg();
@@ -1866,7 +1877,7 @@ var PRNM = (function(exports) {
         // self.debug(++l, fn);
         PurpleRobot.updateWidget(updateWidgetParams);
         // self.debug(++l, fn);
-        self.debug('exiting', fn);
+        self.log('exiting', fn);
         // return nextDoseDateTime;
       },
 
@@ -1945,7 +1956,7 @@ var PRNM = (function(exports) {
        * @return {[type]}                            [description]
        */
       setWidget: function(widgetId, medPromptTriggerDateTimes) { var fn = "setWidget"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered; widgetId = ' + widgetId + '; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
+        self.log('entered; widgetId = ' + widgetId + '; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes,fn);
         self.getAppCfg();
         self.getUserCfg();
 
@@ -1958,7 +1969,7 @@ var PRNM = (function(exports) {
         var currDateTime = new Date();
         // var nextDoseDateTime = self.getNextDateTime(medPromptTriggerDateTimes, currDateTime);
         var nextDoseDateTime = self.getNextDoseDateTime();
-        self.debug('nextDoseDateTime = ' + nextDoseDateTime, fn);
+        self.log('nextDoseDateTime = ' + nextDoseDateTime, fn);
         var inNeutralState = nextDoseDateTime > currDateTime.addMinutes(parseInt(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first));
         var msg = inNeutralState
           ? self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message
@@ -2014,7 +2025,7 @@ var PRNM = (function(exports) {
 
         self.updateWidget(updateWidgetParams);
 
-        self.debug('exiting', fn);
+        self.log('exiting', fn);
       },
 
 
@@ -2277,6 +2288,7 @@ var PRNM = (function(exports) {
         self.debug('createdMedPromptTriggerIds = ' + createdMedPromptTriggerIds, fn);
         var medPromptTriggers = _.map(createdMedPromptTriggerIds, function(triggerId) { self.debug('triggerId = ' + triggerId, fn); return self.fetchTrigger(triggerId); });
         self.debug('medPromptTriggers = ' + JSON.stringify(medPromptTriggers), fn);
+        // var medPromptTriggerDateTimes = _.map(medPromptTriggers, function(t) { return self.isNullOrUndefined(t) ? null : self.iCalToDate(t.datetime_start); });
         var medPromptTriggerDateTimes = _.map(medPromptTriggers, function(t) { return self.iCalToDate(t.datetime_start); });
         self.debug('medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes, fn);
         return medPromptTriggerDateTimes;
