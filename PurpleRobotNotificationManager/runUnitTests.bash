@@ -19,12 +19,14 @@ echo "***** For each known project: Copying actions code..."
 PROJ="h2h"
 mkdir -p "$PROJBASE/$PROJ/$ACTIONS"
 cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp"
+cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.with_comments.js"
 # remove '//' comment lines from actions code 
 cat "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js"
 
 PROJ="ma"
 mkdir -p "$PROJBASE/$PROJ/$ACTIONS"
 cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp"
+cp -rvp "$MOHR/$PROJ/pr_triggers/actions.js" "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.with_comments.js"
 # remove '//' comment lines from actions code 
 cat "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js.tmp" | sed -r -e "s/\s+\/\/.*//g" | sed -r -e "s/^\/\/.*$//g" > "$PROJBASE/$PROJ/$ACTIONS/$ACTIONS.js"
 
