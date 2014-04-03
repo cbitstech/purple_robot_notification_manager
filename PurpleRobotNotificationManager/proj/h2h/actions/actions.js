@@ -75,6 +75,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 				self.setWidgetToNeutralState();
+				self.log('EXITING',fn);
 			},
 
 
@@ -128,6 +129,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 				self.setWidgetToNeutralState();
+				self.log('EXITING',fn);
 			},
 
 
@@ -185,6 +187,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
+				
+				self.log('EXITING',fn);
 			},
 
 
@@ -199,7 +203,9 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.debug('Enumerated members of self: ' + _.keys(self), fn);
 
 				self.log('Getting next dose...', fn);
-				var nextDose = self.getNextDose(self.getSortedDoses());
+
+				var mostRecentDose = self.getMostRecentDose(self.getSortedDoses());
+				self.log('mostRecentDose = ' + JSON.stringify(mostRecentDose), fn);
 
 
 				self.log('Detecting current widget state...', fn);
@@ -207,13 +213,13 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				var isInNonResponsiveState = widgetValues.message == self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.message;
 
 				if(isInNonResponsiveState) {
-					self.log('Widget is in non-responsive state; setting currentAction for redirect within H2H/MA...', fn);
+					self.log('Widget is in non-responsive state; setting currentAction for redirect within ' + self.appCfg.staticOrDefault.namespace + '...', fn);
 
 					var currentAction = {
 						'triggerId': null,
 						'actionDstType': 'onWidgetPress',
-						'actionTime': nextDose.dose.time,
-						'actionName': nextDose.dose.medication
+						'actionTime': mostRecentDose.dose.time,
+						'actionName': mostRecentDose.dose.medication
 					};
 					self.log('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
 					self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);				
@@ -228,14 +234,24 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.launchApplication(applicationFullName);
 
 
-				self.log('Setting the widget to the neutral state', fn);
-				self.setWidgetToNeutralState();
 
 
-				self.log('Getting delayed MedPrompt trigger ID for next dose datetime', fn);
-				var triggerIdOfTriggerToDelete = self.getMedPromptTriggerIdDelayed(nextDose.dose);
-				self.log('Deleting trigger: ' + triggerIdOfTriggerToDelete, fn);
-				self.deleteTrigger(triggerIdOfTriggerToDelete);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 				
 				self.log('EXITING', fn);
 			}
