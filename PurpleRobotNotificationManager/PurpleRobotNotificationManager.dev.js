@@ -1998,23 +1998,25 @@ var PRNM = (function(exports) {
         var updateWidgetParams = {
           'identifier': widgetId,
           'title': self.appCfg.staticOrDefault.updateWidget.title,
-          'message': nextDoseDateTime != null ? self.replaceTokensForWidget(msg, nextDoseDateTime) : self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
-          'action': 
-            'eval(' 
-              + self.getQuotedAndDelimitedStr(
-                [
-                  self.convertFnToString(
-                    self.actions.onWidgetPress,
-                    [ 
-                        self.actionFns.getCommonFnSetForActions()
-                      + self.actionFns.getUserCfg()
-                      + self.actionFns.getWidgetFns()
-                    ],
-                    false
-                  )
-                ]
-              )
-            + ');'
+          'message': nextDoseDateTime != null ? self.replaceTokensForWidget(msg, nextDoseDateTime) : self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message
+          ,'action': ''
+          // ,
+          // 'action': 
+          //   'eval(' 
+          //     + self.getQuotedAndDelimitedStr(
+          //       [
+          //         self.convertFnToString(
+          //           self.actions.onWidgetPress,
+          //           [ 
+          //               self.actionFns.getCommonFnSetForActions()
+          //             + self.actionFns.getUserCfg()
+          //             + self.actionFns.getWidgetFns()
+          //           ],
+          //           false
+          //         )
+          //       ]
+          //     )
+          // + ');'
             // '/* INTENTIONALLY BLANK */'
         };
         

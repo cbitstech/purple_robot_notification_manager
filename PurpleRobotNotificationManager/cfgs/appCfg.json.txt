@@ -1,10 +1,9 @@
 {
-  "logLevel": 3,
+  "logLevel": 4,
   "staticOrDefault": {
     "namespace": "H2H",
     "appPackageName": "edu.northwestern.cbits.umb.h2h",
 
-    // a PR configuration script that updates PR's configuration - hence "configuration update config".
     "PurpleRobotConfigurationUpdateConfig": { 
       "config_restrict_data_wifi": "false",
       "config_enable_data_server": "true",
@@ -73,7 +72,7 @@
         }
       }
     },
-    "weeklyScheduleRunDay": "Wed",
+    "weeklyScheduleRunDay": "Thu",
     "vibratePattern": "buzz",
     "timeFormat": "h:mmtt"
   },
