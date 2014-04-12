@@ -210,7 +210,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 				self.log('Detecting current widget state...', fn);
 				var widgetValues = self.fetchWidget(self.appCfg.staticOrDefault.namespace);
-				var isInNonResponsiveState = widgetValues.message == self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.message;
+				var isInNonResponsiveState = widgetValues.message == self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message;
 
 				if(isInNonResponsiveState) {
 					self.log('Widget is in non-responsive state; setting currentAction for redirect within ' + self.appCfg.staticOrDefault.namespace + '...', fn);

@@ -51,23 +51,28 @@
       "title": "Heart2HAART",
       "widgetState": {
         "active": {
-          "message": "Next dose in %ETAMIN minutes (%T). You have %P point(s).",
-          "imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/icon.png?foo=bar",
+          "imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/icon.png?foo=bar",
           "textColor": "#FFFFFF",
           "reminderMinutesBeforeDose": {
-            "first": 60,
-            "second": 5
+            "first": {
+              "mins": 60,
+              "message": "Next dose in %ETAMIN minutes (%T). You have %P point(s)."
+            },
+            "second": {
+              "mins": 5,
+              "message": "It is time to take your %T medication."
+            }
           }
         },
         "nonResponsive": {
           "message": "Press here to begin.",
-          "imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/icon.png?foo=bar",
+          "imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/icon.png?foo=bar",
           "textColor": "#FF0000",
           "TTLinMins": 30
         },
         "neutral": {
           "message": "Next dose at %T. You have %P point(s).",
-          "imageUrl": "http://mohrlab.northwestern.edu/h2h/images/purplenotifier/icon.png?foo=bar",
+          "imageUrl": "http://mohrlab.northwestern.edu/ma/images/purplenotifier/icon.png?foo=bar",
           "textColor": "#FFFFFF"
         }
       }

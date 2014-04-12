@@ -51,10 +51,10 @@ yui-compressor "$PRNMDEV" > "$PRNM"
 echo
 if [ "$#" -eq 1 ]; then
 	echo "***** Running tests matching '$1' in: $TESTS"
-	mocha --globals "PurpleRobot,isNullOrUndefined" -u tdd "$TESTS" -g "$1"
+	mocha --timeout 5000 --globals "PurpleRobot,isNullOrUndefined,appCfg,envConsts,genDateFromTime,getSortedDoses,getUserCfg,debug,fetchString,getPoints,getNextDose,getNextDoseDateTime" -u tdd "$TESTS" -g "$1"
 else
 	echo "***** Running all tests in: $TESTS"
-	mocha --globals "PurpleRobot,isNullOrUndefined" -u tdd "$TESTS"
+	mocha --timeout 5000 --globals "PurpleRobot,isNullOrUndefined,appCfg,envConsts,genDateFromTime,getSortedDoses,getUserCfg,debug,fetchString,getPoints,getNextDose,getNextDoseDateTime" -u tdd "$TESTS"
 fi
 echo
 

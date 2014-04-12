@@ -1,0 +1,92 @@
+{
+  "people": [
+    {
+      "id": "01",
+      "type": "patient",
+      "name": "TODO",
+      "email": "estory1@gmail.com",
+      "phoneNumber": "123-098-7654",
+      "phonePassword": "estory1@gmail.com"
+    },
+    {
+      "id": "TODO",
+      "type": "psychiatrist",
+      "name": "John",
+      "phoneNumber": "555-1212",
+      "address": [
+        {
+          "type": "work",
+          "street": "Doe",
+          "city": "Chicago",
+          "state": "IL",
+          "zip": "60602"
+        }
+      ]
+    }
+  ],
+  "places": [
+    {
+      "id": "TODO",
+      "type": "pharmacy",
+      "name": "Walgreens",
+      "phoneNumber": "121-5555",
+      "address": [
+        {
+          "type": "work",
+          "street": "123 any st",
+          "city": "Anytown",
+          "state": "IL",
+          "zip": "12345"
+        }
+      ]
+    },
+    {
+      "id": "TODO",
+      "type": "clinic",
+      "name": "AwesomeClinic",
+      "phoneNumber": "789-4561",
+      "address": [
+        {
+          "type": "work",
+          "street": "456 clinic st",
+          "city": "Clinictown",
+          "state": "IL",
+          "zip": "67890"
+        }
+      ]
+    }
+  ],
+  "promptBehavior": {
+    "wakeSleepTimes": {
+      "daily": {
+        "wakeTime": "7:15:00",
+        "sleepTime": "22:45:00"
+      },
+      "weekly": {
+        "sleepTime": {
+          "Mon": ""
+        }
+      }
+    }
+  },
+  "doses": [
+    {
+      "time": "08:02:00",
+      "medication": "Haldol",
+      "strength": "4",
+      "dispensationUnit": "mg"
+    },
+    {
+      "time": "23:36:00",
+      "medication": "Thiothixene",
+      "strength": "5",
+      "dispensationUnit": "dose"
+    },
+    {
+      "time": "17:55:00",
+      "medication": "Loxitane",
+      "strength": "6",
+      "dispensationUnit": "mg"
+    }
+  ]
+}

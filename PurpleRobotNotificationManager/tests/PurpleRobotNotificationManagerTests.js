@@ -6,7 +6,7 @@ var jsonfn = require('jsonfn').JSONfn;
 var _ = require('underscore');
 require('../date.js');
 
-var PurpleRobotNotificationManager = require('../PurpleRobotNotificationManager.js');
+var PurpleRobotNotificationManager = require('../PurpleRobotNotificationManager.dev.js');
 var Actions = require('../proj/h2h/actions/actions.js');
 
 
@@ -49,6 +49,28 @@ var PurpleRobotMock = {
   "log": jsonfn.stringify((function(s) { console.warn("[***** PurpleRobotNotificationTests.js *****] WOULD LOG: " + s); })),
   "launchUrl": jsonfn.stringify((function(url) { console.warn('[***** PurpleRobotNotificationTests.js *****] WOULD LAUNCH: ' + isNullOrUndefined) })),
   "showNativeDialog": jsonfn.stringify(function(p1,p2,p3,p4,p5) { console.warn('[***** PurpleRobotNotificationTests.js *****] WOULD SHOW DIALOG WITH PARAMS: ' + [p1,p2,p3,p4,p5]); } )
+};
+var PurpleRobot = {
+  log: function(s) { console.log (s); },
+  loadLibrary: function(l) { if(l=='date.js') { require('../date.js'); } else { require(l); } },
+  readUrl: function(url) { return ''; },
+  fetchEncryptedString: function(namespace, key) {
+      var fn = 'fetchEncryptedString'; 
+      // self.log('NOEXEC: fetchEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn);
+      var fs = require('fs');
+      var filePath = prnm.envConsts.appCfg.tmpPersistencePath + '/' + namespace + '.' + key + '.txt';
+      // console.log(_.keys(prnm.envConsts.appCfg));
+      return fs.readFileSync(filePath);
+  },
+  fetchString: function(namespace, key) {
+      var fn = 'fetchString'; 
+      // self.log('NOEXEC: fetchEncryptedString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn);
+      var fs = require('fs');
+      var filePath = prnm.envConsts.appCfg.tmpPersistencePath + '/' + namespace + '.' + key + '.txt';
+      // console.log(_.keys(prnm.envConsts.appCfg));
+      return fs.readFileSync(filePath);
+    },
+    updateWidget: function(params) { var fn = 'updateWidget'; self.log('NOEXEC: updateWidget: ' + JSON.stringify(params), fn); }
 };
 
 
@@ -851,6 +873,17 @@ suite('PurpleRobotNotificationManager', function() {
     );
 
 
+    test('getWidgetReminderTriggerActionText', cases([
+      [null, '', null]
+      ],
+      function(inA, inB, inC) {
+        console.log('-----------');
+        var ret = self.getWidgetReminderTriggerActionText();
+        // console.log(ret);
+        PurpleRobot.log('foo');
+        eval('' + ret);
+      })
+    )
     
 
 
