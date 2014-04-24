@@ -498,7 +498,7 @@ var PRNM = (function(exports) {
        * @return {[type]}         [description]
        */
       genDateFromTime: function(timeStr) { var fn = 'genDateFromTime'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered',fn);
+        // self.debug('entered',fn);
         var tarr = timeStr.split(':');
         // self.debug('1',fn);
         var th = parseInt(tarr[0], 10),
@@ -508,7 +508,7 @@ var PRNM = (function(exports) {
         var date = Date.today().set({ hour: th, minute: tm, second: ts});
         // self.debug('3',fn);
         // self.debug(self.getQuotedAndDelimitedStr([timeStr,th,tm,ts,date],','),fn);
-        self.debug('exiting',fn);
+        // self.debug('exiting',fn);
         return date;
       },
 
@@ -566,8 +566,8 @@ var PRNM = (function(exports) {
         var msInTimeSpan = endDateTime - startDateTime;
         // randomly-select an offset between 0 and msInTimeSpan, inclusive.
         var randVal = Math.random();
-        var randOffsetInMs = (Math.floor(randVal * msInTimeSpan));
-        var randDateTime = startDateTime.clone().addMilliseconds(randOffsetInMs);
+        var randOffsetInMs = (Math.floor(randVal * msInTimeSpan)); 
+       var randDateTime = startDateTime.clone().addMilliseconds(randOffsetInMs);
         // self.debug('randVal = ' + randVal + '; randDateTime = ' + randDateTime,fn);
         return randDateTime;
       },
@@ -913,7 +913,7 @@ var PRNM = (function(exports) {
        * @return {[type]}                           [description]
        */
       getOpenTimeRanges: function(wakeTime, sleepTime, medPromptTriggerDateTimes, rangeBoundsBufferMinutes) { var fn = 'getOpenTimeRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes + '; rangeBoundsBufferMinutes = ' + rangeBoundsBufferMinutes,fn);
+        self.debug('entered; wakeTime = ' + self.genDateFromTime(wakeTime) + '; sleepTime = ' + self.genDateFromTime(sleepTime) + '; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes + '; rangeBoundsBufferMinutes = ' + rangeBoundsBufferMinutes,fn);
 
         var openTimeRanges = [];
 
@@ -925,6 +925,7 @@ var PRNM = (function(exports) {
           ? medPromptTriggerDateTimes[0].clone().addMinutes(-(rangeBoundsBufferMinutes))
           : self.genDateFromTime(sleepTime);
         if (startTime < endTime) {
+          // self.debug('1 start: ' + startTime + '; end: ' + endTime,fn);
           openTimeRanges.push({ 'start': startTime, 'end': endTime });
         }
 
@@ -940,6 +941,7 @@ var PRNM = (function(exports) {
               endTime = medPromptTriggerDateTimes[i+1].clone().addMinutes(-(rangeBoundsBufferMinutes));
               // if a valid time range is found, then include it for return
               if(endTime > startTime) {
+                // self.debug('2 start: ' + startTime + '; end: ' + endTime,fn);
                 openTimeRanges.push({ 'start': startTime, 'end': endTime });
               }
             }
@@ -949,6 +951,7 @@ var PRNM = (function(exports) {
           startTime = medPromptTriggerDateTimes[medPromptTriggerDateTimes.length - 1].clone().addMinutes(rangeBoundsBufferMinutes),
           endTime = self.genDateFromTime(sleepTime);
           if (startTime < endTime) {
+            // self.debug('3 start: ' + startTime + '; end: ' + endTime,fn);
             openTimeRanges.push({ 'start': startTime, 'end': endTime });
           }
         }
@@ -1031,9 +1034,11 @@ var PRNM = (function(exports) {
         var wakeTime = self.userCfg.promptBehavior.wakeSleepTimes.daily.wakeTime;
         var sleepTime = self.userCfg.promptBehavior.wakeSleepTimes.daily.sleepTime;
         var openTimeRangesFor1Day = self.getOpenTimeRanges(wakeTime, sleepTime, medPromptTriggerDateTimes, self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMins);
+        // self.log([wakeTime, sleepTime, _.reduce(openTimeRangesFor1Day, function(accum, curr) { return accum + '; ' + curr.start.toISOString() + '; ' + curr.end.toISOString(); }, '') ]);
 
         // get all open time ranges for the specified period
         var openTimeRanges = self.getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal(openTimeRangesFor1Day, schedulingFrequencyAsICal);
+        self.log('openTimeRanges = ' + JSON.stringify(openTimeRanges),fn);
 
         // get the set of EMAs from-which to randomly-select and randomly schedule
         // var emaTransitionObjs = _.keys(self.appCfg.staticOrDefault.transition.onEMAYes);
@@ -1445,6 +1450,30 @@ var PRNM = (function(exports) {
 
 
       /**
+       * Removes doses that would occur in the past if scheduled today, and would occur tomorrow if scheduled in the future, and returns the remaining set.
+       * EX: Given a current time of 12PM and dose time set {9AM, 11AM, 1PM, 3PM, 5PM}, the returned set would be {1PM, 3PM, 5PM}.
+       * 
+       * @param  {[type]} doses) {            var fn = 'removeNonTodayDoses'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}        [description]
+       */
+      removeNonTodayDoses: function(doses) { var fn = 'removeNonTodayDoses'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        self.debug('entered',fn);
+        var currTime = new Date();
+        var midnight = (Date.today().addDays(1)).set({hour: 0, minute: 0, second: 0});
+        return _.filter(doses, function(d) {
+          var doseDateTime = self.genDateFromTime(d.time);
+          var  doseAfterCurr = (doseDateTime >= currTime)
+              ,doseBeforeMidnight = (doseDateTime < midnight);
+          self.debug('doseDateTime = ' + doseDateTime + '; currTime = ' + currTime + '; midnight = ' + midnight  + '; doseAfterCurr = ' + doseAfterCurr + '; doseBeforeMidnight = ' + doseBeforeMidnight, fn);
+          if(doseAfterCurr && doseBeforeMidnight) {
+            self.debug('returning dose at time: ' + d.time, fn);
+            return d;
+          }
+        });
+      },
+
+
+      /**
        * Gets the next dose's date-time from a sorted set of doses.
        * @param  {[type]} sortedDoses [description]
        * @return {[type]}             [description]
@@ -1537,7 +1566,8 @@ var PRNM = (function(exports) {
         var type = 'datetime'
 
         // get the doses, sorted.
-        var sortedDoses = self.getSortedDoses();
+        var sortedDoses = self.removeNonTodayDoses(self.getSortedDoses());
+        self.debug('sortedDoses = ' + JSON.stringify(sortedDoses), fn);
         var currDate = new Date();
 
         //*** Create the MedPrompt triggers ***
@@ -1607,7 +1637,7 @@ var PRNM = (function(exports) {
           // The “Active” state: This state is activated when the participant has a medication 
           // reminder due in the next 60 minutes. One hour (60 minutes) before the medication is 
           // due a “countdown” timer will begin for that dose.
-          self.debug('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + ' from the prompt time.', fn);
+          self.debug('Generating first Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + ' from the prompt time.', fn);
           // var triggerIdFirstPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + 'min';
           d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + 'min:W';
           var triggerIdFirstPrior     = self.genMedPromptTriggerId(d);
@@ -1636,7 +1666,7 @@ var PRNM = (function(exports) {
           // will trigger a vibrate and audible alert for the participant. This serves as their 
           // five-minute warning. At the time their dose is due (in this example 12:00pm) 
           // the pop-up will appear (as indicated on the logic diagram).
-          self.debug('Generating Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + ' from the prompt time.', fn);
+          self.debug('Generating second Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + ' from the prompt time.', fn);
           // var triggerIdSecondPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + 'min';
           d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + 'min:W';
           var triggerIdSecondPrior     = self.genMedPromptTriggerId(d);

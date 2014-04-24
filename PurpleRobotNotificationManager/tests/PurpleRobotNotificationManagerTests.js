@@ -300,12 +300,18 @@ suite('PurpleRobotNotificationManager', function() {
       ,[[0,0,0], [23,59,59], true]
       ], 
       function(startTimeParts, endTimeParts, expected) {
-        // V1: case-based.
-        var startDate = Date.today().set({hour:startTimeParts[0],minute:startTimeParts[1],second:startTimeParts[2]});
-        var endDate = Date.today().set({hour:endTimeParts[0],minute:endTimeParts[1],second:endTimeParts[2]});
-        var actual = prnm.getRandomDateTimeWithinRange(startDate, endDate);        
-        // must always be true
-        assert.equal(actual.between(startDate, endDate), expected);                    
+        // sample for each case n times.
+        var n = 10;
+        for (var i = 0; i < n; i++) {
+          // if((i*100/n)%25 == 0) { console.log("case " + (i*100/n)+"% done"); }
+          // V1: case-based.
+          var startDate = Date.today().set({hour:startTimeParts[0],minute:startTimeParts[1],second:startTimeParts[2]});
+          var endDate = Date.today().set({hour:endTimeParts[0],minute:endTimeParts[1],second:endTimeParts[2]});
+          var actual = prnm.getRandomDateTimeWithinRange(startDate, endDate);        
+          // must always be true
+          assert.equal(actual.between(startDate, endDate), expected);
+          console.log("success result: " + [startDate, endDate, actual])
+        }
       })
 
       //   // V2: combinatorial exhaustion.
@@ -366,6 +372,25 @@ suite('PurpleRobotNotificationManager', function() {
       })
     );
 
+
+    test('getRandomDateTime: gets a random date within any of the specified open ranges', cases([
+      [[{'start': Date.today().set({hour:8,minute:0,second:0}), 'end': Date.today().set({hour:9,minute:0,second:0}) }], true],
+      [[{'start': Date.today().set({hour:8,minute:0,second:0}), 'end': Date.today().set({hour:17,minute:0,second:0}) }], true],
+      [[{'start': Date.today().set({hour:0,minute:0,second:0}), 'end': Date.today().set({hour:23,minute:59,second:59}) }], true],
+      ], function(openTimeRanges, expected) {
+        console.log('openTimeRanges[0].start = ' + openTimeRanges[0].start + '; openTimeRanges[0].end = ' + openTimeRanges[0].end);
+        // sample for each case n times.
+        var n = 10;
+        for (var i = 0; i < n; i++) {
+          var actual = prnm.getRandomDateTime(openTimeRanges);
+          assert.equal(actual.between(openTimeRanges[0].start, openTimeRanges[0].end), expected);
+          console.log("success result: " + [openTimeRanges[0].start, openTimeRanges[0].end, actual])
+        }
+      })
+    );
+
+
+
     test('getQuotedAndDelimitedStr', cases([
       [['a'], "\'a\'" ]
       ,[['b', 'c', 'd'], "\'b\',\'c\',\'d\'"]
@@ -422,6 +447,7 @@ suite('PurpleRobotNotificationManager', function() {
       })
     );
 
+
     test('setWidget', function() {
       var actual = prnm.setWidget('H2H', prnm.setAllMedPrompts());
       assert.equal(actual, undefined);
@@ -454,7 +480,61 @@ suite('PurpleRobotNotificationManager', function() {
     );
 
 
-    test('getOpenTimeRanges', cases([
+    test('getScheduledAndUnscheduledEMAs', cases([
+         // [[[9,0,0],[10,0,0],[11,0,0]], self.userCfg.promptBehavior.wakeSleepTimes.daily.wakeTime, self.userCfg.promptBehavior.wakeSleepTimes.daily.sleepTime, 'DAILY', true]
+         [[[9,0,0],[21,0,0]], '09:00:00', '21:00:00', 'DAILY', true]
+        // ,[[], 'DAILY', true]
+        // ,[[], 'DAILY', true]
+      ], function(arr, wakeTime, sleepTime, schedulingFrequencyAsICal, expected) {
+        var medDateTime1 = Date.today().set({hour:arr[0][0],minute:arr[0][1],second:arr[0][2]});
+        var medDateTime2 = arr.length < 2 ? null : Date.today().set({hour:arr[1][0],minute:arr[1][1],second:arr[1][2]});
+        var medDateTime3 = arr.length < 3 ? null : Date.today().set({hour:arr[2][0],minute:arr[2][1],second:arr[2][2]});
+        var medPromptTriggerDateTimes = 
+          arr.length < 2
+            ? [medDateTime1]
+            : arr.length < 3
+              ? [medDateTime1,medDateTime2]
+              : [medDateTime1,medDateTime2,medDateTime3];
+
+        // reduce the logging level for output readability.
+        var appCfg = prnm.getAppCfg();
+        appCfg.logLevel = 3;
+
+        var wake = (prnm.genDateFromTime(wakeTime));
+        var sleep = (prnm.genDateFromTime(sleepTime));
+        self.log('wake = ' + wake.toISOString() + '; sleep = ' + sleep.toISOString() );
+
+        var n = 10;
+        for (var i = 0; i < n; i++) {
+          var actual = prnm.getScheduledAndUnscheduledEMAs(medPromptTriggerDateTimes, schedulingFrequencyAsICal);
+
+          if(!prnm.isNullOrUndefined(actual) && actual.length > 0) {
+            
+            var scheduledEMAs = actual[0];
+            var unscheduledEMAs = actual[1];
+
+            if(unscheduledEMAs.length > 0) {
+              throw 'Dont\'t have these! Every EMA needs a time slot! Go fix your user profile configuration (the enrollment form data).';
+            }
+
+            if(!prnm.isNullOrUndefined(scheduledEMAs) && scheduledEMAs.length > 0) {
+              // console.log('curr = ' + curr);
+              var craving = scheduledEMAs[0];
+              var se = scheduledEMAs[1];
+
+              var cravingBetweenStartAndEnd = craving.time.between(wake,sleep);
+              var seBetweenStartAndEnd = se.time.between(wake,sleep);
+              console.log('craving = ' + craving.time.toISOString() + '; SE = ' + se.time.toISOString());
+              assert.equal(cravingBetweenStartAndEnd, expected);
+              assert.equal(seBetweenStartAndEnd, expected);
+            }
+          }
+        }
+      })
+    );
+
+
+    test('getOpenTimeRanges: basic', cases([
         ['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 45, 0]
        ,['08:30:00', '11:30:00', [[9,0,0],[10,0,0],[11,0,0]], 30, 0]
        ,['08:00:00', '21:00:00', [[9,0,0],[12,0,0],[15,0,0]], 30, 4]
@@ -471,8 +551,13 @@ suite('PurpleRobotNotificationManager', function() {
         // console.log('triggerDateTimes', triggerDateTimes);
 
         var actual = prnm.getOpenTimeRanges(wakeTime, sleepTime, triggerDateTimes, rangeBoundsBufferMinutes);
-        console.log('actual', actual);
         assert.equal(actual.length, expectedRangeCount);
+        
+        console.log("success result: " + [wakeTime, sleepTime, medDateTime1, medDateTime2, medDateTime3, rangeBoundsBufferMinutes, expectedRangeCount, 
+          actual.length == 0 ? [] : _.reduce(actual, function(existing, curr) {
+            return existing + '; ' + curr.start + '; ' + curr.end;
+          })
+        ]);
       })
     );
 
@@ -548,13 +633,15 @@ suite('PurpleRobotNotificationManager', function() {
         assert.equal(diffs.length, 0);
 
         // test end time equality
-        var startActual = _.map(_.pluck(actual, "end"), function(st) { if(!_.isDate(st)) { console.log("A: " + st); } return st.toString(); });
-        var startExpected = _.map(_.pluck(r, "end"), function(st) { if(!_.isDate(st)) { console.log("B: " + st); return st; } return st.toString(); });
-        var diffs = _.difference(startActual, startExpected);
-        // console.log("startActual   = " + startActual);
-        // console.log("startExpected = " + startExpected);
+        var endActual = _.map(_.pluck(actual, "end"), function(st) { if(!_.isDate(st)) { console.log("A: " + st); } return st.toString(); });
+        var endExpected = _.map(_.pluck(r, "end"), function(st) { if(!_.isDate(st)) { console.log("B: " + st); return st; } return st.toString(); });
+        var diffs = _.difference(endActual, endExpected);
+        // console.log("endActual   = " + endActual);
+        // console.log("endExpected = " + endExpected);
         // console.log("diffs = " + diffs);
         assert.equal(diffs.length, 0);
+
+        // console.log('actual = ' + JSON.stringify(actual));
       })
     );
 
