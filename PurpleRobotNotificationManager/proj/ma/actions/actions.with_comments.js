@@ -58,8 +58,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				// delete the Non-Responsive widget trigger if it exists
 				dose.timeOffsetStr = '+0min:W';
 				var triggerIdToDelete = self.genMedPromptTriggerId(dose);
-				self.log('Deleting Non-Responsive widget trigger; ID = ' + triggerIdToDelete, fn);
-				self.deleteTrigger(triggerIdToDelete);
+				// self.log('Deleting Non-Responsive widget trigger; ID = ' + triggerIdToDelete, fn);
+				// self.deleteTrigger(triggerIdToDelete);
 
 				// delete the reminder MedPrompt trigger if it exists
 				triggerIdToDelete = (
@@ -71,7 +71,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.deleteTrigger(triggerIdToDelete);
 
 				// set the widget to its Neutral state
-				self.setWidgetToNeutralState();
+				// self.setWidgetToNeutralState();
 				self.log('EXITING',fn);
 			},
 
@@ -112,8 +112,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				// delete the Non-Responsive widget trigger if it exists
 				dose.timeOffsetStr = '+0min:W';
 				var triggerIdToDelete = self.genMedPromptTriggerId(dose);
-				self.log('Deleting Non-Responsive widget trigger; ID = ' + triggerIdToDelete, fn);
-				self.deleteTrigger(triggerIdToDelete);
+				// self.log('Deleting Non-Responsive widget trigger; ID = ' + triggerIdToDelete, fn);
+				// self.deleteTrigger(triggerIdToDelete);
 
 				// delete the reminder MedPrompt trigger if it exists
 				var triggerIdToDelete = (
@@ -125,7 +125,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.deleteTrigger(triggerIdToDelete);
 
 				// set the widget to its Neutral state
-				self.setWidgetToNeutralState();
+				// self.setWidgetToNeutralState();
 				self.log('EXITING',fn);
 			},
 
@@ -182,73 +182,74 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.log('Launching application = ' + applicationFullName, fn);
 				self.launchApplication(applicationFullName);
 				self.log('EXITING',fn);
-			},
-
-
-			/**
-			 * Widget is pressed.
-			 * @param  {[type]} 							[description]
-			 * @return {[type]}               [description]
-			 */
-			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-				self.log('ENTERED', fn);
-
-				self.log('Getting sorted doses...',fn);
-				var sortedDoses = self.getSortedDoses();
-				// var sortedDoses = [{"time":"13:00:00","medication":"Zyprexa","strength":"2","dispensationUnit":"mg"},{"time":"16:00:00","medication":"Zyprexa","strength":"2","dispensationUnit":"mg"}];
-				self.log('Getting most-recent dose...', fn);
-				var mostRecentDose = self.getMostRecentDose(sortedDoses);
-				self.log('mostRecentDose = ' + JSON.stringify(mostRecentDose), fn);
-
-				// detect the widget state
-				var widgetValues = self.fetchWidget(self.appCfg.staticOrDefault.namespace);
-				var isInNonResponsiveState = widgetValues.message == self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message;
-
-				if(isInNonResponsiveState) {
-					self.log('Widget is in non-responsive state; setting currentAction for redirect within ' + self.appCfg.staticOrDefault.namespace + '...', fn);
-					// v2: we will save a currentAction value instead, which the PhoneGap/web app can use to internally route the user as-necessary
-					var currentAction = {
-						'triggerId': null,
-						'actionDstType': 'onWidgetPress',
-						'actionTime': mostRecentDose.dose.time,
-						'actionName': mostRecentDose.dose.medication
-					};
-					self.log('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
-					self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);				
-				}
-				else {
-					self.log('Widget not in non-responsive state; H2H/MA will not redirect.', fn);
-				}
-
-				// launch application
-				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
-				self.log('Launching application = ' + applicationFullName);
-				self.launchApplication(applicationFullName);
-
-				// // return the widget to Neutral state when pressed
-				// self.log('Setting the widget to the neutral state', fn);
-				// self.setWidgetToNeutralState();
-
-				// // [20131101, 2-4h] [ES] [ns] [PRNM] Need the widget, on click, to cancel the next +30min MedPrompt. This prevents the user from being prompted to take the MedPrompt survey twice.
-				// self.log('Getting delayed MedPrompt trigger ID for next dose datetime', fn);
-				// var triggerIdOfTriggerToDelete = self.getMedPromptTriggerIdDelayed(mostRecentDose.dose);
-
-				// self.log('self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins = ' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins, fn);
-				// var dateTimeOfDoseMinusDelay = (self.genDateFromTime(mostRecentDose.dose.time));
-				// self.log('dateTimeOfDoseMinusDelay = ' + dateTimeOfDoseMinusDelay + '; calcing numMillis', fn);
-				// var numMillis = self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins * 60000;
-				// self.log('numMillis = ' + numMillis + '; subtracting minutes...', fn);
-				// dateTimeOfDoseMinusDelay = new Date(dateTimeOfDoseMinusDelay - numMillis);
-				// self.log('dateTimeOfDoseMinusDelay = ' + dateTimeOfDoseMinusDelay, fn);
-				// var shouldDelete = (new Date() > dateTimeOfDoseMinusDelay);
-				// self.log('Should delete trigger (' + triggerIdOfTriggerToDelete + ')? = ' + shouldDelete);
-				// if(shouldDelete) {
-				// 	self.log('Deleting trigger: ' + triggerIdOfTriggerToDelete, fn);
-				// 	self.deleteTrigger(triggerIdOfTriggerToDelete);
-				// }
-				
-				self.log('EXITING', fn);
 			}
+			// ,
+
+
+			// /**
+			//  * Widget is pressed.
+			//  * @param  {[type]} 							[description]
+			//  * @return {[type]}               [description]
+			//  */
+			// onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
+			// 	self.log('ENTERED', fn);
+
+			// 	self.log('Getting sorted doses...',fn);
+			// 	var sortedDoses = self.getSortedDoses();
+			// 	// var sortedDoses = [{"time":"13:00:00","medication":"Zyprexa","strength":"2","dispensationUnit":"mg"},{"time":"16:00:00","medication":"Zyprexa","strength":"2","dispensationUnit":"mg"}];
+			// 	self.log('Getting most-recent dose...', fn);
+			// 	var mostRecentDose = self.getMostRecentDose(sortedDoses);
+			// 	self.log('mostRecentDose = ' + JSON.stringify(mostRecentDose), fn);
+
+			// 	// detect the widget state
+			// 	var widgetValues = self.fetchWidget(self.appCfg.staticOrDefault.namespace);
+			// 	var isInNonResponsiveState = widgetValues.message == self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message;
+
+			// 	if(isInNonResponsiveState) {
+			// 		self.log('Widget is in non-responsive state; setting currentAction for redirect within ' + self.appCfg.staticOrDefault.namespace + '...', fn);
+			// 		// v2: we will save a currentAction value instead, which the PhoneGap/web app can use to internally route the user as-necessary
+			// 		var currentAction = {
+			// 			'triggerId': null,
+			// 			'actionDstType': 'onWidgetPress',
+			// 			'actionTime': mostRecentDose.dose.time,
+			// 			'actionName': mostRecentDose.dose.medication
+			// 		};
+			// 		self.log('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
+			// 		self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);				
+			// 	}
+			// 	else {
+			// 		self.log('Widget not in non-responsive state; H2H/MA will not redirect.', fn);
+			// 	}
+
+			// 	// launch application
+			// 	var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
+			// 	self.log('Launching application = ' + applicationFullName);
+			// 	self.launchApplication(applicationFullName);
+
+			// 	// // return the widget to Neutral state when pressed
+			// 	// self.log('Setting the widget to the neutral state', fn);
+			// 	// self.setWidgetToNeutralState();
+
+			// 	// // [20131101, 2-4h] [ES] [ns] [PRNM] Need the widget, on click, to cancel the next +30min MedPrompt. This prevents the user from being prompted to take the MedPrompt survey twice.
+			// 	// self.log('Getting delayed MedPrompt trigger ID for next dose datetime', fn);
+			// 	// var triggerIdOfTriggerToDelete = self.getMedPromptTriggerIdDelayed(mostRecentDose.dose);
+
+			// 	// self.log('self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins = ' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins, fn);
+			// 	// var dateTimeOfDoseMinusDelay = (self.genDateFromTime(mostRecentDose.dose.time));
+			// 	// self.log('dateTimeOfDoseMinusDelay = ' + dateTimeOfDoseMinusDelay + '; calcing numMillis', fn);
+			// 	// var numMillis = self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins * 60000;
+			// 	// self.log('numMillis = ' + numMillis + '; subtracting minutes...', fn);
+			// 	// dateTimeOfDoseMinusDelay = new Date(dateTimeOfDoseMinusDelay - numMillis);
+			// 	// self.log('dateTimeOfDoseMinusDelay = ' + dateTimeOfDoseMinusDelay, fn);
+			// 	// var shouldDelete = (new Date() > dateTimeOfDoseMinusDelay);
+			// 	// self.log('Should delete trigger (' + triggerIdOfTriggerToDelete + ')? = ' + shouldDelete);
+			// 	// if(shouldDelete) {
+			// 	// 	self.log('Deleting trigger: ' + triggerIdOfTriggerToDelete, fn);
+			// 	// 	self.deleteTrigger(triggerIdOfTriggerToDelete);
+			// 	// }
+				
+			// 	self.log('EXITING', fn);
+			// }
 
 		};
 

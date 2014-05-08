@@ -1204,12 +1204,12 @@ var PRNM = (function(exports) {
           if(unscheduledEMAs.length > 0) {
             var msg = "ERROR: the following EMAs do not have a randomly-scheduled time: " + _.pluck(unscheduledEMAs, 'name');
             self.error(msg, fn);
-            self.updateWidget({
-              'identifier': self.envConsts.appCfg.namespace,
-              'title': self.appCfg.staticOrDefault.updateWidget.title,
-              'message': msg,
-              'action': 'PurpleRobot.launchApplication("com.google.android.gm");'
-            });
+            // self.updateWidget({
+            //   'identifier': self.envConsts.appCfg.namespace,
+            //   'title': self.appCfg.staticOrDefault.updateWidget.title,
+            //   'message': msg,
+            //   'action': 'PurpleRobot.launchApplication("com.google.android.gm");'
+            // });
           }
           else {
             // Implementing the logic of:
@@ -1541,11 +1541,18 @@ var PRNM = (function(exports) {
       },
 
 
-      getMedPromptTriggerIdDelayed: function(dose) { var fn = 'getMedPromptTriggerIdDelayed'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+      /**
+       * Gets a delayed Medprompt trigger ID.
+       * @param  {[type]} dose          Dose obj.
+       * @param  {[type]} vectorString) String indicating direction (+ or -) and magnitude (number) of delay. EX: '+30min'
+       * @return {[type]}               [description]
+       */
+      getMedPromptTriggerIdDelayed: function(dose, vectorString) { var fn = 'getMedPromptTriggerIdDelayed'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         self.debug('entered',fn);
         var medPromptTriggerId = self.genMedPromptTriggerId(dose);
         self.debug('medPromptTriggerId = ' + medPromptTriggerId,fn);
-        var medPromptTriggerIdDelayed =  medPromptTriggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+        // var medPromptTriggerIdDelayed =  medPromptTriggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+        var medPromptTriggerIdDelayed =  medPromptTriggerId + vectorString;
         self.debug('exiting; medPromptTriggerIdDelayed = ' + medPromptTriggerIdDelayed,fn);
         return medPromptTriggerIdDelayed;
       },
@@ -1604,10 +1611,30 @@ var PRNM = (function(exports) {
 
           // * generate the +TTL (UMB says 30) minutes reminder instance of this trigger. *
           // var triggerIdPlusTTL = triggerId + '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
-          var triggerIdPlusTTL = self.getMedPromptTriggerIdDelayed(d);
+          var vectorString = '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min';
+          var triggerIdPlusTTL = self.getMedPromptTriggerIdDelayed(d, vectorString);
           actionScriptText = self.getMedPromptActionText(triggerIdPlusTTL, doseStr, d);
-          name = name + ' +' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min'
-          self.setDateTimeTrigger(triggerIdPlusTTL, type, name, actionScriptText, startDateTime.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), endDateTime.addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), repeatStr);
+          var nameTTL = name + vectorString;
+          self.setDateTimeTrigger(triggerIdPlusTTL, type, nameTTL, actionScriptText, startDateTime.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), endDateTime.addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins), repeatStr);
+
+          // * 20140507: generate the MP-5min reminder prompt (replaces the widget notification at this time)
+          vectorString = '-5min';
+          var triggerIdMinus5 = self.getMedPromptTriggerIdDelayed(d, vectorString);
+          // actionScriptText = self.getMedPromptActionText(triggerIdMinus5, doseStr, d);
+          var showNativeDialogParams = self.getQuotedAndDelimitedStr([
+             self.replaceTokensForMedPrompt('', d)
+            ,self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.message, d)
+            ,'OK'
+            ,null
+            ,null
+            ,null
+            ], ',', "'", [null]);
+          actionScriptText = 
+              'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
+            + 'PurpleRobot.playDefaultTone();'
+            + 'PurpleRobot.showNativeDialog(' + showNativeDialogParams + ');';
+          var namePre = name + vectorString + ' - notify prompt';
+          self.setDateTimeTrigger(triggerIdMinus5, type, namePre, actionScriptText, startDateTime.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins)), endDateTime.addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins)), repeatStr);
 
         });
 
@@ -1628,72 +1655,72 @@ var PRNM = (function(exports) {
           var sdt = self.genDateFromTime(d.time);
 
 
-          /***
-            Create countdown triggers
+          // /***
+          //   Create countdown triggers
 
-            Logic doc: https://docs.google.com/viewer?a=v&pid=gmail&attid=0.1&thid=13fa517a59a0eef5&mt=application/vnd.openxmlformats-officedocument.wordprocessingml.document&url=https://mail.google.com/mail/u/0/?ui%3D2%26ik%3D9c7d25f93d%26view%3Datt%26th%3D13fa517a59a0eef5%26attid%3D0.1%26disp%3Dsafe%26realattid%3Df_hiony1d90%26zw&sig=AHIEtbSDFhDKbLh21b9p7CtZpIG8K7tFQg
-          ***/
-          // * Active State: set 60-minutes-prior trigger *
-          // The “Active” state: This state is activated when the participant has a medication 
-          // reminder due in the next 60 minutes. One hour (60 minutes) before the medication is 
-          // due a “countdown” timer will begin for that dose.
-          self.debug('Generating first Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + ' from the prompt time.', fn);
-          // var triggerIdFirstPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + 'min';
-          d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + 'min:W';
-          var triggerIdFirstPrior     = self.genMedPromptTriggerId(d);
-          var startDateTimeFirstPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins));
-          var endDateTimeFirstPrior   = startDateTimeFirstPrior.clone().addMinutes(1);
-          var untilDateTimeFirstPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins));
-          var repeatStrFirstPrior     = 'FREQ=MINUTELY;INTERVAL=1;UNTIL=' + untilDateTimeFirstPrior.toICal();
+          //   Logic doc: https://docs.google.com/viewer?a=v&pid=gmail&attid=0.1&thid=13fa517a59a0eef5&mt=application/vnd.openxmlformats-officedocument.wordprocessingml.document&url=https://mail.google.com/mail/u/0/?ui%3D2%26ik%3D9c7d25f93d%26view%3Datt%26th%3D13fa517a59a0eef5%26attid%3D0.1%26disp%3Dsafe%26realattid%3Df_hiony1d90%26zw&sig=AHIEtbSDFhDKbLh21b9p7CtZpIG8K7tFQg
+          // ***/
+          // // * Active State: set 60-minutes-prior trigger *
+          // // The “Active” state: This state is activated when the participant has a medication 
+          // // reminder due in the next 60 minutes. One hour (60 minutes) before the medication is 
+          // // due a “countdown” timer will begin for that dose.
+          // self.debug('Generating first Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + ' from the prompt time.', fn);
+          // // var triggerIdFirstPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + 'min';
+          // d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins + 'min:W';
+          // var triggerIdFirstPrior     = self.genMedPromptTriggerId(d);
+          // var startDateTimeFirstPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.mins));
+          // var endDateTimeFirstPrior   = startDateTimeFirstPrior.clone().addMinutes(1);
+          // var untilDateTimeFirstPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins));
+          // var repeatStrFirstPrior     = 'FREQ=MINUTELY;INTERVAL=1;UNTIL=' + untilDateTimeFirstPrior.toICal();
           
-          self.debug(self.getQuotedAndDelimitedStr([triggerIdFirstPrior, sdt.clone(), startDateTimeFirstPrior, endDateTimeFirstPrior, untilDateTimeFirstPrior, repeatStrFirstPrior], ',', "'"), fn);
-          var actionScriptTextFirstPrior = self.getWidgetReminderTriggerActionText(
-            sdt, 
-            self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.message,
-            [
-               { "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
-              // ,{ "badge": '' }
-            ]
-          );
-          self.debug('actionScriptTextFirstPrior = ' + actionScriptTextFirstPrior, fn);
+          // self.debug(self.getQuotedAndDelimitedStr([triggerIdFirstPrior, sdt.clone(), startDateTimeFirstPrior, endDateTimeFirstPrior, untilDateTimeFirstPrior, repeatStrFirstPrior], ',', "'"), fn);
+          // var actionScriptTextFirstPrior = self.getWidgetReminderTriggerActionText(
+          //   sdt, 
+          //   self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.first.message,
+          //   [
+          //      { "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
+          //     // ,{ "badge": '' }
+          //   ]
+          // );
+          // self.debug('actionScriptTextFirstPrior = ' + actionScriptTextFirstPrior, fn);
 
-          var nameFirstPrior = triggerIdFirstPrior;
-          self.setDateTimeTrigger(triggerIdFirstPrior, type, nameFirstPrior, actionScriptTextFirstPrior, startDateTimeFirstPrior, endDateTimeFirstPrior, repeatStrFirstPrior);
+          // var nameFirstPrior = triggerIdFirstPrior;
+          // self.setDateTimeTrigger(triggerIdFirstPrior, type, nameFirstPrior, actionScriptTextFirstPrior, startDateTimeFirstPrior, endDateTimeFirstPrior, repeatStrFirstPrior);
 
 
-          // * Active State: set 5-minutes-prior trigger *
-          // At five (5) minutes before the time the dose is due to be taken, the widget 
-          // will trigger a vibrate and audible alert for the participant. This serves as their 
-          // five-minute warning. At the time their dose is due (in this example 12:00pm) 
-          // the pop-up will appear (as indicated on the logic diagram).
-          self.debug('Generating second Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + ' from the prompt time.', fn);
-          // var triggerIdSecondPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + 'min';
-          d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + 'min:W';
-          var triggerIdSecondPrior     = self.genMedPromptTriggerId(d);
-          var startDateTimeSecondPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins));
-          var endDateTimeSecondPrior   = startDateTimeSecondPrior.clone().addMinutes(1);
-          var untilDateTimeSecondPrior = sdt.clone().addMinutes(-1);    // don't run at the same time as the Non-Responsive State trigger
-          var repeatStrSecondPrior     = 'FREQ=MINUTELY;INTERVAL=1;UNTIL=' + untilDateTimeSecondPrior.toICal();
+          // // * Active State: set 5-minutes-prior trigger *
+          // // At five (5) minutes before the time the dose is due to be taken, the widget 
+          // // will trigger a vibrate and audible alert for the participant. This serves as their 
+          // // five-minute warning. At the time their dose is due (in this example 12:00pm) 
+          // // the pop-up will appear (as indicated on the logic diagram).
+          // self.debug('Generating second Active state trigger starting ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + ' from the prompt time.', fn);
+          // // var triggerIdSecondPrior     = self.genMedPromptTriggerId(d) + '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + 'min';
+          // d.timeOffsetStr = '-' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + 'min:W';
+          // var triggerIdSecondPrior     = self.genMedPromptTriggerId(d);
+          // var startDateTimeSecondPrior = sdt.clone().addMinutes(-(self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins));
+          // var endDateTimeSecondPrior   = startDateTimeSecondPrior.clone().addMinutes(1);
+          // var untilDateTimeSecondPrior = sdt.clone().addMinutes(-1);    // don't run at the same time as the Non-Responsive State trigger
+          // var repeatStrSecondPrior     = 'FREQ=MINUTELY;INTERVAL=1;UNTIL=' + untilDateTimeSecondPrior.toICal();
 
-          self.debug(self.getQuotedAndDelimitedStr([triggerIdSecondPrior, sdt.clone(), startDateTimeSecondPrior, endDateTimeSecondPrior, untilDateTimeSecondPrior, repeatStrSecondPrior], ',', "'"), fn);
-          var actionScriptTextSecondPrior = self.getWidgetReminderTriggerActionText(
-            sdt, 
-            self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.message,
-            [
-               { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
-              ,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
-              ,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
-              // ,{ "badge": '' }
-            ]
-          );
-          // do the 5-min-before haptic and auditory alerts...
-          actionScriptTextSecondPrior += ''
-            + 'if(minutesBeforeDose == ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + ') { PurpleRobot.vibrate(\'' + self.appCfg.staticOrDefault.vibratePattern + '\'); PurpleRobot.playDefaultTone(); }'
-            ;
-          self.debug('actionScriptTextSecondPrior = ' + actionScriptTextSecondPrior, fn);
+          // self.debug(self.getQuotedAndDelimitedStr([triggerIdSecondPrior, sdt.clone(), startDateTimeSecondPrior, endDateTimeSecondPrior, untilDateTimeSecondPrior, repeatStrSecondPrior], ',', "'"), fn);
+          // var actionScriptTextSecondPrior = self.getWidgetReminderTriggerActionText(
+          //   sdt, 
+          //   self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.message,
+          //   [
+          //      { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
+          //     ,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.active.textColor }
+          //     ,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.active.imageUrl }
+          //     // ,{ "badge": '' }
+          //   ]
+          // );
+          // // do the 5-min-before haptic and auditory alerts...
+          // actionScriptTextSecondPrior += ''
+          //   + 'if(minutesBeforeDose == ' + self.appCfg.staticOrDefault.updateWidget.widgetState.active.reminderMinutesBeforeDose.second.mins + ') { PurpleRobot.vibrate(\'' + self.appCfg.staticOrDefault.vibratePattern + '\'); PurpleRobot.playDefaultTone(); }'
+          //   ;
+          // self.debug('actionScriptTextSecondPrior = ' + actionScriptTextSecondPrior, fn);
 
-          var nameSecondPrior = triggerIdSecondPrior;
-          self.setDateTimeTrigger(triggerIdSecondPrior, type, nameSecondPrior, actionScriptTextSecondPrior, startDateTimeSecondPrior, endDateTimeSecondPrior, repeatStrSecondPrior);
+          // var nameSecondPrior = triggerIdSecondPrior;
+          // self.setDateTimeTrigger(triggerIdSecondPrior, type, nameSecondPrior, actionScriptTextSecondPrior, startDateTimeSecondPrior, endDateTimeSecondPrior, repeatStrSecondPrior);
 
 
           // * Non-Responsive State: 0 min: set trigger for NRS -> Neutral transition after 30min *
@@ -1705,60 +1732,60 @@ var PRNM = (function(exports) {
           //    will come back up automatically again. If it is ignored this time, the widget will 
           //    return to the neutral state.
 
-          // * Generate NonResponsive state trigger *
-          self.debug('Generating Medprompt+0mins state trigger starting at the prompt time (' + sdt + ').', fn);
-          // var triggerIdNonResponsive     = self.genMedPromptTriggerId(d) + '-nonResponsive+0min';
-          d.timeOffsetStr = '+0min:W';
-          var triggerIdNonResponsive     = self.genMedPromptTriggerId(d);
-          // 20140131: timing hack: add 30 sec to prevent N-R state from displaying prior to the MedPrompt
-          var startDateTimeNonResponsive = sdt.clone().addSeconds(30);
-          var endDateTimeNonResponsive   = startDateTimeNonResponsive.clone().addMinutes(1);
-          var untilDateTimeNonResponsive = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
-          var repeatStrNonResponsive     = 'FREQ=MINUTELY;COUNT=1';
-          self.debug(self.getQuotedAndDelimitedStr([triggerIdNonResponsive, sdt.clone(), startDateTimeNonResponsive, endDateTimeNonResponsive, untilDateTimeNonResponsive, repeatStrNonResponsive], ',', "'"), fn);
+          // // * Generate NonResponsive state trigger *
+          // self.debug('Generating Medprompt+0mins state trigger starting at the prompt time (' + sdt + ').', fn);
+          // // var triggerIdNonResponsive     = self.genMedPromptTriggerId(d) + '-nonResponsive+0min';
+          // d.timeOffsetStr = '+0min:W';
+          // var triggerIdNonResponsive     = self.genMedPromptTriggerId(d);
+          // // 20140131: timing hack: add 30 sec to prevent N-R state from displaying prior to the MedPrompt
+          // var startDateTimeNonResponsive = sdt.clone().addSeconds(30);
+          // var endDateTimeNonResponsive   = startDateTimeNonResponsive.clone().addMinutes(1);
+          // var untilDateTimeNonResponsive = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
+          // var repeatStrNonResponsive     = 'FREQ=MINUTELY;COUNT=1';
+          // self.debug(self.getQuotedAndDelimitedStr([triggerIdNonResponsive, sdt.clone(), startDateTimeNonResponsive, endDateTimeNonResponsive, untilDateTimeNonResponsive, repeatStrNonResponsive], ',', "'"), fn);
 
-          var actionScriptTextNonResponsive = self.getWidgetReminderTriggerActionText(
-            // sdt, 
-            self.getNextDoseDateTime(),
-            self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
-            [
-               { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
-              ,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
-              ,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
-              // ,{ "badge": '' }
-            ]
-          );
+          // var actionScriptTextNonResponsive = self.getWidgetReminderTriggerActionText(
+          //   // sdt, 
+          //   self.getNextDoseDateTime(),
+          //   self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
+          //   [
+          //      { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
+          //     ,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
+          //     ,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
+          //     // ,{ "badge": '' }
+          //   ]
+          // );
 
-          self.debug('actionScriptTextNonResponsive = ' + actionScriptTextNonResponsive, fn);
-          var nameNonResponsive = triggerIdNonResponsive;
-          self.setDateTimeTrigger(triggerIdNonResponsive, type, nameNonResponsive, actionScriptTextNonResponsive, startDateTimeNonResponsive, endDateTimeNonResponsive, repeatStrNonResponsive);
+          // self.debug('actionScriptTextNonResponsive = ' + actionScriptTextNonResponsive, fn);
+          // var nameNonResponsive = triggerIdNonResponsive;
+          // self.setDateTimeTrigger(triggerIdNonResponsive, type, nameNonResponsive, actionScriptTextNonResponsive, startDateTimeNonResponsive, endDateTimeNonResponsive, repeatStrNonResponsive);
           
 
-          // * Generate automatic-return-to-Neutral-state trigger *
-          self.debug('Generating Neutral state trigger starting at the prompt time (' + sdt + ').', fn);
-          d.timeOffsetStr = '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min:W';
-          var triggerIdNeutral     = self.genMedPromptTriggerId(d);
-          var startDateTimeNeutral = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
-          var endDateTimeNeutral   = startDateTimeNeutral.clone().addMinutes(1);
-          var untilDateTimeNeutral = startDateTimeNeutral.clone().addMinutes(1);
-          var repeatStrNeutral     = 'FREQ=MINUTELY;COUNT=1';
-          self.debug(self.getQuotedAndDelimitedStr([triggerIdNeutral, sdt.clone(), startDateTimeNeutral, endDateTimeNeutral, untilDateTimeNeutral, repeatStrNeutral], ',', "'"), fn);
+          // // * Generate automatic-return-to-Neutral-state trigger *
+          // self.debug('Generating Neutral state trigger starting at the prompt time (' + sdt + ').', fn);
+          // d.timeOffsetStr = '+' + self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins + 'min:W';
+          // var triggerIdNeutral     = self.genMedPromptTriggerId(d);
+          // var startDateTimeNeutral = sdt.clone().addMinutes(self.appCfg.staticOrDefault.updateWidget.widgetState.nonResponsive.TTLinMins);
+          // var endDateTimeNeutral   = startDateTimeNeutral.clone().addMinutes(1);
+          // var untilDateTimeNeutral = startDateTimeNeutral.clone().addMinutes(1);
+          // var repeatStrNeutral     = 'FREQ=MINUTELY;COUNT=1';
+          // self.debug(self.getQuotedAndDelimitedStr([triggerIdNeutral, sdt.clone(), startDateTimeNeutral, endDateTimeNeutral, untilDateTimeNeutral, repeatStrNeutral], ',', "'"), fn);
  
-          var actionScriptTextNeutral = self.getWidgetReminderTriggerActionText(
-            // sdt, 
-            self.getNextDoseDateTime(),
-            self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
-            [
-               { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
-              ,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
-              ,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
-              // ,{ "badge": self.getPoints() }
-            ]
-          );
-          self.debug('actionScriptTextNeutral = ' + actionScriptTextNeutral, fn);
+          // var actionScriptTextNeutral = self.getWidgetReminderTriggerActionText(
+          //   // sdt, 
+          //   self.getNextDoseDateTime(),
+          //   self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message,
+          //   [
+          //      { "message_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
+          //     ,{ "title_color": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.textColor }
+          //     ,{ "image": self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.imageUrl }
+          //     // ,{ "badge": self.getPoints() }
+          //   ]
+          // );
+          // self.debug('actionScriptTextNeutral = ' + actionScriptTextNeutral, fn);
 
-          var nameNeutral = triggerIdNeutral;
-          self.setDateTimeTrigger(triggerIdNeutral, type, nameNeutral, actionScriptTextNeutral, startDateTimeNeutral, endDateTimeNeutral, repeatStrNeutral);
+          // var nameNeutral = triggerIdNeutral;
+          // self.setDateTimeTrigger(triggerIdNeutral, type, nameNeutral, actionScriptTextNeutral, startDateTimeNeutral, endDateTimeNeutral, repeatStrNeutral);
 
         });
 
@@ -2221,7 +2248,7 @@ var PRNM = (function(exports) {
                 + 'self.setWidgetToNeutralState = ' + self.setWidgetToNeutralState.toString() + ';'
                 + 'self.replaceTokensForMedPrompt = ' + self.replaceTokensForMedPrompt.toString() + ';'
                 + 'self.genMedPromptTriggerId = ' + self.genMedPromptTriggerId.toString() + ';'
-                + 'self.getMedPromptTriggerIdDelayed = ' + self.getMedPromptTriggerIdDelayed.toString() + ';'
+                // + 'self.getMedPromptTriggerIdDelayed = ' + self.getMedPromptTriggerIdDelayed.toString() + ';'
                 + 'self.deleteTrigger = ' + self.deleteTrigger.toString() + ';'
                 + 'self.appConfigUpsert = ' + self.appConfigUpsert.toString() + ';'
             ;
@@ -2407,9 +2434,9 @@ var PRNM = (function(exports) {
         self.log('Setting all EMA prompts...', fn);
         self.setAllEMAPrompts(medPromptTriggerDateTimes);
 
-        // update the widget
-        self.log('Setting the widget...', fn);
-        self.setWidget(self.envConsts.appCfg.namespace, medPromptTriggerDateTimes);
+        // // update the widget
+        // self.log('Setting the widget...', fn);
+        // self.setWidget(self.envConsts.appCfg.namespace, medPromptTriggerDateTimes);
 
         self.displayToast('Purple Robot Notification Manager completed successfully at ' + (new Date()), true);
         self.log('exiting...', fn);

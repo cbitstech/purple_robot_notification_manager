@@ -61,8 +61,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 				dose.timeOffsetStr = '+0min:W';
 				var triggerIdToDelete = self.genMedPromptTriggerId(dose);
-				self.log('Deleting Non-Responsive widget trigger; ID = ' + triggerIdToDelete, fn);
-				self.deleteTrigger(triggerIdToDelete);
+
+
 
 
 				triggerIdToDelete = (
@@ -74,7 +74,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.deleteTrigger(triggerIdToDelete);
 
 
-				self.setWidgetToNeutralState();
+
 				self.log('EXITING',fn);
 			},
 
@@ -115,8 +115,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 				dose.timeOffsetStr = '+0min:W';
 				var triggerIdToDelete = self.genMedPromptTriggerId(dose);
-				self.log('Deleting Non-Responsive widget trigger; ID = ' + triggerIdToDelete, fn);
-				self.deleteTrigger(triggerIdToDelete);
+
+
 
 
 				var triggerIdToDelete = (
@@ -128,7 +128,7 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.deleteTrigger(triggerIdToDelete);
 
 
-				self.setWidgetToNeutralState();
+
 				self.log('EXITING',fn);
 			},
 
@@ -189,49 +189,50 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 				self.launchApplication(applicationFullName);
 				
 				self.log('EXITING',fn);
-			},
+			}
 
 
-			/**
-			 * Widget is pressed.
-			 * @param  {[type]} 							[description]
-			 * @return {[type]}               [description]
-			 */
-			onWidgetPress: function(codeFromPrnm) { var fn = 'onWidgetPress'; PurpleRobot.log('ENTERED: ' + fn + '; codeFromPrnm = ' + codeFromPrnm); eval('' + codeFromPrnm);
-				self.log('ENTERED', fn);
-
-				self.debug('Enumerated members of self: ' + _.keys(self), fn);
-
-				self.log('Getting next dose...', fn);
-
-				var mostRecentDose = self.getMostRecentDose(self.getSortedDoses());
-				self.log('mostRecentDose = ' + JSON.stringify(mostRecentDose), fn);
 
 
-				self.log('Detecting current widget state...', fn);
-				var widgetValues = self.fetchWidget(self.appCfg.staticOrDefault.namespace);
-				var isInNonResponsiveState = widgetValues.message == self.appCfg.staticOrDefault.updateWidget.widgetState.neutral.message;
-
-				if(isInNonResponsiveState) {
-					self.log('Widget is in non-responsive state; setting currentAction for redirect within ' + self.appCfg.staticOrDefault.namespace + '...', fn);
-
-					var currentAction = {
-						'triggerId': null,
-						'actionDstType': 'onWidgetPress',
-						'actionTime': mostRecentDose.dose.time,
-						'actionName': mostRecentDose.dose.medication
-					};
-					self.log('In namespace (' + self.appCfg.staticOrDefault.namespace + '), saving currentAction = ' + JSON.stringify(currentAction), fn);
-					self.appConfigUpsert(self.appCfg.staticOrDefault.namespace, 'currentAction', currentAction);				
-				}
-				else {
-					self.log('Widget not in non-responsive state; H2H/MA will not redirect.', fn);
-				}
 
 
-				var applicationFullName = self.appCfg.staticOrDefault.appPackageName;
-				self.log('Launching application = ' + applicationFullName);
-				self.launchApplication(applicationFullName);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -253,8 +254,8 @@ var ActionsFn = (function(exports) { var fn = 'actions';
 
 
 				
-				self.log('EXITING', fn);
-			}
+
+
 
 		};
 
