@@ -204,7 +204,12 @@ var PRNM = (function(exports) {
             self.persistString = function(namespace, key, value) { return PurpleRobot.persistString(namespace,key,value); };
             self.fetchString = function(namespace, key) { return PurpleRobot.fetchString(namespace,key); };
             self.scheduleScript = function(id, date, action) { return PurpleRobot.scheduleScript(id, date, action); };
-            self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { return PurpleRobot.showNativeDialog(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript); };
+            self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript, tag, priority) {  var fn = 'showNativeDialog'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+              self.debug('entered; params = ' + [title, msg, confirmTitle, cancelTitle, (self.isNullOrUndefined(confirmScript) || !_.isString(confirmScript) ? confirmScript : confirmScript.substr(0,100) + '...'), (self.isNullOrUndefined(cancelScript) || !_.isString(cancelScript) ? cancelScript : cancelScript.substr(0,100) + '...'), tag, priority],fn);
+              return (!self.isNullOrUndefined(tag) && !self.isNullOrUndefined(priority))
+                ? PurpleRobot.showNativeDialog(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript, tag, priority)
+                : PurpleRobot.showNativeDialog(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript);
+            };
             self.displayToast = function(msg, longOrShort) { PurpleRobot.emitToast(msg, longOrShort); };
             self.updatePurpleRobotConfiguration = function(jsonPrConfig) { var fn = 'updatePurpleRobotConfiguration'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
               self.debug('entered',fn);
@@ -301,7 +306,7 @@ var PRNM = (function(exports) {
             self.persistString = function(namespace, key, value) { var fn = 'persistString'; self.log('NOEXEC: persistString: namespace = \'' + namespace + '\'; key = \'' + key + '\'; value = \'' + value + '\'', fn); };
             self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
             self.scheduleScript = function(id, date, action) { var fn = 'scheduleScript'; self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr([id, date, action],','), fn); };
-            self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript], ','), fn); };
+            self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript, tag, priority) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript, tag, priority], ','), fn); };
             self.displayToast = function(msg, longOrShort) { var fn='displayToast'; self.log('NOEXEC: displayToast: longOrShort = ' + longOrShort + '; msg = ' + msg, fn); };
             self.updatePurpleRobotConfiguration = function(jsonPrConfig) { var fn = "updatePurpleRobotConfiguration"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
               self.debug('entered',fn);
@@ -422,7 +427,7 @@ var PRNM = (function(exports) {
             self.persistString = function(namespace, key, value) { var fn = 'persistString'; self.log('NOEXEC: persistString: namespace = \'' + namespace + '\'; key = \'' + key + '\'; value = \'' + value + '\'', fn); };
             self.fetchString = function(namespace, key) { var fn = 'fetchString'; self.log('NOEXEC: fetchString: namespace = \'' + namespace + '\'; key = \'' + key + '\'', fn); };
             self.scheduleScript = function(id, date, action) { var fn = 'scheduleScript'; self.log('NOEXEC: scheduleScript: ' + self.getQuotedAndDelimitedStr([id, date, action],','), fn); };
-            self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript],','), fn); };
+            self.showNativeDialog = function(title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript, tag, priority) { var fn = 'showNativeDialog'; self.log('NOEXEC: showNativeDialog: ' + self.getQuotedAndDelimitedStr([title, msg, confirmTitle, cancelTitle, confirmScript, cancelScript, tag, priority], ','), fn); };
             self.displayToast = function(msg, longOrShort) { var fn='displayToast'; self.log('NOEXEC: displayToast: longOrShort = ' + longOrShort + '; msg = ' + msg, fn); };
             self.updatePurpleRobotConfiguration = function(jsonPrConfig) { var fn = "updatePurpleRobotConfiguration"; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
               self.debug('entered',fn);
@@ -973,12 +978,13 @@ var PRNM = (function(exports) {
           // self.debug('randIdx = ' + randIdx, fn);
           var startTime = openTimeRanges[randIdx].start;
           var endTime = openTimeRanges[randIdx].end;
-          self.debug('startTime = ' + startTime + '; endTime = ' + endTime, fn);
+          self.debug('startTime = ' + startTime.toISOString() + '; endTime = ' + endTime.toISOString(), fn);
           randomlySelectedDateTime = self.getRandomDateTimeWithinRange(
             startTime,
             endTime
             );
           
+          self.debug('randomlySelectedDateTime = ' + randomlySelectedDateTime.toISOString(), fn);
           return randomlySelectedDateTime;
       },
 
@@ -1038,7 +1044,19 @@ var PRNM = (function(exports) {
 
         // get all open time ranges for the specified period
         var openTimeRanges = self.getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal(openTimeRangesFor1Day, schedulingFrequencyAsICal);
-        self.log('openTimeRanges = ' + JSON.stringify(openTimeRanges),fn);
+        self.log('OPEN TIME RANGES = ' + JSON.stringify(openTimeRanges),fn);
+        self.log('OPEN TIME RANGES = ' + 
+          _.reduce(
+            _.map(openTimeRanges, 
+              function(o) { 
+                return _.map(
+                  o, 
+                  function(t) { return t; }
+                );
+              }),
+            function(agg, i) { 
+              return agg + ',' + i;
+            }), fn);
 
         // get the set of EMAs from-which to randomly-select and randomly schedule
         // var emaTransitionObjs = _.keys(self.appCfg.staticOrDefault.transition.onEMAYes);
@@ -1063,6 +1081,8 @@ var PRNM = (function(exports) {
           };
           // survSched.id = self.appCfg.staticOrDefault.namespace + survSched.name + survSched.time;
           survSched.id = self.getEMAIDStr(self.appCfg.staticOrDefault.namespace, survSched.name, survSched.time);
+          self.log('EMA TIME = ' + JSON.stringify(survSched.time),fn);
+          self.log('EMA TIME = ' + survSched.time,fn);
           self.debug('survSched = ' + JSON.stringify(survSched),fn);
           return survSched;
         });
@@ -1132,7 +1152,9 @@ var PRNM = (function(exports) {
             + 'var childTriggerId = ' + (schedObj.childId == null ? null : '"' + schedObj.childTriggerId + '"') + ';'
             ])
           ,null
-          ], ',', "'", [null]);
+          ,'EMA', 1
+          ], ',', "'", [null]
+          );
 
         // the generated action to execute in a trigger
         actionScriptText = 
@@ -1317,8 +1339,9 @@ var PRNM = (function(exports) {
        * @param  {[type]} doseStr   [description]
        * @return {[type]}           [description]
        */
-      genMedPromptShowNativeDialogParams: function(triggerId, doseStr, dose) {
-        var p = self.getQuotedAndDelimitedStr([
+      genMedPromptShowNativeDialogParams: function(triggerId, doseStr, dose, tag, priority) { var fn = 'genMedPromptShowNativeDialogParams'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        // var p = self.getQuotedAndDelimitedStr([
+        var arr = [
            self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.title, dose)
           ,self.replaceTokensForMedPrompt(self.appCfg.staticOrDefault.showNativeDialog.medPrompt.message, dose)
           ,'Yes'
@@ -1351,8 +1374,14 @@ var PRNM = (function(exports) {
             + 'var dose = ' + doseStr + ';'
             + 'var triggerId = "' + triggerId + '";'
             ])
-          ], ',', "'");
+          , tag
+          , priority
+          ]
+          // , ',', "'");
+          ;
+        self.debug('showNativeDialogParams = ' + _.map(arr, function(p) { return p.length > 150 ? p.substr(0,150) : p; }), fn);
 
+        var p = self.getQuotedAndDelimitedStr(arr, ',', "'");
         return p;
       },
 
@@ -1365,7 +1394,8 @@ var PRNM = (function(exports) {
        * @return {[type]}           [description]
        */
       getMedPromptActionText: function(triggerId, doseStr, dose) { var fn = 'getMedPromptActionText'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        var showNativeDialogParams = self.genMedPromptShowNativeDialogParams(triggerId, doseStr, dose);
+        var showNativeDialogParams = self.genMedPromptShowNativeDialogParams(triggerId, doseStr, dose, 'MP', 100);
+
         self.debug('ENTERED: triggerId = ' + triggerId + '; doseStr = ' + doseStr + '; dose = ' + JSON.stringify(dose) + '; _.keys(dose) = ' + _.keys(dose) + '; self.appCfg.staticOrDefault.medPrompt.wisePillLastSeenUrl = ' + self.appCfg.staticOrDefault.medPrompt.wisePillLastSeenUrl, fn);
         var actionScriptText = 
             // v2 - intended code 
@@ -1394,7 +1424,6 @@ var PRNM = (function(exports) {
             + '  var wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTimeStr);'
             + '  wisePillLastSeenDateTime = new Date(wisePillLastSeenDateTime.getTime() + (wisePillLastSeenDateTime.getTimezoneOffset() * 60000));'
             + '  PurpleRobot.log(\'[INF][' + fn + '] wisePillLastSeenDateTime = \' + wisePillLastSeenDateTime);'
-
             + '  var currDateMinusNMin = now.addMinutes(-5);'
             + '  PurpleRobot.log(\'[INF][' + fn + '] currDateMinusNMin = \' + new Date(currDateMinusNMin));'
 
@@ -1628,7 +1657,11 @@ var PRNM = (function(exports) {
             ,null
             ,null
             ,null
-            ], ',', "'", [null]);
+            ,'MP', 10
+            ], ',', "'", [null]
+            );
+
+        self.debug('showNativeDialogParams = ' + _.map(showNativeDialogParams, function(p) { return p.length > 150 ? p.substr(0,150) : p; }), fn);
           actionScriptText = 
               'PurpleRobot.vibrate("'+ self.appCfg.staticOrDefault.vibratePattern +'");'
             + 'PurpleRobot.playDefaultTone();'

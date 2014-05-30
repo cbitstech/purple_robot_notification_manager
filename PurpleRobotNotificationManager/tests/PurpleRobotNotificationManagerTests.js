@@ -361,7 +361,7 @@ suite('PurpleRobotNotificationManager', function() {
         var startDate = Date.today().set({hour:startTimeParts[0],minute:startTimeParts[1],second:startTimeParts[2]});
         var endDate = Date.today().set({hour:endTimeParts[0],minute:endTimeParts[1],second:endTimeParts[2]});
         var actual1 = prnm.getRandomDateTimeWithinRange(startDate, endDate);        
-        var actual2 = prnm.getRandomDateTimeWithinRange(startDate, endDate);        
+        var actual2 = prnm.getRandomDateTimeWithinRange(startDate, endDate);
         // must be true to whatever degree of certainty the JS interpreter's PRNG provides...
         assert.notEqual(actual1, actual2);
 
@@ -503,6 +503,7 @@ suite('PurpleRobotNotificationManager', function() {
         var wake = (prnm.genDateFromTime(wakeTime));
         var sleep = (prnm.genDateFromTime(sleepTime));
         self.log('wake = ' + wake.toISOString() + '; sleep = ' + sleep.toISOString() );
+        self.log('wake = ' + wake + '; sleep = ' + sleep );
 
         var n = 10;
         for (var i = 0; i < n; i++) {
@@ -525,6 +526,7 @@ suite('PurpleRobotNotificationManager', function() {
               var cravingBetweenStartAndEnd = craving.time.between(wake,sleep);
               var seBetweenStartAndEnd = se.time.between(wake,sleep);
               console.log('craving = ' + craving.time.toISOString() + '; SE = ' + se.time.toISOString());
+              console.log('craving = ' + craving.time + '; SE = ' + se.time);
               assert.equal(cravingBetweenStartAndEnd, expected);
               assert.equal(seBetweenStartAndEnd, expected);
             }

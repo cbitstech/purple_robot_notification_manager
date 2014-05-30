@@ -4,44 +4,63 @@
       "id": "TestyMcTesterson",
       "type": "patient",
       "name": "TODO",
-      "email": "1",
-      "phoneNumber": "2",
-      "phonePassword": "3"
+      "email": "TestyMcTesterson",
+      "phoneNumber": "123-098-7654",
+      "phonePassword": "TestyMcTesterson"
     },
     {
       "id": "TODO",
-      "type": "emergencyContact",
-      "name": "18",
-      "relationship": "19",
-      "phoneNumber": "21",
-      "phonePassword": "TODO",
-      "email": "20",
+      "type": "psychiatrist",
+      "name": "John",
+      "phoneNumber": "555-1212",
       "address": [
         {
-          "type": "home",
-          "street": "22",
-          "city": "23",
-          "state": "24",
-          "zip": "25"
+          "type": "work",
+          "street": "Doe",
+          "city": "Chicago",
+          "state": "IL",
+          "zip": "60602"
+        }
+      ]
+    }
+  ],
+  "places": [
+    {
+      "id": "TODO",
+      "type": "pharmacy",
+      "name": "Walgreens",
+      "phoneNumber": "121-5555",
+      "address": [
+        {
+          "type": "work",
+          "street": "123 any st",
+          "city": "Anytown",
+          "state": "IL",
+          "zip": "12345"
         }
       ]
     },
     {
       "id": "TODO",
-      "type": "clinician",
-      "name": "16"
-    },
-    {
-      "id": "TODO",
-      "type": "pharm",
-      "name": "17"
+      "type": "clinic",
+      "name": "AwesomeClinic",
+      "phoneNumber": "789-4561",
+      "address": [
+        {
+          "type": "work",
+          "street": "456 clinic st",
+          "city": "Clinictown",
+          "state": "IL",
+          "zip": "67890"
+        }
+      ]
     }
   ],
   "promptBehavior": {
     "wakeSleepTimes": {
       "daily": {
-        "wakeTime": "14:50:00",
-        "sleepTime": "21:13:00"
+        "wakeTime": "7:00:00",
+        "sleepTime": "23:00:00"
       },
       "weekly": {
         "sleepTime": {
@@ -52,22 +71,16 @@
   },
   "doses": [
     {
-      "time": "16:05:00",
-      "medication": "6",
-      "strength": "7",
+      "time": "10:52:00",
+      "medication": "Haldol",
+      "strength": "4",
       "dispensationUnit": "mg"
     },
     {
-      "time": "08:09:00",
-      "medication": "10",
-      "strength": "11",
+      "time": "11:30:00",
+      "medication": "Thiothixene",
+      "strength": "5",
       "dispensationUnit": "dose"
-    },
-    {
-      "time": "23:13:00",
-      "medication": "14",
-      "strength": "15",
-      "dispensationUnit": "mg"
     }
   ]
 }
