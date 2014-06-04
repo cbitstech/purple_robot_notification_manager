@@ -325,7 +325,9 @@ var PRNM = (function(exports) {
               // var triggerArray = fs.existsSync(self.envConsts.appCfg.triggerPath) ? JSON.parse(fs.readFileSync(self.envConsts.appCfg.triggerPath)) : null;
               var triggerFileText = fs.existsSync(self.envConsts.appCfg.triggerPath) ? fs.readFileSync(self.envConsts.appCfg.triggerPath) : null;
               var triggerArray = !self.isNullOrUndefined(triggerFileText) && triggerFileText.length > 0 ? JSON.parse(triggerFileText) : null;
-              if (triggerArray == null) { fs.writeFileSync(self.envConsts.appCfg.triggerPath, JSON.stringify([triggerObj])); }
+              if (triggerArray == null) { 
+                fs.writeFileSync(self.envConsts.appCfg.triggerPath, JSON.stringify([triggerObj]));
+              }
               else {
                 var existingTrigger = _.find(triggerArray, function(t) { return t.identifier == triggerId; });
                 if (self.isNullOrUndefined(existingTrigger)) {
@@ -569,11 +571,13 @@ var PRNM = (function(exports) {
       getRandomDateTimeWithinRange: function(startDateTime, endDateTime) { var fn = 'getRandomDateTimeWithinRange'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
         // apparently doing a date-diff in terms of milliseconds is way-simpler than I thought: http://stackoverflow.com/questions/327429/whats-the-best-way-to-calculate-date-difference-in-javascript
         var msInTimeSpan = endDateTime - startDateTime;
+        
         // randomly-select an offset between 0 and msInTimeSpan, inclusive.
         var randVal = Math.random();
         var randOffsetInMs = (Math.floor(randVal * msInTimeSpan)); 
-       var randDateTime = startDateTime.clone().addMilliseconds(randOffsetInMs);
+        var randDateTime = startDateTime.clone().addMilliseconds(randOffsetInMs);
         // self.debug('randVal = ' + randVal + '; randDateTime = ' + randDateTime,fn);
+        
         return randDateTime;
       },
 
@@ -918,7 +922,7 @@ var PRNM = (function(exports) {
        * @return {[type]}                           [description]
        */
       getOpenTimeRanges: function(wakeTime, sleepTime, medPromptTriggerDateTimes, rangeBoundsBufferMinutes) { var fn = 'getOpenTimeRanges'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
-        self.debug('entered; wakeTime = ' + self.genDateFromTime(wakeTime) + '; sleepTime = ' + self.genDateFromTime(sleepTime) + '; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes + '; rangeBoundsBufferMinutes = ' + rangeBoundsBufferMinutes,fn);
+        self.debug('entered; wakeTime (' + wakeTime + ') = ' + self.genDateFromTime(wakeTime) + '; sleepTime (' + sleepTime + ') = ' + self.genDateFromTime(sleepTime) + '; medPromptTriggerDateTimes = ' + medPromptTriggerDateTimes + '; rangeBoundsBufferMinutes = ' + rangeBoundsBufferMinutes,fn);
 
         var openTimeRanges = [];
 
@@ -961,7 +965,26 @@ var PRNM = (function(exports) {
           }
         }
 
-        self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
+        // self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
+        self.log('OPEN TIME RANGES = ' + JSON.stringify(openTimeRanges),fn);
+        self.log('OPEN TIME RANGES = ' + 
+          (
+          !self.isNullOrUndefined(openTimeRanges) && _.isArray(openTimeRanges) && openTimeRanges.length > 0
+          ?
+          _.reduce(
+            _.map(openTimeRanges, 
+              function(o) { 
+                return _.map(
+                  o, 
+                  function(t) { return t; }
+                );
+              }),
+            function(agg, i) { 
+              return agg + ',' + i;
+            })
+          
+          : ''
+          ), fn);
         return openTimeRanges;
       },
 
@@ -1029,6 +1052,45 @@ var PRNM = (function(exports) {
 
 
       /**
+       * Basically a filter and transform function on open time ranges to ensure that EMAs may only be scheduled at time points now or in the future.
+       * @param  {[type]} openTimeRangesFor1Day      [description]
+       * @param  {[type]} schedulingFrequencyAsICal) {            var fn = 'getOpenTimeRangesForNowAndFuture'; if(!this.CURRENTLY_IN_TRIGGER [description]
+       * @return {[type]}                            [description]
+       */
+      getOpenTimeRangesForNowAndFuture: function(openTimeRangesFor1Day, schedulingFrequencyAsICal) { var fn = 'getOpenTimeRangesForNowAndFuture'; if(!this.CURRENTLY_IN_TRIGGER) { self = ctor.prototype; }
+        // get all open time ranges for the specified period
+        var openTimeRangesTmp = self.getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal(openTimeRangesFor1Day, schedulingFrequencyAsICal);
+        
+        // cases of start & end times occurring on or after currentDateTime:
+        //    !S && !E  -- no open time ranges.
+        //    !S && E   -- set the first range's start time to the current time. (works because openTimeRangesFor1Day comes to us in ascending sort order by start time)
+        //    S  && E   -- use this range.
+        var currDateTime = new Date();
+        var openTimeRangesEndingAfter = _.filter(openTimeRangesTmp, function(r) {
+          self.debug('r.end = ' + r.end + '; currDateTime = ' + currDateTime, fn);
+          return r.end >= currDateTime;
+        });
+        var openTimeRangesEndingAfterStartingAfter = _.filter(openTimeRangesEndingAfter, function(r) {
+          self.debug('r.start = ' + r.start + '; currDateTime = ' + currDateTime, fn);
+          return r.start >= currDateTime;
+        });
+        var openTimeRanges = openTimeRangesEndingAfterStartingAfter.length > 0
+          ? openTimeRangesEndingAfterStartingAfter
+          : openTimeRangesEndingAfter.length > 0
+            ? openTimeRangesEndingAfter
+            : [];
+        // handle the middle case:  !S && E
+        if (openTimeRanges.length > 0 && openTimeRanges[0].start <= currDateTime) {
+          var old = openTimeRanges[0].start;
+          openTimeRanges[0].start = currDateTime;
+          self.debug('modified openTimeRanges[0].start from (' + old + ') to (' + openTimeRanges[0].start + ')', fn);
+        }
+
+        return openTimeRanges;
+      },
+
+
+      /**
        * Determines the scheduled and 
        * @param  {[type]} medPromptTriggerDateTimes) {            var fn = 'getScheduledAndUnscheduledEMAs'; if(!this.CURRENTLY_IN_TRIGGER [description]
        * @return {[type]}                            [description]
@@ -1042,8 +1104,8 @@ var PRNM = (function(exports) {
         var openTimeRangesFor1Day = self.getOpenTimeRanges(wakeTime, sleepTime, medPromptTriggerDateTimes, self.appCfg.staticOrDefault.showNativeDialog.assessment.minTimeFromMedPromptMins);
         // self.log([wakeTime, sleepTime, _.reduce(openTimeRangesFor1Day, function(accum, curr) { return accum + '; ' + curr.start.toISOString() + '; ' + curr.end.toISOString(); }, '') ]);
 
-        // get all open time ranges for the specified period
-        var openTimeRanges = self.getOpenTimeRangesMultipliedForSchedulingFrequencyAsICal(openTimeRangesFor1Day, schedulingFrequencyAsICal);
+        var openTimeRanges = self.getOpenTimeRangesForNowAndFuture(openTimeRangesFor1Day, schedulingFrequencyAsICal);
+
         self.log('OPEN TIME RANGES = ' + JSON.stringify(openTimeRanges),fn);
         self.log('OPEN TIME RANGES = ' + 
           _.reduce(

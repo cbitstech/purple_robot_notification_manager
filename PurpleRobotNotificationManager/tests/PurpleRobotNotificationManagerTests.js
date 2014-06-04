@@ -496,16 +496,19 @@ suite('PurpleRobotNotificationManager', function() {
               ? [medDateTime1,medDateTime2]
               : [medDateTime1,medDateTime2,medDateTime3];
 
-        // reduce the logging level for output readability.
+        // reduce the logging level for output readability, and set other internal values that are needed on a per-case basis.
         var appCfg = prnm.getAppCfg();
+        var userCfg = prnm.getUserCfg();
         appCfg.logLevel = 3;
+        userCfg.promptBehavior.wakeSleepTimes.daily.wakeTime = wakeTime;
+        userCfg.promptBehavior.wakeSleepTimes.daily.sleepTime = sleepTime;
 
         var wake = (prnm.genDateFromTime(wakeTime));
         var sleep = (prnm.genDateFromTime(sleepTime));
         self.log('wake = ' + wake.toISOString() + '; sleep = ' + sleep.toISOString() );
         self.log('wake = ' + wake + '; sleep = ' + sleep );
 
-        var n = 10;
+        var n = 100;
         for (var i = 0; i < n; i++) {
           var actual = prnm.getScheduledAndUnscheduledEMAs(medPromptTriggerDateTimes, schedulingFrequencyAsICal);
 
@@ -756,17 +759,31 @@ suite('PurpleRobotNotificationManager', function() {
     );
 
 
-    test('fetchTriggerIds', function() {
+    test('fetchTriggerIds', function() { var fn = 'fetchTriggerIds';
+      for(var i = 0; i < 3; i++) {
+        var id = fn+'[' + i + ']';
+        var name = id;
+        prnm.setDateTimeTrigger(id, 'datetime', name, '', Date.today(), Date.today().add({days:1}), 'FREQ=DAILY;INTERVAL=1;UNTIL=' + (Date.today().add({days:1})).toICal());
+      }
+      
       var actualRet = prnm.fetchTriggerIds();
       assert(_.isArray(actualRet), true);
       assert(actualRet.length > 0, true);
       console.log('actualRet = ' + actualRet);
     });
 
-    test('fetchTrigger', cases([
-      ["Heart2HAART, MP: 6@4:05PM, 7mg"]
+
+    test('fetchOneTrigger', cases([
+      // ["Heart2HAART, MP: 6@4:05PM, 7mg"]
+      ['fetchOneTrigger[2]']
       ],
-      function(triggerId) {
+      function(triggerId) { var fn = 'fetchOneTrigger';
+        for(var i = 0; i < 3; i++) {
+          var id = fn+'[' + i + ']';
+          var name = id;
+          prnm.setDateTimeTrigger(id, 'datetime', name, '', Date.today(), Date.today().add({days:1}), 'FREQ=DAILY;INTERVAL=1;UNTIL=' + (Date.today().add({days:1})).toICal());
+        }
+  
         var actualRet = prnm.fetchTrigger(triggerId);
         // assert(actualRet != null, true);
         assert.notEqual(actualRet, null);
@@ -781,30 +798,6 @@ suite('PurpleRobotNotificationManager', function() {
         console.log('actualRet = ' + actualRet);
       })
     );
-
-
-//     test('getNextDateTime', cases([
-//        [[[9,0,0],[10,0,0],[11,0,0]], [8,55,0], 0]
-//       ,[[[8,0,0],[12,0,0],[16,0,0]], [9,55,0], 1]
-//       ,[[[8,0,0],[12,0,0],[16,0,0]], [13,55,0], 2]
-//       ,[[[8,0,0],[12,0,0],[16,0,0]], [17,55,0], null]
-//       ], function(sortedAscTimeArr, comparisonTimeArr, expected) {
-//         var medDateTime1 = Date.today().set({ hour: sortedAscTimeArr[0][0], minute: sortedAscTimeArr[0][1], second: sortedAscTimeArr[0][2]});
-//         var medDateTime2 = Date.today().set({ hour: sortedAscTimeArr[1][0], minute: sortedAscTimeArr[1][1], second: sortedAscTimeArr[1][2]});
-//         var medDateTime3 = Date.today().set({ hour: sortedAscTimeArr[2][0], minute: sortedAscTimeArr[2][1], second: sortedAscTimeArr[2][2]});
-//         var triggerDateTimes = [medDateTime1,medDateTime2,medDateTime3];
-
-//         var comparisonDateTime = Date.today().set({hour:comparisonTimeArr[0],minute:comparisonTimeArr[1],second:comparisonTimeArr[2]});
-//         var actualDateTime = prnm.getNextDateTime(triggerDateTimes, comparisonDateTime);
-// Date.today().setTimeToNow();
-//         if(expected != null) {
-//           assert.equal(Date.compare(actualDateTime, triggerDateTimes[expected]) == 0, true);
-//         }
-//         else {
-//           assert.equal(actualDateTime, null);
-//         }
-//       })
-//     );
 
 
     test('replaceTokensForUser', cases([
