@@ -640,7 +640,7 @@ var PRNM = (function(exports) {
                 'datetime_start': dsical,
                 'datetime_end': deical,
                 'datetime_repeat': repeatStr,
-                'fire_on_boot': true
+                'fire_on_boot': false
               };
               self.debug('triggerObj = ' + JSON.stringify(triggerObj), fn);
               self.log('updateTrigger for id = ' + id + '; name = ' + name + '; datetime_start = ' + dsical + '; datetime_repeat = ' + repeatStr, fn);
@@ -967,24 +967,24 @@ var PRNM = (function(exports) {
 
         // self.debug('exiting; openTimeRanges = ' + JSON.stringify(openTimeRanges), fn);
         self.log('OPEN TIME RANGES = ' + JSON.stringify(openTimeRanges),fn);
-        self.log('OPEN TIME RANGES = ' + 
-          (
-          !self.isNullOrUndefined(openTimeRanges) && _.isArray(openTimeRanges) && openTimeRanges.length > 0
-          ?
-          _.reduce(
-            _.map(openTimeRanges, 
-              function(o) { 
-                return _.map(
-                  o, 
-                  function(t) { return t; }
-                );
-              }),
-            function(agg, i) { 
-              return agg + ',' + i;
-            })
+        // self.log('OPEN TIME RANGES = ' + 
+        //   (
+        //   !self.isNullOrUndefined(openTimeRanges) && _.isArray(openTimeRanges) && openTimeRanges.length > 0
+        //   ?
+        //   _.reduce(
+        //     _.map(openTimeRanges, 
+        //       function(o) { 
+        //         return _.map(
+        //           o, 
+        //           function(t) { return t; }
+        //         );
+        //       }),
+        //     function(agg, i) { 
+        //       return agg + ',' + i;
+        //     })
           
-          : ''
-          ), fn);
+        //   : ''
+        //   ), fn);
         return openTimeRanges;
       },
 
